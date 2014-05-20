@@ -10,7 +10,8 @@ install:
   - sudo su postgres -c "createuser -s -d tester"
   - sudo su postgres -c "createdb -O tester travisdb"
   - sudo su postgres -c "echo 'CREATE EXTENSION postgis;' | psql travisdb"
-  - echo "DATABASES = {'default': {'ENGINE': 'django.contrib.gis.db.backends.postgis', 'NAME': 'travisdb', 'USER': 'tester'}}" > institutions/institutions/settings/local_settings.py
+  - |
+    echo "DATABASES = {'default': {'ENGINE': 'django.contrib.gis.db.backends.postgis', 'NAME': 'travisdb', 'USER': 'tester'}}" > institutions/institutions/settings/local_settings.py
   - cd institutions
   - pip install -r requirements.txt
 script:
