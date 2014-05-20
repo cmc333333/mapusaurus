@@ -4,7 +4,7 @@ python:
   - "2.7"
 install:
   - sudo apt-get install python-software-properties
-  - sudo apt-add-repository ppa:ubuntugis/ppa
+  - echo "yes" | sudo apt-add-repository ppa:ubuntugis/ppa
   - sudo apt-get update
   - sudo apt-get install postgresql-9.1-postgis
   - sudo su postgres -c "createuser -s -d tester"
