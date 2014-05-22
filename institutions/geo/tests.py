@@ -22,7 +22,7 @@ class ViewTest(TestCase):
     fixtures = ['many_tracts']
 
     def test_tracts(self):
-        resp = self.client.get(reverse('geo:tracts'),
+        resp = self.client.get(reverse('geo:tractsgeojson'),
                                {'state_fips': '11', 'county_fips': '222'})
         resp = json.loads(resp.content)
         features = resp['features']
@@ -35,7 +35,7 @@ class ViewTest(TestCase):
         self.assertTrue('1122233600' in ids)
 
     def test_tracts_page(self):
-        resp = self.client.get(reverse('geo:tracts'),
+        resp = self.client.get(reverse('geo:tractsgeojson'),
                                {'state_fips': '11', 'county_fips': '222',
                                 'page_size': 2, 'page_num': 0})
         resp = json.loads(resp.content)
@@ -46,7 +46,7 @@ class ViewTest(TestCase):
         self.assertTrue('1122233300' in ids)
         self.assertTrue('1122233400' in ids)
 
-        resp = self.client.get(reverse('geo:tracts'),
+        resp = self.client.get(reverse('geo:tractsgeojson'),
                                {'state_fips': '11', 'county_fips': '222',
                                 'page_size': 3, 'page_num': 1})
         resp = json.loads(resp.content)
@@ -56,7 +56,7 @@ class ViewTest(TestCase):
         ids = map(lambda feature: feature['properties']['geoid'], features)
         self.assertTrue('1122233600' in ids)
 
-        resp = self.client.get(reverse('geo:tracts'),
+        resp = self.client.get(reverse('geo:tractsgeojson'),
                                {'state_fips': '11', 'county_fips': '222',
                                 'page_size': 5, 'page_num': 22})
         resp = json.loads(resp.content)
