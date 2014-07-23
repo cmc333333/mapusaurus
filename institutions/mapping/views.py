@@ -4,6 +4,7 @@ from django.db import connection
 from django.shortcuts import render
 
 from geo.models import Geo
+from hmda.models import HMDARecord
 from respondants.models import Institution
 
 
@@ -73,11 +74,11 @@ def calculate_median_loans(lender, metro):
     if lender:
         lender_str = str(lender.agency_id) + lender.ffiec_id
         # First, count how many tracts this lender operates in
-        query = Geo.objects.filter(
-            geo_type=Geo.TRACT_TYPE, hmdarecord__lender=lender_str)
+        query = HMDARecord.objects.filter(
+            lender=lender_str, geoid__geo_type=Geo.TRACT_TYPE)
         if metro:
-            query = query.filter(cbsa=metro.geoid)
-        num_tracts = query.distinct('geoid').count()
+            query = query.filter(geoid__cbsa=metro.geoid)
+        num_tracts = query.values('geoid').distinct('geoid').count()
 
         cursor = connection.cursor()
         # Next, aggregate the # of loans per tract. This query will *not*
