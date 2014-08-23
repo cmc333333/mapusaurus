@@ -11,22 +11,21 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        batch = []
-        for tract in orm.StateCensusTract.objects.iterator():
-            # Don't use any constants as this is migration code
-            geo = orm.Geo(geoid=tract.geoid, geo_type=3, name=tract.name,
-                          state=tract.statefp, county=tract.countyfp,
-                          tract=tract.tractce, geom=tract.geom,
-                          minlat=tract.minlat, minlon=tract.minlon,
-                          maxlat=tract.maxlat, maxlon=tract.maxlon,
-                          centlat=float(tract.intptlat),
-                          centlon=float(tract.intptlon))
-            batch.append(geo)
-            if len(batch) == 1000:
-                orm.Geo.objects.bulk_create(batch)
-                batch = []
-        # Final batch
-        orm.Geo.objects.bulk_create(batch)
+        query = orm.StateCensusTract.objects.order_by('pk').iterator()
+        num_tracts = query.count()
+        for idx in range(0, num_tracts, 100):
+            batch = []
+            for tract in query[idx:idx + 100]:
+                # Don't use any constants as this is migration code
+                geo = orm.Geo(geoid=tract.geoid, geo_type=3, name=tract.name,
+                              state=tract.statefp, county=tract.countyfp,
+                              tract=tract.tractce, geom=tract.geom,
+                              minlat=tract.minlat, minlon=tract.minlon,
+                              maxlat=tract.maxlat, maxlon=tract.maxlon,
+                              centlat=float(tract.intptlat),
+                              centlon=float(tract.intptlon))
+                batch.append(geo)
+            orm.Geo.objects.bulk_create(batch)
 
     def backwards(self, orm):
         "Write your backwards methods here."
