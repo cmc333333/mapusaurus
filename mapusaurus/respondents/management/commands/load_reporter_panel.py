@@ -70,11 +70,12 @@ def parse_line(line):
 def get_institution(reporter):
     """ Get the Institution object that corresonds tot his ReporterRow. """
 
-    institution = Institution.objects.get(
+    query = Institution.objects.filter(
         year=reporter.year,
         agency__hmda_id=reporter.agency_code,
         respondent_id=reporter.respondent_id)
-    return institution
+    if query.exists():
+        return query.get()
 
 
 def get_parent(reporter):
@@ -166,6 +167,9 @@ def process_reporter(reporters):
     """ For each institution, add the National Information Center RSSD ID. """
     for reporter in reporters:
         bank = get_institution(reporter)
+        if not bank:
+            print 'Missing institution', reporter
+            break
 
         if reporter.respondent_rssd_id == '0000000000':
             bank.rssd_id = None
