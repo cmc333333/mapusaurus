@@ -161,7 +161,6 @@
         var layers = {
             MBBase: L.tileLayer('https://{s}.tiles.mapbox.com/v4/cfpb.k55b27gd/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken),
             Base: L.mapbox.tileLayer('cfpb.a760eab8', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            Water: L.mapbox.tileLayer('cfpb.FL_WATER_all_US', {errorTileUrl: '/static/basestyle/img/0.png'}),
             Boundaries: L.mapbox.tileLayer('cfpb.4da32f68', {errorTileUrl: '/static/basestyle/img/0.png'}),
             CountyLabels: L.mapbox.tileLayer('cfpb.becdd200', {errorTileUrl: '/static/basestyle/img/0.png'}),            
             MSALabels: L.mapbox.tileLayer('cfpb.5de9fd0f', {errorTileUrl: '/static/basestyle/img/0.png'}),
@@ -187,7 +186,6 @@
 
         // Overlay layers show up as checkboxes and can be enabled at the same time using the layer selector
         var overlays = {
-            'Water': layers.Water,
             'Boundaries': layers.Boundaries,
             'MSA Labels': layers.MSALabels,
             'County Labels': layers.CountyLabels,
@@ -203,7 +201,6 @@
 
         // Add all our primary default layers to the map up front
         layers.Base.addTo(map);
-        layers.Water.addTo(map);
         layers.Boundaries.addTo(map);
         layers.CountyLabels.addTo(map);
         layers.PctMinority.addTo(map);
@@ -219,7 +216,6 @@
         L.control.scale().addTo(map);
         
         // Make sure water and boundaries are above everything else
-        layers.Water.bringToFront();
         layers.PctMinority.bringToFront();
         layers.Boundaries.bringToFront();
         layers.CountyLabels.bringToFront();
