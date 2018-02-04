@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 record.institution_id = (
                     year #branch_location_line['YEAR']
                     + mapping[branch_location_line['REGAGNT']]
-                    + branch_location_line['RSSDHCR'].zfill(10)
+                    + branch_location_line['RSSDID'].zfill(10)
                 )
                 if Institution.objects.filter(institution_id=record.institution_id).count() > 0:
                     branch_location.append(record)
