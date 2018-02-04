@@ -15,7 +15,7 @@ def normalize(s):
 
 def find_institution_id(year, agency, rssdid):
     rssdid = rssdid.zfill(10)
-    query = Institutions.objects.filter(respondent_id=rssdid, year=year)
+    query = Institution.objects.filter(respondent_id=rssdid, year=year)
     agencies = {i.agency_id for i in query}
     for agency_id in mapping[agency]:
         if agency_id in agencies:
