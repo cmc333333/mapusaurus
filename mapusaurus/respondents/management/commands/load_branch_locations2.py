@@ -53,7 +53,9 @@ class Command(BaseCommand):
                     branch_location.append(record)
                 else:
                     print "Can't find institution_id"
-                    print '{}\t{}\t{}'.format(record.institution_id, record.name, record.street)
+                    print (branch_location_line['REGAGNT'],
+                            branch_location_line['RSSDID'],
+                            record.name, record.street)
                 if len(branch_location) > 9999:
                     count += len(branch_location)
                     Branch.objects.bulk_create(branch_location, batch_size=1000)
