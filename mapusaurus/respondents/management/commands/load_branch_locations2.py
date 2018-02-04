@@ -3,14 +3,23 @@ from django.core.management.base import BaseCommand
 from respondents.models import Branch, Institution
 
 mapping = {
-    'OCC': '1',
-    'FED': '2',
-    'FDIC': '3',
+    'OCC': (1, 9),
+    'FED': (2, 9),
+    'FDIC': (3,),
 }
 
 
 def normalize(s):
     return s.strip().upper()
+
+
+def find_institution_id(year, agency, rssdid):
+    rssdid = rssdid.zfill(10)
+    query = Institutions.objects.filter(respondent_id=rssdid, year=year)
+    agencies = {i.agency_id for i in query}
+    for agency_id in mapping[agency]:
+        if agency_id in agencies:
+            return year + str(agency_id) + rssdid
 
 
 class Command(BaseCommand):
@@ -31,16 +40,16 @@ class Command(BaseCommand):
                     city=normalize(branch_location_line['CITYBR']),
                     state=normalize(branch_location_line['STALPBR']),
                     zipcode=normalize(branch_location_line['ZIPBR']),
-                    lat=branch_location_line['SIMS_LATITUDE'],
-                    lon=branch_location_line['SIMS_LONGITUDE'],
+                    lat=branch_location_line['SIMS_LATITUDE'] or '0',
+                    lon=branch_location_line['SIMS_LONGITUDE'] or '0',
                 )
 
-                record.institution_id = (
-                    year #branch_location_line['YEAR']
-                    + mapping[branch_location_line['REGAGNT']]
-                    + branch_location_line['RSSDID'].zfill(10)
+                record.institution_id = find_institution_id(
+                    year, #branch_location_line['YEAR'],
+                    branch_location_line['REGAGNT'],
+                    branch_location_line['RSSDID'],
                 )
-                if Institution.objects.filter(institution_id=record.institution_id).count() > 0:
+                if record.institution_id:
                     branch_location.append(record)
                 else:
                     print "Can't find institution_id"
