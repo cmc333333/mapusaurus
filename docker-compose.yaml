@@ -1,0 +1,28 @@
+version: '3.3'
+services:
+  database:
+    image: kartoza/postgis:9.5-2.2
+    volumes:
+    - data:/var/lib/postgresql
+    environment:
+      ALLOW_IP_RANGE: 0.0.0.0/0
+  search:
+    image: elasticsearch:1
+    volumes:
+    - search_data:/usr/share/elasticsearch/data
+  app:
+    build: .
+    volumes:
+    - .:/app
+    depends_on:
+    - database
+    - search
+    environment:
+      DATABASE_URL: postgis://docker:docker@database/gis
+      DJANGO_SETTINGS_MODULE: mapusaurus.settings.docker
+    command: .docker/activate_then .docker/wait_for_db_then python mapusaurus/manage.py runserver 0.0.0.0:8000
+    ports:
+    - 8000:8000
+volumes:
+  data:
+  search_data:
