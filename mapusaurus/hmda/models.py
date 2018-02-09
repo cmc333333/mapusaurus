@@ -18,7 +18,8 @@ EDIT_STATUS_CHOICES = (
 
 LOAN_TYPE_CHOICES = ( 
     (1, 'Conventional (any loan other than FHA, VA, FSA, or RHS loans)'),
-    (2, 'FHA-insured (Federal Housing Administration)  3, VA-guaranteed (Veterans Administration)'),
+    (2, 'FHA-insured (Federal Housing Administration)'),
+    (3, 'VA-guaranteed (Veterans Administration)'),
     (4, 'FSA/RHS (Farm Service Agency or Rural Housing Service)'),
 )
 
@@ -132,7 +133,7 @@ class HMDARecord(models.Model):
        HMDA Loan Application Register Format
        https://www.ffiec.gov/hmdarawdata/FORMATS/2013HMDALARRecordFormat.pdf
     """
-    as_of_year = models.PositiveIntegerField(help_text="The reporting year of the HMDA record.")
+    as_of_year = models.PositiveIntegerField(db_index=True, help_text="The reporting year of the HMDA record.")
     respondent_id = models.CharField(max_length=10, help_text="A code representing the bank or other financial institution that is reporting the loan or application.")
     agency_code = models.CharField(max_length=1, choices=AGENCY_CHOICES, help_text="A code representing the federal agency to which the HMDA-reporting institution submits its HMDA data.")
     loan_type = models.PositiveIntegerField(choices=LOAN_TYPE_CHOICES, help_text="A code representing the type of loan applied for. Many loans are insured or guaranteed by government programs offered by Federal Housing Administration (FHA), the Department of Veterans Affairs (VA), or the Department of Agriculture's Rural Housing Service (RHS) or Farm Service Agency (FSA). All other loans are classified as conventional.")
@@ -177,35 +178,39 @@ class HMDARecord(models.Model):
     number_of_owner_occupied_units = models.CharField(max_length=8, help_text="The number of dwellings in the tract that are lived in by the owner.")
     number_of_1_to_4_family_units = models.CharField(max_length=8, help_text="The number of dwellings in the tract that are built to house fewer than 5 families.")
     application_date_indicator = models.PositiveIntegerField(choices=APPLICATION_DATE_INDICATOR_CHOICES, help_text="A code representing the date of the application. '0' means the application was made on or after 1/1/2004; '1' means the application was made before 1/1/2004; '2' means the application date is not available.")
-    
-    lender = models.CharField(max_length=11, db_index=True)
-    geoid = models.ForeignKey('geo.Geo', to_field='geoid',
+   
+    institution = models.ForeignKey('respondents.Institution', to_field='institution_id')
+    geo = models.ForeignKey('geo.Geo', to_field='geoid',
                               db_index=True)
 
     class Meta:
-        index_together = [("statefp", "countyfp"),
-                          ("statefp", "countyfp", "lender"),
-                          ("geoid", "lender")]
-
-    def auto_fields(self):
-        self.lender = self.agency_code + self.respondent_id
+        index_together = [("institution", "geo")]
 
     def save(self, *args, **kwargs):
-        self.auto_fields()
         super(HMDARecord, self).save(*args, **kwargs)
+
+class Year(models.Model):
+    """Various year fields in the app data"""
+    YEAR_CHOICES = zip( range(1970,2050), range(1970,2050) )
+    hmda_year = models.PositiveIntegerField(primary_key=True, choices=YEAR_CHOICES, help_text="The reporting year of the HMDA record.")
+    census_year = models.PositiveIntegerField(choices=YEAR_CHOICES, help_text="Year of census data.", null=False)
+    geo_year = models.PositiveIntegerField(choices=YEAR_CHOICES, help_text="Year that geographic boundaries were recorded.", null=False)
+
+    class Meta:
+        get_latest_by = 'hmda_year'
 
 
 class LendingStats(models.Model):
     """For certain lender x geo combinations, we have pre-computed
-    aggregations to speed up query time."""
+    hmda lar aggregations to speed up query time."""
 
-    lender = models.CharField(max_length=11)
-    geoid = models.ForeignKey('geo.Geo', to_field='geoid')
-
-    median_per_tract = models.PositiveIntegerField(
-        help_text=("Median number of applications per census tract within "
-                   + "this geo associated with this lender"))
-
+    institution = models.ForeignKey('respondents.Institution', to_field='institution_id')
+    geo = models.ForeignKey('geo.Geo', to_field='geoid')
+    lar_median = models.PositiveIntegerField(help_text="HMDA LAR median")
+    lar_count = models.PositiveIntegerField(help_text="Total HMDA LAR count")
+    fha_count = models.PositiveIntegerField(help_text="Total HMDA LAR count where loan_type=2(FHA)")
+    fha_bucket = models.PositiveIntegerField(help_text="Predetermined buckets calculated by find fha % of total lar count")
+    
     class Meta:
-        index_together = [("lender", "geoid")]
-        unique_together = [("lender", "geoid")]
+        index_together = [("institution", "geo")]
+        unique_together = [("institution", "geo")]

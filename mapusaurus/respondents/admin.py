@@ -1,12 +1,12 @@
 from django.contrib import admin
-from models import ZipcodeCityState, Agency, ParentInstitution, Institution
+from models import ZipcodeCityStateYear, Agency, ParentInstitution, Institution
 
 admin.site.disable_action('delete_selected')
 # Register your models here.
 
-class ZipcodeCityStateAdmin(admin.ModelAdmin):
-    readonly_fields = ('zip_code', 'plus_four', 'city', 'state')
-    list_display = ['unique_name', 'zip_code', 'city', 'state']
+class ZipcodeCityStateYearAdmin(admin.ModelAdmin):
+    readonly_fields = ('zip_code', 'plus_four', 'city', 'state', 'year')
+    list_display = ['unique_name', 'zip_code', 'city', 'state', 'year']
     search_fields = ['zip_code']
 
 class AgencyAdmin(admin.ModelAdmin):
@@ -26,12 +26,12 @@ class ParentInstitutionAdmin(admin.ModelAdmin):
     )
 
 class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'agency', 'assets', 'mailing_address', 'zip_code', 'ffiec_id', 'rssd_id']
+    list_display = ['name', 'agency', 'assets', 'mailing_address', 'zip_code', 'respondent_id', 'rssd_id']
     search_fields = ['name']
     #list_filter = ('agency__acronym')
     readonly_fields = (
         'year',
-        'ffiec_id',
+        'respondent_id',
         'agency',
         'assets',
         'tax_id',
@@ -45,7 +45,7 @@ class InstitutionAdmin(admin.ModelAdmin):
         'top_holder',
     )
 
-admin.site.register(ZipcodeCityState, ZipcodeCityStateAdmin)
+admin.site.register(ZipcodeCityStateYear, ZipcodeCityStateYearAdmin)
 admin.site.register(Agency, AgencyAdmin)
 admin.site.register(ParentInstitution, ParentInstitutionAdmin)
 admin.site.register(Institution, InstitutionAdmin)

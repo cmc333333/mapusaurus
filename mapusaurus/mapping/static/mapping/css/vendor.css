@@ -11,7 +11,7 @@
 }
 
 .leaflet-rrose-content {
-    margin: 14px 20px;
+    margin: 5px 8px;
 }
 
 .leaflet-rrose-tip-container {
@@ -22,16 +22,12 @@
     overflow: hidden;
 }
 
-.leaflet-rrose-tip-container-sse, .leaflet-rrose-tip-container-ese,
-.leaflet-rrose-tip-container-nne, .leaflet-rrose-tip-container-ene,
-.leaflet-rrose-tip-container-e {
-    margin-left: 0px;
+.leaflet-rrose-tip-container-se, .leaflet-rrose-tip-container-ne {
+    margin-left: 0;
 }
 
-.leaflet-rrose-tip-container-ssw, .leaflet-rrose-tip-container-wsw,
-.leaflet-rrose-tip-container-nnw, .leaflet-rrose-tip-container-wnw,
-.leaflet-rrose-tip-container-w {
-    margin-right: 0px;
+.leaflet-rrose-tip-container-sw, .leaflet-rrose-tip-container-nw {
+    margin-right: 0;
 }
 
 .leaflet-rrose-tip {
@@ -54,19 +50,19 @@
     margin: 11px auto 0;
 }
 
-.leaflet-rrose-tip-sse, .leaflet-rrose-tip-ese {
+.leaflet-rrose-tip-se {
     margin: 11px 11px 11px -8px; overflow: hidden;
 }
 
-.leaflet-rrose-tip-ssw, .leaflet-rrose-tip-wsw {
+.leaflet-rrose-tip-sw {
     margin: 11px 11px 11px 32px; overflow: hidden;
 }
 
-.leaflet-rrose-tip-nne, .leaflet-rrose-tip-ene, .leaflet-rrose-tip-e {
+.leaflet-rrose-tip-ne {
     margin: -8px 11px 11px -8px; overflow: hidden;
 }
 
-.leaflet-rrose-tip-nnw, .leaflet-rrose-tip-wnw, .leaflet-rrose-tip-w {
+.leaflet-rrose-tip-nw {
     margin: -8px 11px 11px 32px; overflow: hidden;
 }
 
@@ -89,7 +85,7 @@ a.leaflet-rrose-close-button:hover {
 }
 
 .leaflet-rrose-content p {
-    margin: 18px 0;
+    margin: 5px 0;
 }
 
 .leaflet-rrose-scrolled {
@@ -109,35 +105,13 @@ a.leaflet-rrose-close-button:hover {
 }
 
 .leaflet-rrose-content-wrapper {
-    -moz-border-radius:    20px;
-    -webkit-border-radius: 20px;
-    border-radius:         20px;
-}
-
-.leaflet-rrose-content-wrapper-sse, .leaflet-rrose-content-wrapper-ese {
-    -moz-border-radius:    0px 20px 20px 20px;
-    -webkit-border-radius: 0px 20px 20px 20px;
-    border-radius:         0px 20px 20px 20px;
-}
-
-.leaflet-rrose-content-wrapper-ssw, .leaflet-rrose-content-wrapper-wsw {
-    -moz-border-radius:    20px 0px 20px 20px;
-    -webkit-border-radius: 20px 0px 20px 20px;
-    border-radius:         20px 0px 20px 20px;
-}
-
-.leaflet-rrose-content-wrapper-nnw, .leaflet-rrose-content-wrapper-wnw, .leaflet-rrose-content-wrapper-w {
-    -moz-border-radius:    20px 20px 0px 20px;
-    -webkit-border-radius: 20px 20px 0px 20px;
-    border-radius:         20px 20px 0px 20px;
-}
-
-.leaflet-rrose-content-wrapper-nne, .leaflet-rrose-content-wrapper-ene, .leaflet-rrose-content-wrapper-e {
-    -moz-border-radius:    20px 20px 20px 0px;
-    -webkit-border-radius: 20px 20px 20px 0px;
-    border-radius:         20px 20px 20px 0px;
+    -moz-border-radius:    0px;
+    -webkit-border-radius: 0px;
+    border-radius:         0px;
 }
 
 .leaflet-rrose-content {
     font: 12px/1.4 "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
+
+.leaflet-control-minimap{border:rgba(255,255,255,1) solid;box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:3px;background:#f8f8f9;transition:all .2s}.leaflet-control-minimap a{background-color:rgba(255,255,255,1);background-repeat:no-repeat;z-index:99999;transition:all .2s}.leaflet-control-minimap a.minimized-bottomright{-webkit-transform:rotate(180deg);transform:rotate(180deg);border-radius:0}.leaflet-control-minimap a.minimized-topleft{-webkit-transform:rotate(0deg);transform:rotate(0deg);border-radius:0}.leaflet-control-minimap a.minimized-bottomleft{-webkit-transform:rotate(270deg);transform:rotate(270deg);border-radius:0}.leaflet-control-minimap a.minimized-topright{-webkit-transform:rotate(90deg);transform:rotate(90deg);border-radius:0}.leaflet-control-minimap-toggle-display{background-image:url(images/toggle.svg);background-size:cover;position:absolute;border-radius:3px 0 0}.leaflet-oldie .leaflet-control-minimap-toggle-display{background-image:url(images/toggle.png)}.leaflet-control-minimap-toggle-display-bottomright{bottom:0;right:0}.leaflet-control-minimap-toggle-display-topleft{top:0;left:0;-webkit-transform:rotate(180deg);transform:rotate(180deg)}.leaflet-control-minimap-toggle-display-bottomleft{bottom:0;left:0;-webkit-transform:rotate(90deg);transform:rotate(90deg)}.leaflet-control-minimap-toggle-display-topright{top:0;right:0;-webkit-transform:rotate(270deg);transform:rotate(270deg)}.leaflet-oldie .leaflet-control-minimap{border:1px solid #999}.leaflet-oldie .leaflet-control-minimap a{background-color:#fff}.leaflet-oldie .leaflet-control-minimap a.minimized{filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=2)}

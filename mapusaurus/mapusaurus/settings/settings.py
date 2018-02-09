@@ -18,15 +18,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '($2ob)%vv$wv7jl-$e!=#z!+bhihs@o%$+@c0yqrz&8*f@#hhi'
+SECRET_KEY = 'YOUR-SECRET-KEY-HERE'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 TEMPLATE_DEBUG = True
 
+# ADD HOST HERE
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -40,7 +40,6 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'django.contrib.humanize',
     'localflavor',
-    'south',
     'haystack',
     'rest_framework',
     'basestyle',
@@ -63,6 +62,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
+STATIC_ROOT = '/var/www/static/'
+
 ROOT_URLCONF = 'mapusaurus.urls'
 
 WSGI_APPLICATION = 'mapusaurus.wsgi.application'
@@ -70,7 +71,7 @@ WSGI_APPLICATION = 'mapusaurus.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-DATABASES = {'default': {'ENGINE': '', 'NAME': '', 'USER': '', 'PASSWORD': ''}}
+#DATABASES = {'default': {'ENGINE': '', 'NAME': '', 'USER': '', 'PASSWORD': ''}}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -92,14 +93,6 @@ TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_URL = '/static/'
 
-LEAFLET_CONFIG = {
-    'RESET_VIEW': False,
-    'TILES': 'http://tile.stamen.com/toner-lite/{z}/{x}/{y}.jpg',
-    'SCALE': 'imperial',
-    'MIN_ZOOM': 7,
-    'MAX_ZOOM': 18
-}
-
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
@@ -116,26 +109,5 @@ REST_FRAMEWORK = {
 }
 
 SOUTH_TESTS_MIGRATE = False
-
-LONGTERM_CACHE_TIMEOUT = 60*60*24*30   # 30 days
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-    },
-    'long_term_geos': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/tmp/long_term_geos',
-        'TIMEOUT': LONGTERM_CACHE_TIMEOUT,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000000
-        }
-    }
-}
-
-if 'test' in sys.argv:
-    CACHES['long_term_geos']['BACKEND'] = 'django.core.cache.backends.dummy.DummyCache'
-
-CONTACT_US_EMAIL = 'feedback@example.com'
 
 from mapusaurus.settings.local_settings import *

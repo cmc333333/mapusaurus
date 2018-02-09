@@ -1,41 +1,76 @@
 import json
-
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from django.db.models import Count
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from hmda.models import HMDARecord
-from geo.views import get_censustract_geoids 
-from rest_framework.renderers import JSONRenderer
+from geo.models import Geo
+from geo.views import get_censustract_geos 
+from respondents.models import Institution
 
+
+def base_hmda_query():
+    query = Q(property_type__in=[1,2], owner_occupancy=1, lien_status=1)
+    return query
 
 def loan_originations(request):
-    """Get loan originations for a given lender, county combination. This
-    ignores year for the moment."""
-    lender = request.GET.get('lender')
+    institution_id = request.GET.get('lender')
+    metro = request.GET.get('metro')
     action_taken_param = request.GET.get('action_taken')
+    lender_hierarchy = request.GET.get('lh')
+    peers = request.GET.get('peers')
+    year = request.GET.get('year')
+    census_tracts = get_censustract_geos(request)
 
-    geoids = get_censustract_geoids(request)
-    action_taken = action_taken_param.split(',')
-    if geoids and lender and action_taken:
-        query = HMDARecord.objects.filter(
-            # actions 7-8 are preapprovals to ignore
-            property_type__in=[1,2], owner_occupancy=1, lien_status=1,
-            lender=lender, action_taken__in=action_taken
-        ).filter(geoid_id__in=geoids).values(
-            'geoid', 'geoid__census2010households__total'
-        ).annotate(volume=Count('geoid'))
-        return query
-    else:
-        return HttpResponseBadRequest("Missing one of lender, action_taken and county or geoid.")
+    query = HMDARecord.objects.all()
+    if institution_id:
+        institution_selected = get_object_or_404(Institution, pk=institution_id)
+        if lender_hierarchy == 'true':
+            hierarchy_list = institution_selected.get_lender_hierarchy(False, False, year)
+            if len(hierarchy_list) > 0:
+                query = query.filter(institution__in=hierarchy_list)
+            else: 
+                query = query.filter(institution=institution_selected)
+        elif peers == 'true' and metro:
+            metro_selected = Geo.objects.filter(geo_type=Geo.METRO_TYPE, geoid=metro).first()
+            peer_list = institution_selected.get_peer_list(metro_selected, True, False)
+            if len(peer_list) > 0:
+                query = query.filter(institution__in=peer_list)
+            else:
+                query = query.filter(institution=institution_selected)
+        else: 
+            query = query.filter(institution=institution_selected)
+    
+    if len(census_tracts) > 0:
+        query = query.filter(geo__in=census_tracts)
+
+    if action_taken_param:
+        action_taken_selected = action_taken_param.split(',')
+        if action_taken_selected:
+            query = query.filter(action_taken__in=action_taken_selected)
+
+    #count on geo_id
+    query = query.values('geo_id', 'geo__census2010households__total', 'geo__centlat', 'geo__centlon',
+                         'geo__state', 'geo__county', 'geo__tract').annotate(volume=Count('geo_id'))
+    return query; 
 
 def loan_originations_as_json(request):
     records = loan_originations(request)
     data = {}
-    for row in records:
-        data[row['geoid']] = {
-            'volume': row['volume'],
-            'num_households': row['geoid__census2010households__total'],
-        }
+    if records:
+        for row in records:
+            tract_id = row['geo__state']+row['geo__county']+row['geo__tract']
+            data[row['geo_id']] = {
+                'geoid': row['geo_id'],
+                'tractid': tract_id,
+                'volume': row['volume'],
+                'num_households': row['geo__census2010households__total'],
+                'centlat': row['geo__centlat'],
+                'centlon': row['geo__centlon'],
+            }
     return data
 
 def loan_originations_http(request):
-    return HttpResponse(json.dumps(loan_originations_as_json(request)))
+    json_data = loan_originations_as_json(request)
+    if json_data:
+        return HttpResponse(json.dumps(json_data))

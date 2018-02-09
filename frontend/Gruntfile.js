@@ -2,6 +2,8 @@ module.exports = function(grunt) {
 
   'use strict';
 
+  var isCI = !!(process.env.JENKINS_URL || process.env.CONTINUOUS_INTEGRATION);
+  
   grunt.initConfig({
 
     /**
@@ -26,7 +28,8 @@ module.exports = function(grunt) {
       },
       map: {
         src: [
-          'frontend/bower_components/leaflet-rrose/leaflet.rrose.css'
+          'frontend/src/less/leaflet.rrose.css',
+          'frontend/bower_components/leaflet-minimap/dist/Control.MiniMap.min.css'
         ],
         dest: 'frontend/dist/map/css/vendor.css',
       }
@@ -44,7 +47,7 @@ module.exports = function(grunt) {
         options: {
           paths: ['frontend/src/less'],
           compress: false,
-          sourceMap: true,
+          sourceMap: !isCI,
           sourceMapFilename: 'frontend/dist/basestyle/css/mapusaurus_sourcemap.css.map',
           sourceMapURL: '/static/basestyle/css/mapusaurus_sourcemap.css.map'
         },
@@ -76,24 +79,34 @@ module.exports = function(grunt) {
      */
     uglify: {
       options: {
-        compress: true,
+        compress: {},
         mangle: false,
-        beautify: true
+        beautify: true,
+        sourceMap: !isCI,
+        sourceMapIncludeSources: !isCI
       },
       vendor: {
         src: [
           'frontend/bower_components/jquery/dist/jquery.min.js',
           'frontend/bower_components/jquery.easing/js/jquery.easing.js',
           'frontend/bower_components/typeahead/dist/typeahead.bundle.js',
-          'frontend/bower_components/cf-expandables/src/js/cf-expandables.js'
+          'frontend/bower_components/cf-expandables/src/js/cf-expandables.js',
+          'frontend/bower_components/tooltipsy/tooltipsy.min.js',
+          'frontend/bower_components/tablesorter/dist/js/jquery.tablesorter.min.js',
+          'frontend/bower_components/tablesorter/dist/js/jquery.tablesorter.widgets.min.js'
         ],
         dest: 'frontend/dist/basestyle/js/vendor.min.js'
       },
       vendor_map: {
         src: [
           'frontend/bower_components/underscore/underscore.js',
+          'frontend/bower_components/blockui/jquery.blockUI.js',
+          'frontend/src/js/leaflet/leaflet.js',
           'frontend/bower_components/leaflet-hash/leaflet-hash.js',
-          'frontend/bower_components/leaflet-rrose/rrose-src.js'
+          'frontend/bower_components/Leaflet.utfgrid/dist/leaflet.utfgrid.js',
+          'frontend/bower_components/leaflet-rrose/rrose-src.js',
+          'frontend/bower_components/numeral-js/min/numeral.min.js',
+          'frontend/bower_components/leaflet-MiniMap/dist/Control.MiniMap.min.js'
         ],
         dest: 'frontend/dist/map/js/map-vendor.min.js'
       },
@@ -106,8 +119,19 @@ module.exports = function(grunt) {
         dest: 'frontend/dist/search/js/metro-search.min.js'
       },
       map: {
-        src: ['frontend/src/js/map.js'],
+        src: [
+          'frontend/src/js/map.js',
+          'frontend/src/js/minorityKey.js',
+          'frontend/src/js/asyncHandlers.js',
+          'frontend/src/js/drawCircles.js',
+          'frontend/src/js/drawKey.js',
+          'frontend/src/js/helpers.js'
+        ],
         dest: 'frontend/dist/map/js/map.min.js'
+      },
+      table: {
+        src: ['frontend/src/js/table.js'],
+        dest: 'frontend/dist/map/js/table.min.js'
       },
       map_layout: {
         src: ['frontend/src/js/map-layout.js'],
@@ -137,32 +161,11 @@ module.exports = function(grunt) {
             dest: 'frontend/dist/basestyle/fonts/',
             filter: 'isFile'
           },
-          /* Source images that where manually downloaded to the src/img folder */
+          /* Source images that were manually downloaded to the src/img folder */
           {
             expand: true,
             flatten: true,
-            src: ['frontend/src/img/logo_210.png'],
-            dest: 'frontend/dist/basestyle/img/',
-            filter: 'isFile'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/src/img/font-awesome/*'],
-            dest: 'frontend/dist/basestyle/img/font-awesome/',
-            filter: 'isFile'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/src/img/choropleth-key.svg'],
-            dest: 'frontend/dist/basestyle/img/',
-            filter: 'isFile'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/src/img/icon_spinner_2x.gif'],
+            src: ['frontend/src/img/*'],
             dest: 'frontend/dist/basestyle/img/',
             filter: 'isFile'
           }

@@ -1,8 +1,8 @@
 import json
 
 from django.contrib.gis.db import models
-
-
+from django.shortcuts import get_list_or_404
+ 
 class Geo(models.Model):
     STATE_TYPE, COUNTY_TYPE, TRACT_TYPE, METRO_TYPE, MICRO_TYPE = range(1, 6)
     METDIV_TYPE, = range(6, 7)
@@ -27,6 +27,8 @@ class Geo(models.Model):
 
     geom = models.MultiPolygonField(srid=4269)
 
+    year = models.SmallIntegerField(db_index=True)
+
     minlat = models.FloatField()
     maxlat = models.FloatField()
     minlon = models.FloatField()
@@ -37,12 +39,13 @@ class Geo(models.Model):
     objects = models.GeoManager()
 
     class Meta:
-        index_together = [("geo_type", "minlat", "minlon"),
-                          ("geo_type", "minlat", "maxlon"),
-                          ("geo_type", "maxlat", "minlon"),
-                          ("geo_type", "maxlat", "maxlon"),
-                          ("geo_type", "centlat", "centlon"),
-                          ("geo_type", "cbsa")]
+        index_together = [("geo_type", "minlat", "minlon", "year"),
+                          ("geo_type", "minlat", "maxlon", "year"),
+                          ("geo_type", "maxlat", "minlon", "year"),
+                          ("geo_type", "maxlat", "maxlon", "year"),
+                          ("geo_type", "centlat", "centlon", "year"),
+                          ("geo_type", "cbsa", "year"), 
+                          ("state", "year"),]
 
     def tract_centroids_as_geojson(self):
         """Convert this model into a geojson string"""
@@ -74,3 +77,8 @@ class Geo(models.Model):
         return geojson.replace(
             '"$_$"',
             self.geom.simplify(preserve_topology=True).geojson)
+
+    def get_censustract_geos_by_msa(self):
+        """returns tracts associated with an MSA"""
+        tracts = get_list_or_404(Geo, geo_type=Geo.TRACT_TYPE, cbsa=self.cbsa, year=self.year)
+        return tracts

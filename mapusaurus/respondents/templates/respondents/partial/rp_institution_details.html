@@ -11,12 +11,13 @@
 		<dd>{{institution.zip_code.state|upper}} </dd>
 
 	<dt>FFIEC ID: </dt>
-		<dd>{{institution.ffiec_id}} </dd>
+		<dd>{{institution.respondent_id}} </dd>
 
 	<dt>Agency Code: </dt>
 		<dd>{{institution.agency_id}}</dd>
  
 	<dt>RSSD ID (link to NIC):</dt>
 		<dd> <a href="http://www.ffiec.gov/nicpubweb/nicweb/OrgHierarchySearchForm.aspx?parID_RSSD={{institution.rssd_id}}&parDT_END=99991231" target="_new">{{institution.rssd_id}}</a></dd>
+		<dd>NOTE: NIC data fields are for the entire institution and are not specific to HMDA. (ex: Primary Regulator)</dd>
 
 </dl>

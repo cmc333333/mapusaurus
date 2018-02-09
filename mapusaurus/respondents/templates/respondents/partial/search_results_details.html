@@ -7,9 +7,9 @@
             <!-- Expandable turned off for now -->
             <!--<div class="expandable_header expandable_target">-->
                 <div class="search-result-record__left-col">
-                    <h4 class="search-result-record__title"><a href="{% url 'respondents:select_metro' res.agency_id res.ffiec_id %}">{{res.name}}</a></h4>
+                    <h4 class="search-result-record__title"><a href="{% url 'respondents:select_metro' res.year res.agency_id res.respondent_id %}">{{res.name}}</a></h4>
                     <div class="search-result-record__cfpb-id">
-                        <a href="{% url 'respondents:respondent_profile' res.agency_id res.ffiec_id %}">0{{res.agency_id}}-{{res.ffiec_id}}</a>
+                        <a href="{% url 'respondents:respondent_profile' res.year res.agency_id res.respondent_id %}">{{res.agency_id}}{{res.respondent_id}}</a>
                     </div>
                     <div class="search-result-record__hq">
                         <small>HQ:</small> {{res.zip_code.city|title}}, {{res.zip_code.state|upper}}
@@ -31,53 +31,6 @@
                 </div>
 
             </div>
-
-            <div class="expandable_content" id="expandable-{{res.id}}">
-                
-                <div class="search-result-record__ec-left">
-                    <dl>
-                        <dt>Institution Type</dt>
-                        <dd>Depository Institution</dd>
-                    </dl>
-                </div>
-                <div class="search-result-record__ec-right">
-                    <p><a class="btn" href="{% url 'respondents:select_metro' res.agency_id res.ffiec_id %}">Select MSA</a></p>
-                </div>
-
-                <div class="search-result-record__ec-left">
-                    <dl>
-                        <dt>Regulating Agency</dt>
-                        <dd>{{res.agency.full_name}}</dd>
-                    </dl>
-                    <!--
-                    <dl>
-                        <dt>RSSD ID</dt>
-                        <dd>{{res.rssd_id}}</dd>
-                    </dl>
-                    -->
-                </div>
-                <div class="search-result-record__ec-right">
-                    <dl>
-                        <dt>More Information</dt>
-                        <dd><a href="{% url 'respondents:respondent_profile' res.agency_id res.ffiec_id %}">Panel and TS data</a></dd>
-                    </dl>
-                <!--
-                    <p><a class="search-result-record__link" href="{% url 'respondents:respondent_profile' res.agency_id res.ffiec_id %}">Panel and TS data</a></p>
-                -->
-                <!--
-                <form action="{% url 'map' %}" method="GET">
-                    
-                        <label for="geoid">Search and select a city to view map:</label>
-                        <input type="text" id="geoid">
-                        <input type="hidden" name="lender" value="{{ lender.agency_id }}{{ lender.ffiec_id }}">
-                        <input type="hidden" id="msa-field" name="metro">
-                        <button type="submit" id="metro-search__submit" class="btn btn__disabled" disabled>Go to MSA</button>
-                    
-                </form>
-                -->
-                </div>
-
-            </div><!-- ./expandable_content -->
 
         </div><!-- ./expandable -->
 

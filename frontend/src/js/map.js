@@ -1,446 +1,305 @@
 'use strict';
 
+// Handle console.log statements in older versions of IE
 if (!window.console) console = {log: function() {}};
 
-    // When the DOM is loaded, do the following:
-    $(document).ready(function(){
+// globals for table.js
+var showDataContainer; 
+var destroyLarChart;
 
-        $('.tabs').show();
+// globals for layer selection and query type
+var cat, catId;
+var geoQueryType = 'selected';
 
-        $( window ).resize(function() {
+// When the DOM is loaded, get state from URL params and add click listeners
+$(document).ready(function(){
+    // Set globals for peer, branch, and hierarchy checkboxes
+    var lhStatus, peerStatus, branchStatus;
+
+    // Invoke our tabs JavaScript for left navigation
+    $('.tabs').show();
+
+    // On window resize (when not in print view) set the map height anew
+    $( window ).resize(function() {
+        if( window.location.href.indexOf('print') < 0){
             setMapHeight();
-        });
-
-        // When minority changes, redraw the circles with appropriate styles
-        $('#category-selector').on('change', function(e) {
-            var val = $('#category-selector').val();
-            layerUpdate(val);  
-        });
-
-        // Check to see if we have any parameters for category-selector
-        if( typeof loadParams.category != 'undefined'){
-            $('#category-selector').val( loadParams.category.values );
-            layerUpdate( loadParams.category.values );
-        } else {
-            addParam( 'category', 'inv_non_hisp_white_only_perc' );
-            layerUpdate( 'inv_non_hisp_white_only_perc' );
         }
+    });
 
-        // Check to see if we have any parameters for action-taken
-        if( typeof loadParams.action != 'undefined'){
-            $('#action-taken-selector').val( loadParams.action.values );
+    // Check to see if we have any parameters for action-taken
+    if( typeof loadParams.action !== 'undefined'){
+        $('#action-taken-selector').val( loadParams.action.values );
+    } else {
+        addParam( 'action', 'all-apps-5' );
+    }
+
+    // Check to see if we have any parameters for Lender Hierarchy
+    if( typeof loadParams.lh !== 'undefined'){
+        lhStatus = (loadParams.lh.values === 'true');
+        $('#superSelect').prop('checked', lhStatus );
+        $('#peerSelect').prop('disabled', lhStatus);
+        toggleSuper(lhStatus);
+    } else {
+        addParam('lh', false );
+    }
+
+    // On LH selection, change the params, and use toggle Helper
+    $('#superSelect').change( function(){
+        var el = $('#superSelect');
+        var status = el.prop('checked');
+        toggleSuper(status);
+        $('#peerSelect').prop('disabled', status);
+        initCalls(geoQueryType);
+    });
+
+    // Set a global variable that determines which data will be pulled through on "init" function
+    // Bounds should be passed for MSA and All, but not for the selected MSA.
+    // If no bounds and Metro, then just that MSA
+    // If bounds and type MSA, then all MSAs
+    // If bounds and no type, then Everything.  
+
+    if( typeof loadParams.geo_query_type !== 'undefined'){
+        geoQueryType = loadParams.geo_query_type.values;
+        $('#geoTypeQuerySelector').val(geoQueryType);
+    } else {
+        addParam('geo_query_type', 'selected' );
+    }
+
+    $('#geoTypeQuerySelector').change( function(){
+        var el = $('#geoTypeQuerySelector');
+        geoQueryType = el.val();
+        addParam('geo_query_type', geoQueryType );
+        moveEndAction[geoQueryType]();
+    });
+    // End geoQueryType code       
+
+    // Check for branch URL parameters on load
+    if( typeof loadParams.branches !== 'undefined'){
+        branchStatus = (loadParams.branches.values === 'true');
+        $('#branchSelect').prop('checked', branchStatus );
+        toggleBranches(branchStatus);
+    } else {
+        addParam('branches', false );
+    }
+
+    // On Branch selection, change params and use the toggle helper
+    $('#branchSelect').change( function(){
+        var el = $('#branchSelect');
+        var status = el.prop('checked');
+        toggleBranches(status);            
+    });
+
+    if( typeof loadParams.peers !== 'undefined'){
+        if( lhStatus === true){
+            $('#peerSelect').prop('checked', false);
+            console.log('Peer and Hierarchy cannot be checked at the same time. Unchecking Peers.');
         } else {
-            addParam( 'action', 'all-apps-5' );
+            peerStatus = (loadParams.peers.values === 'true');
+            $('#peerSelect').prop('checked', peerStatus );
+            togglePeers(peerStatus);
         }
+    } else {
+        addParam('peers', false );
+    }
 
-        // When the user changes the action taken data selector, re-initialize
-        $('#action-taken-selector').on('change', function(){
-            addParam( 'action', $('#action-taken-selector option:selected').val() );
-            init();
-        })
-
-
-        //Let the application do its thing 
-        init();
-        
+    // If peers selected, change params and toggle helper
+    $('#peerSelect').change( function(){
+        var el = $('#peerSelect');
+        var status = el.prop('checked');
+        togglePeers(status);
+        $('#superSelect').prop('disabled', status);
+        initCalls(geoQueryType);
     });
     
-    // Go get the tract centroids and supporting data, THEN build a data object (uses jQuery Deferreds)
-    function init(){
-        $.when( getTractsInBounds( getBoundParams() ), getTractData( getBoundParams(), getActionTaken( $('#action-taken-selector option:selected').val() ))).done( function(data1, data2){
-            rawGeo = data1[0];
-            rawData = data2[0];
-            createTractDataObj(); 
-            redrawCircles(dataStore.tracts);
-            $('#bubbles_loading').hide();
-        });
+    // When the user changes the action taken data selector, re-initialize
+    $('#action-taken-selector').on('change', function(){
+        var act = $('#action-taken-selector option:selected').val();
+        addParam( 'action', act);
+        $('#actionTaken').text( getActionTaken( act ) );
+        initCalls(geoQueryType);
+    });
+
+    // Generate tooltips - that one self documents
+    generateTooltips();
+
+    // Handle Map Key Show / Hide
+    var keyHide = $('.hide-key');
+    var keyShow = $('.show-key');
+    var keyContents = $('.key-contents');
+    var minorityKeyContents = $('.minority-key');
+    keyHide.on('click', function(e){
+        keyShow.removeClass('hidden');
+        keyContents.addClass('hidden');
+        minorityKeyContents.addClass('hidden');
+        keyHide.addClass('hidden');
+    });
+    keyShow.on('click', function(e){
+        keyHide.removeClass('hidden');
+        keyContents.removeClass('hidden');
+        minorityKeyContents.removeClass('hidden');
+        keyShow.addClass('hidden');
+    });
+
+    // Handle layer detection on load, and click actions following
+    if( typeof loadParams.category !== 'undefined'){
+        assignCat(loadParams.category.values);
+        layerUpdate( cat );
+        $( catId ).addClass('active-layer');
+    } else {
+        assignCat('inv_non_hisp_white_only_perc');
+        layerUpdate( cat );
+        $( catId ).addClass('active-layer');
     }
-
-    // Supporting function to adjust the leaflet map to the height of the window
-    function setMapHeight() {
-        /* Set the map div to the height of the browser window minus the header. */
-        var viewportHeight = $(window).height();
-        var warningBannerHeight = $('#warning-banner').outerHeight();
-        var headerHeight = $('#header').outerHeight();
-        var mapHeaderHeight = $('#map-header').outerHeight();
-        var mapHeight = (viewportHeight - (warningBannerHeight + headerHeight + mapHeaderHeight));
-        $('#map-aside').css('height', mapHeight);
-        $('#map').css('height', mapHeight);
-    }
-
-
-    /* 
-        ---- GET DATA SCRIPTS ----
-    */    
-
-    var rawGeo, rawLar, rawMinority, rawData,
-    dataStore = {};
-    dataStore.tracts = {};
     
-    function getTractsInBounds( bounds, callback ){
-        //TODO: Modify parameters for this endpoint to take param hooks instead of forward slash
-
-        $('#bubbles_loading').show();
-
-        // Create the appropriate URL path to return values
-        var endpoint = '/api/tractCentroids/', 
-            params = { neLat: bounds.neLat,
-                       neLon: bounds.neLon,
-                       swLat: bounds.swLat,
-                       swLon: bounds.swLon };
-        return $.ajax({
-            url: endpoint, data: params, traditional: true,
-            success: console.log('tract Get successful')
-        }).fail( function( status ){
-            console.log( 'no data was available at' + endpoint + '. status: ' + status );
-        });
-
-        if( typeof callback === 'function' && callback() ){
-            callback;
-        }
-
-    }    
-
-    function getTractData( bounds, actionTakenVal, callback ){
-        $('#bubbles_loading').show();
-        var endpoint = '/api/all/',
-            params = { year: 2013,
-                        neLat: bounds.neLat,
-                        neLon: bounds.neLon,
-                        swLat: bounds.swLat,
-                        swLon: bounds.swLon };
-
-        // Check to see if another year has been requested other than the default
-        if ( urlParam('year') ){
-            params.year = urlParam('year');
-        }
-
-        // Set the lender parameter based on the current URL param
-        if ( urlParam('lender') ){
-            params['lender'] = urlParam('lender');
-        } else {
-            console.log(' Lender parameter is required.');
-            return false;
-        }
-
-        // If actionTaken, go get data, otherwise
-        // let the user know about the default value
-        if ( actionTakenVal ) {
-            params['action_taken'] = actionTakenVal;
-        } else {
-            console.log('No action taken value - default (1-5) will be used.');
-        }
-
-        return $.ajax({
-            url: endpoint, data: params, traditional: true,
-            success: console.log('get API All Data request successful')
-        }).fail( function( status ){
-            console.log( 'no data was available at' + endpoint + '. status: ' + status );
-        });;
-
-        if( typeof callback === 'function' && callback() ){
-            callback;
-        }
-    }
-
-    function createTractDataObj( callback ){
-        dataStore.tracts = {};
-
-        // For each top-level data element returned (minority, loanVolume)
-        _.each( rawGeo.features, function(feature, key){
-            // Loop through each tract and merge the dataset (this could be done server side as well if faster)
-            // Make sure the tracts object exists before writing to it.
-            var geoid = feature.properties.geoid;
-            dataStore.tracts[geoid] = feature.properties;
-            _.extend( dataStore.tracts[geoid], rawData.minority[geoid] );
-
-            if( typeof rawData.loanVolume[geoid] != 'undefined'){
-                _.extend( dataStore.tracts[geoid], rawData.loanVolume[geoid] );
-            } else {
-                dataStore.tracts[geoid].volume = 0;
-            }
-
-        });
-
-        if( typeof callback === 'function' && callback() ){
-            callback;
-        }
-    }
-
-  
-    /*
-        END GET DATA SECTION
-    */
-
-    /* 
-        ---- DRAW CIRCLES ----
-    */
-
-    function redrawCircles( geoData ){
-        // Remove circles currently on the page (TODO: Add as LayerGroup and transition)
-        $('#bubbles_loading').show();
-        layers.Centroids.clearLayers();
-        _.each(geoData, function(geo) {
-            var bubble = drawCircle(geo);
-        });
-    }
-
-    function updateCircles(){
-        //TODO: Figure out best way to update colors of existing, not redraw to reduce lag
-        layers.Centroids.eachLayer( function(layer){
-            layer.setStyle({fillColor: updateMinorityCircleFill(layer.geoid) });
-        });
-        console.log("color update complete.");
-    }
-
-
-    function drawCircle(geo){
-        var data = geo,
-            style = minorityContinuousStyle(
-               geo, baseStyle),
-            circle = L.circle([geo.centlat, geo.centlon],
-                              hmdaStat(data), style );
-        //  We will use the geoid when redrawing
-        circle.geoid = geo.geoid;
-        circle.on('mouseover mousemove', function(e){
-            new L.Rrose({ offset: new L.Point(0,0), closeButton: false, autoPan: false })
-              .setContent(data['volume'] + ' records<br />' + data['num_households'] + ' households')
-              .setLatLng(e.latlng)
-              .openOn(map);
-        });
-        circle.on('mouseout', function(){ 
-            map.closePopup();
-        });
-        layers.Centroids.addLayer(circle);
-
-    }
-
-    /*
-        END DRAW CIRCLES SECTION
-    */
-
-    /*
-        ---- STYLE THE CIRCLES BASED ON MINORITY ----
-    */
-
-    var baseStyle = { fillOpacity: 0.9, weight: 0.5, className: 'lar-circle', fillColor: '#333' };
+    var categoryOptions = $('.map-divider-minor.option');
     
-    //  population-less tracts
-    var noStyle = {stroke: false, weight: 0, fill: false};
+    categoryOptions.on('click', function(e){
+        categoryOptions.removeClass('active-layer');
+        var selectedOption = $(this);
+        assignCat( selectedOption.attr('id') );
+        selectedOption.addClass('active-layer');
+        layerUpdate( cat );
+    });
+
+    // When the user has stopped moving the map, check for new branches,
+    // and run init(), with a slight delay to ensure many moves in a row do not crowd the queue
+    map.on('moveend', function(e){
+        if( $('#branchSelect').prop('checked') ){
+            toggleBranches(true);
+        }
+    });
+
+    map.on('zoomend', function(){
+        buildKeyCircles();
+    });
+    map.on('overlayadd', function(){
+        if( map.hasLayer(layers.MSALabels) ){
+            layers.MSALabels.bringToFront();
+        }
+    });
+
+    map.on('moveend', _.debounce(moveEndAction[geoQueryType], 500));
+
+
+    // When the page loads, update the print link, and update it whenever the hash changes
+    updatePrintLink();
+    updateCensusLink();
+
+    layerUpdate( cat );
+
+    $( window ).on('hashchange', function(){
+        updatePrintLink();
+        updateCensusLink();
+    });
+
+    // Update links to peers
+    getPeerLinks();
     
-    function minorityContinuousStyle(geoProps, baseStyle) {
-        return minorityStyle(
-            geoProps, 
-            function(minorityPercent, bucket) {
-                return (minorityPercent - bucket.lowerBound) / bucket.span;
-            },
-            baseStyle
-        );
-    }
+    // Kick off the application
+    initCalls(geoQueryType);
 
-    //  Shared function for minority styling; called by the two previous fns
-    function minorityStyle(geoProps, percentFn, baseStyle) {
-        var geoid = geoProps.geoid,
-            tract = dataStore.tracts[geoid];
-        // Different styles for when the tract has zero pop, or
-        // we have percentages of minorities
-        if (tract['total_pop'] === 0 || tract.volume === 0 ) {
-            return noStyle;
-        } else {
-            var perc = minorityPercent(tract),
-                bucket = toBucket(perc),
-                // convert given percentage to percents within bucket's bounds
-                bucketPercent = percentFn(perc, bucket);
-            return $.extend({}, baseStyle, {
-                fillColor: colorFromPercent(bucketPercent,
-                                           bucket.colors)
-            });
-        }
-    }
-
-    // This function returns only the fill color after a minority is changed.
-    function updateMinorityCircleFill(geoid){
-        var tract = dataStore.tracts[geoid];
-        // Different styles for when the tract has zero pop, or
-        // we have percentages of minorities
-        if (tract['total_pop'] === 0 || tract.volume === 0 ){
-            return noStyle;
-        } else {
-            var perc = minorityPercent(tract),
-                bucket = toBucket(perc),
-                // convert given percentage to percents within bucket's bounds
-                bucketPercent = percentFn(perc, bucket);
-            return colorFromPercent(bucketPercent, bucket.colors);
-        }    
-    }
-
-    function percentFn(minorityPercent, bucket) {
-                return (minorityPercent - bucket.lowerBound) / bucket.span;
-    }
-
-    //  Using the selector, determine which statistic to display.
-    function minorityPercent(tractData) {
-        var fieldName = $('#category-selector option:selected').val();
-        if (fieldName.substring(0, 4) === 'inv_') {
-            return 1 - tractData[fieldName.substr(4)];
-        } else {
-            return tractData[fieldName];
-        }
-    }
-
-    var colorRanges = [
+    // Change the default mapbox layer select icon
+    $('.leaflet-control-layers-toggle').css(
         {
-            span: 0.5,
-            lowerBound: 0,
-            colors: {
-                lowR: 107,
-                lowG: 40,
-                lowB: 10,
-                highR: 250,
-                highG: 186,
-                highB: 106
+            'background-image': 'url(/static/basestyle/img/icon_map-layers.png)',
+            'background-size': '26px',
+            'background-position': '0,0'
+    });
+
+    // Set the Action Taken value in the Key
+    $('#actionTaken').text( getActionTaken( $('#action-taken-selector option:selected').val() ) );
+
+});
+
+// Global variable to store the MSAMD codes for those MSAs on the map
+var msaArray = [];
+
+// Global object with methods to perform when the map moves.
+var moveEndAction = {};
+// Store the last action so we can check if it's different and reload data if required.
+var oldEndAction = geoQueryType; 
+
+moveEndAction.selected = function(){
+    if( oldEndAction === 'selected'){
+    } else { 
+        initCalls(geoQueryType);
+        oldEndAction = 'selected';   
+    }
+};
+// For All MSAs to be displayed, check to see what has already been loaded. If data present, skip load
+// otherwise continue to load all MSAs with the appropriate params.
+moveEndAction.all_msa = function(){
+    var oldMsaArray = msaArray.slice(0);
+    if( oldEndAction === 'all_msa'){
+        $.when( getMsasInBounds() ).done(function(data){
+            var intersect = _.difference(data, oldMsaArray);
+            if (intersect.length > 0 ){ // If the intersection is not the same, init
+                initCalls(geoQueryType);
+            } else if (intersect.length === 0){
+                console.log('No call required - MSAs are the same');
             }
-        },
-        {
-            span: 0.5,
-            lowerBound: 0.5,
-            colors: {
-                lowR: 124,
-                lowG: 198,
-                lowB: 186,
-                highR: 12,
-                highG: 48,
-                highB: 97
-            }
-        }
-    ]
+        });
+    } else {
+        initCalls(geoQueryType);
+        oldEndAction = 'all_msa';
+    }
+};
 
-    function toBucket(percent) {
-        var i,
-            len = colorRanges.length;
-        for (i = 0; i < len - 1; i++) {
-            //  Next bucket is too far
-            if (colorRanges[i + 1].lowerBound > percent) {
-                return colorRanges[i];
-            }
-        } 
-        return colorRanges[len - 1];  //  last color
-    };
+// Always pull data on mouseMoveEnd on map
+moveEndAction.all = function(){
+    initCalls(geoQueryType);
+    oldEndAction = 'all';
+};
 
-    /* Given low and high colors and a percent, figure out the RGB of said
-     * percent in that scale */
-    function colorFromPercent(percent, c) {
-        var diffR = (c.highR - c.lowR) * percent,
-            diffG = (c.highG - c.lowG) * percent,
-            diffB = (c.highB - c.lowB) * percent;
-        return 'rgb(' + (c.lowR + diffR).toFixed() + ', ' +
-               (c.lowG + diffG).toFixed() + ', ' +
-               (c.lowB + diffB).toFixed() + ')';
+// Function routes the application based on the geoQueryType selected (different params required for each type)
+function initCalls(geoQueryType){
+    var gt = geoQueryType;
+    var action = getActionTaken( $('#action-taken-selector option:selected').val() );
+    if( gt === 'selected'){
+        // run init with no bounds and no geo_type
+        blockStuff();
+        $.when( getTractData(action, false, false) ).done( function(data1){
+            init(data1);
+        });
+    } else if ( gt === 'all_msa'){
+        // run init with bounds and geo_type = msa
+        blockStuff();
+        $.when( getTractData(action, getBoundParams(), 'msa') ).done( function(data1){
+            init(data1);  
+        });
+    } else if ( gt === 'all'){
+        // run init with bounds and geo_type = false
+        blockStuff();
+        $.when( getTractData(action, getBoundParams(), false )).done( function(data1){
+            init(data1);
+        });
     }
 
-    /*
-        END STYLE SECTION
-    */
+}
 
-    /* 
-        ---- UTILITY FUNCTIONS ----
+// Do what you need to do with the received data to build the map
+function init(data1){
+    var hashInfo = getHashParams(),
+        layerInfo = getLayerType(hashInfo.category.values);
 
-    */
+    // Create our two global data objects with our returned data
+    rawData = data1;
 
-    //Scales statistical data to the appropriate level
-    function hmdaStat(tractData) {
-        var $selected = $('#action-taken-selector option:selected'),
-            fieldName = $selected.val(),
-            scale = $selected.data('scale'),
-            area = scale * tractData['volume'];
-        //  As Pi is just a constant scalar, we can ignore it in this
-        //  calculation: a = pi*r*r   or r = sqrt(a/pi)
-            return Math.sqrt(area);
-    }
+    // Create our Tract Data Object (Datastore.tracts) from the raw sources
+    createTractDataObj(); 
 
-    // Helper that ensures when a new layer is selected, all others are hidden and primaries stay up front
-    function layerUpdate( layer ){
-        if ( !layer ){
-            console.log('The layer you\'ve requested does not exist.');
-        }
-        for (var i = minorityLayers.length - 1; i >= 0; i--) {
-            map.removeLayer(minorityLayers[i]);
-        };
-        switch( layer ){
-            case 'inv_non_hisp_white_only_perc':
-                layer = layers.PctMinority;
-                break;
-            case 'hispanic_perc':
-                layer = layers.PctHispanic;
-                break;
-            case 'non_hisp_black_only_perc':
-                layer = layers.PctBlack;
-                break;
-            case 'non_hisp_asian_only_perc':
-                layer = layers.PctAsian;
-                break;
-            case 'non_hisp_white_only_perc':
-                layer = layers.PctNonWhite;
-                break;
-        }
-        map.addLayer( layer );
-        layers.Water.bringToFront();
-        layers.Boundaries.bringToFront();
-        layers.CountyLabels.bringToFront();
-        addParam( 'category', $('#category-selector option:selected').val() );
-        updateCircles();
-    }
+    // Redraw the circles using the created tract object AND the layer bubble type
+    redrawCircles(dataStore.tracts, layerInfo.type );
+    
+    // Update the key with the correct circle size
+    buildKeyCircles();
 
-    // Gets non-hash URL parameters
-    function urlParam(field) {
-        var url = window.location.search.replace('?', ''),
-            keyValueStrs = url.split('&'),
-            pairs = _.map(keyValueStrs, function(keyValueStr) {
-                return keyValueStr.split('=');
-            }),
-            params = _.reduce(pairs, function(soFar, pair) {
-                if (pair.length === 2) {
-                    soFar[pair[0]] = pair[1];
-                }
-                return soFar;
-            }, {});
-        return params[field];
-    }
+    // Get list of MSAs and assign it to the global var
+    $.when( getMsasInBounds() ).done(function(data){
+        msaArray = data;
+    });
 
-    // Parameter helper function that filters the query according to dropdown values
-    function getActionTaken( value ){
-        var actionTaken;
-
-        switch (value) {
-            case 'all-apps-5': 
-                actionTaken = '1,2,3,4,5';
-                break; 
-            case 'all-apps-6': 
-                actionTaken = '1,2,3,4,5,6';
-                break; 
-            case 'originations-1': 
-                actionTaken = '1';
-                break; 
-        }
-        return actionTaken;
-    }
-
-    // Simple function to return bounds consistently with our padding / fixed #
-    function getBoundParams(){
-        var bounds = map.getBounds(),
-        padding = .00;
-        console.log(bounds);
-        return { neLat: (bounds._northEast.lat + padding).toFixed(6),
-                neLon: (bounds._northEast.lng + padding).toFixed(6),
-                swLat: (bounds._southWest.lat - padding).toFixed(6),
-                swLon: (bounds._southWest.lng - padding).toFixed(6)
-            }
-    }
-
-    function getUniques( arr ){
-        return _.uniq( arr );
-    }
-
-    /* 
-        END UTILITY FUNCTIONS
-    */
+    // Unblock the user interface (remove gradient)
+    $.unblockUI();
+    isUIBlocked = false;
+}
