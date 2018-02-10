@@ -5,10 +5,10 @@ import tempfile
 from django.test import TestCase
 from mock import patch
 
+import geo.errors
 from censusdata import models
 from censusdata.management.commands.load_summary_one import Command
-
-import geo.errors
+from mapusaurus.settings.settings import BASE_DIR
 
 class LoadSummaryDataTest(TestCase):
     fixtures = ['mock_geo']
@@ -25,8 +25,9 @@ class LoadSummaryDataTest(TestCase):
     def test_handle(self, hf3, hf4, hf5):
         # Create Mock GEO file
         year = '2013'
-        shutil.copyfile(os.path.join("censusdata", "tests", "mock_geo.txt"),
-                        os.path.join(self.tempdir, "ZZgeo2010.sf1"))
+        shutil.copyfile(
+            os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
+            os.path.join(self.tempdir, "ZZgeo2010.sf1"))
 
         command = Command()
         command.handle(os.path.join(self.tempdir, 'ZZgeo2010.sf1'), year)
@@ -48,8 +49,9 @@ class LoadSummaryDataTest(TestCase):
         geo.errors.in_2010 = {'11001000100': '22002000200', '11001000902': None}
 
         # Create Mock GEO file
-        shutil.copyfile(os.path.join("censusdata", "tests", "mock_geo.txt"),
-                        os.path.join(self.tempdir, "ZZgeo2010.sf1"))
+        shutil.copyfile(
+            os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
+            os.path.join(self.tempdir, "ZZgeo2010.sf1"))
 
         command = Command()
         command.handle(os.path.join(self.tempdir, 'ZZgeo2010.sf1'), year)
@@ -62,8 +64,9 @@ class LoadSummaryDataTest(TestCase):
         geo.errors.in_2010 = old_geo_errors
 
     def test_handle_filethree(self):
-        shutil.copyfile(os.path.join("censusdata", "tests", "mock_file3.txt"),
-                        os.path.join(self.tempdir, "ZZ000032010.sf1"))
+        shutil.copyfile(
+            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file3.txt"),
+            os.path.join(self.tempdir, "ZZ000032010.sf1"))
         command = Command()
         command.handle_filethree(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
                                  '2013', '11',  # State
@@ -88,8 +91,9 @@ class LoadSummaryDataTest(TestCase):
         self.assertEqual(len(models.Census2010RaceStats.objects.all()), 0)
 
     def test_handle_filethree_no_delete(self):
-        shutil.copyfile(os.path.join("censusdata", "tests", "mock_file3.txt"),
-                        os.path.join(self.tempdir, "ZZ000032010.sf1"))
+        shutil.copyfile(
+            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file3.txt"),
+            os.path.join(self.tempdir, "ZZ000032010.sf1"))
         command = Command()
         command.handle_filethree(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
                                  '2013', '11',  # State
@@ -108,8 +112,9 @@ class LoadSummaryDataTest(TestCase):
         models.Census2010RaceStats.objects.all().delete()
 
     def test_handle_filefive(self):
-        shutil.copyfile(os.path.join("censusdata", "tests", "mock_file5.txt"),
-                        os.path.join(self.tempdir, "ZZ000052010.sf1"))
+        shutil.copyfile(
+            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file5.txt"),
+            os.path.join(self.tempdir, "ZZ000052010.sf1"))
         command = Command()
         command.handle_filefive(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
                                 '2013', '11',  # State
