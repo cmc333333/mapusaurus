@@ -4,8 +4,8 @@ python:
 install:
   - |
     echo "DATABASES = {'default': {'ENGINE': 'django.contrib.gis.db.backends.postgis', 'NAME': 'travisdb', 'USER': 'postgres'}}" > mapusaurus/mapusaurus/settings/local_settings.py
-  - pip install -r requirements_test.txt
-  - pip install coverage coveralls
+  - pip install pipenv
+  - pipenv install --dev
 addons:
   postgresql: 9.3
   apt:
@@ -16,6 +16,6 @@ before_script:
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d travisdb
 script:
   - cd mapusaurus
-  - coverage run --source='.' manage.py test
+  - pipenv run coverage run --source='.' manage.py test
 after_success:
-  - coveralls
+  - pipenv run coveralls
