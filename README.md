@@ -32,12 +32,12 @@ http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAReporterPanel.zip
 
 This currently uses:
 Django 1.7
-Python 2.7.x
+Python 2.7
 
 You will also need:
-PostgreSQL 9.3
-PostGIS 2.1.x
-ElasticSearch
+PostgreSQL 9
+PostGIS 2.2
+ElasticSearch 1
 
 There's also a requirements.txt file in the repository root directory that can be installed with pip.
 
@@ -96,10 +96,10 @@ This is how you load the data:
 ```
     # This example only loads census tracts from IL (FIPS code: 17); repeat
     # for other states as needed
-    python manage.py load_geos_from /path/to/tl_2013_17_tract.shp
-    python manage.py load_geos_from /path/to/tl_2013_us_county.shp
-    python manage.py load_geos_from /path/to/tl_2013_us_cbsa.shp
-    python manage.py load_geos_from /path/to/tl_2013_us_metdiv.shp
+    python manage.py load_geos_from 2013 /path/to/tl_2013_17_tract.shp
+    python manage.py load_geos_from 2013 /path/to/tl_2013_us_county.shp
+    python manage.py load_geos_from 2013 /path/to/tl_2013_us_cbsa.shp
+    python manage.py load_geos_from 2013 /path/to/tl_2013_us_metdiv.shp
 ```
 
 These import scripts are set up to update geos in place -- no need to delete
@@ -111,7 +111,6 @@ associate census tracts with their CBSAs.
 ```
     python manage.py set_tract_csa_cbsa
 ```
-
 
 ## Census Data
 
@@ -134,7 +133,7 @@ which you should then unzip.
 
 Loading the data looks like this:
 ```
-    python manage.py load_summary_one /path/to/XXgeo2010.sf1
+    python manage.py load_summary_one /path/to/XXgeo2010.sf1 2013
 ```
 
 Warning: currently, data will not be updated in place; to re-import, you'll
@@ -159,7 +158,7 @@ http://www.ffiec.gov/hmda/hmdaflat.htm
 ```
 and download the zip file. Unzip it and then:
 ```
-    python manage.py load_hmda /path/to/2013HMDALAR\ -\ National.csv
+    python manage.py load_hmda /path/to/2013HMDALAR\ -\ National.csv 2013
 ```
 
 Note that this process takes several minutes (though you will receive progress
@@ -174,7 +173,7 @@ There is also the option of removing these files after they are processed.
 
 ```
     split -l 50000 -d  "/path/to/2013HMDALAR\ -\ National.csv" hmda_csv_
-    python manage.py load_hmda /path/to/2013HMDALAR/  delete_file:true
+    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 delete_file:true
 ```
 
 
@@ -182,9 +181,23 @@ You will most likely want to pre-calculate the median number of loans for a
 particular lender X city pair -- this speeds up map loading quite a bit.
 
 ```
-    python manage.py calculate_loan_stats
+    python manage.py calculate_loan_stats 2013
 ```
 
+Finally, we need to populate a listing of every (HMDA, census, geo) year.
+
+```
+    python manage.py load_years 2013 2010 2013
+```
+
+## Autocompletion
+
+After populating our MSAs and Respondent names, we can generate a search index
+for use in autocompletion.
+
+```
+    python manage.py rebuild_index
+```
 
 ## Styles
 
