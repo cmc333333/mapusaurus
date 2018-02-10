@@ -14,7 +14,11 @@ def map(request, template):
     metro_selected = request.GET.get('metro')
     year_selected = int(request.GET.get('year',str(Year.objects.latest().hmda_year)))
     context = {}
-    lender = Institution.objects.filter(institution_id=lender_selected).select_related('agency', 'zip_code', 'lenderhierarchy').first()
+    lender = Institution.objects\
+        .filter(institution_id=lender_selected)\
+        .select_related('agency', 'zip_code')\
+        .prefetch_related('lenderhierarchy_set')\
+        .first()
     metro = Geo.objects.filter(geo_type=Geo.METRO_TYPE,geoid=metro_selected).first()
     
     if lender:

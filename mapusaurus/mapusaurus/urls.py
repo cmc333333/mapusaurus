@@ -7,7 +7,7 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
-    url(r'^$', RedirectView.as_view(url='/institutions/')),
+    url(r'^$', RedirectView.as_view(url='/institutions/', permanent=False)),
     url(r'^api/', include('api.urls')),
     url(r'^institutions/', include('respondents.urls',
                                    namespace='respondents')),

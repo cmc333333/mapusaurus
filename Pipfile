@@ -14,11 +14,11 @@ coveralls = "*"
 
 [packages]
 
-django = "~=1.7.0"
+django = "~=1.8.0"
 dj-database-url = "~=0.4.2"
-django-haystack = "~=2.3.0"
+django-haystack = "~=2.5.0"
 django-localflavor = "==1.0"
-djangorestframework = "~=2.3.14"
+djangorestframework = "~=2.4.0"
 "psycopg2" = "*"
 elasticsearch = "==1.0"
 simplejson = "~=3.6.3"
