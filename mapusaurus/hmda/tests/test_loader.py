@@ -5,6 +5,7 @@ from mock import Mock, patch
 
 from hmda.management.commands.load_hmda import Command
 from hmda.models import HMDARecord
+from mapusaurus.settings.settings import BASE_DIR
  
 
 class LoadHmdaTest(TestCase):
@@ -13,7 +14,10 @@ class LoadHmdaTest(TestCase):
     def test_handle(self):
         command = Command()
         command.stdout = Mock()
-        command.handle(os.path.join("hmda", "tests", "mock_2013.csv"),2013)
+        command.handle(
+            os.path.join(BASE_DIR, "hmda", "tests", "mock_2013.csv"),
+            2013,
+        )
 
         # The mock data file contains 10 records, 8 for known states
         self.assertEqual(8, HMDARecord.objects.count())
@@ -36,7 +40,10 @@ class LoadHmdaTest(TestCase):
         errors.in_2010 = {'1122233300': '9988877766'}
         command = Command()
         command.stdout = Mock()
-        command.handle(os.path.join("hmda", "tests", "mock_2013.csv"), '2013')
+        command.handle(
+            os.path.join(BASE_DIR, "hmda", "tests", "mock_2013.csv"),
+            '2013',
+        )
 
         geos = set(r.geo_id for r in HMDARecord.objects.all())
         self.assertEqual(4, len(geos))
@@ -51,7 +58,8 @@ class LoadHmdaTest(TestCase):
         command = Command()
         command.stdout = Mock()
 
-        main_csv_directory = os.path.abspath( os.path.join("hmda", "tests") )
+        main_csv_directory = os.path.abspath(os.path.join(
+            BASE_DIR, "hmda", "tests"))
 
         main_csv_directory = main_csv_directory + "/"
 
