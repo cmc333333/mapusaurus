@@ -31,11 +31,11 @@ http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAReporterPanel.zip
 ## Requirements
 
 This currently uses:
-Django 1.7
+Django 1.11
 Python 2.7
 
 You will also need:
-PostgreSQL 9
+PostgreSQL 9.5
 PostGIS 2.2
 ElasticSearch 1
 

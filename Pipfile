@@ -15,9 +15,9 @@ model-mommy = "*"
 
 [packages]
 
-django = "~=1.10.0"
+django = "~=1.11.0"
 dj-database-url = "~=0.4.2"
-django-haystack = "~=2.5.0"
+django-haystack = "~=2.7.0"
 django-localflavor = "==1.0"
 djangorestframework = "~=3.4.0"
 "psycopg2" = "*"
