@@ -1,6 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-urlpatterns = patterns(
-    '',
-    url(r'search/?$', 'geo.views.search', name='search'),
-)
+from geo import views
+
+urlpatterns = [
+    url(r'search/?$', views.search, name='search'),
+]

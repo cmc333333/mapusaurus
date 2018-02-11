@@ -31,11 +31,11 @@ http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAReporterPanel.zip
 ## Requirements
 
 This currently uses:
-Django 1.7
+Django 1.11
 Python 2.7
 
 You will also need:
-PostgreSQL 9
+PostgreSQL 9.5
 PostGIS 2.2
 ElasticSearch 1
 
@@ -173,7 +173,7 @@ There is also the option of removing these files after they are processed.
 
 ```
     split -l 50000 -d  "/path/to/2013HMDALAR\ -\ National.csv" hmda_csv_
-    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 delete_file:true
+    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 --delete-file
 ```
 
 

@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 
+from django.core.management import call_command
 from django.test import TestCase
 from mock import patch
 
@@ -29,8 +30,11 @@ class LoadSummaryDataTest(TestCase):
             os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
             os.path.join(self.tempdir, "ZZgeo2010.sf1"))
 
-        command = Command()
-        command.handle(os.path.join(self.tempdir, 'ZZgeo2010.sf1'), year)
+        call_command(
+            'load_summary_one',
+            os.path.join(self.tempdir, 'ZZgeo2010.sf1'),
+            year,
+        )
         positional_args = hf4.call_args[0]
         self.assertEqual(positional_args[0],
                          os.path.join(self.tempdir, "ZZgeo2010.sf1"))
@@ -53,8 +57,11 @@ class LoadSummaryDataTest(TestCase):
             os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
             os.path.join(self.tempdir, "ZZgeo2010.sf1"))
 
-        command = Command()
-        command.handle(os.path.join(self.tempdir, 'ZZgeo2010.sf1'), year)
+        call_command(
+            'load_summary_one',
+            os.path.join(self.tempdir, 'ZZgeo2010.sf1'),
+            year,
+        )
         positional_args = hf4.call_args[0]
         # The None causes us to skip 11001000902
         self.assertEqual(len(positional_args[2]), 2)

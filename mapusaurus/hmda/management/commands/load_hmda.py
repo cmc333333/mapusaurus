@@ -12,16 +12,18 @@ import logging
 
 
 class Command(BaseCommand):
-    args = "<path/to/20XXHMDALAR - National.csv> <year> <delete_file:true/false> <filterhmda>"
     help = """ Load HMDA data (for all states)."""
-
+    def add_arguments(self, parser):
+        parser.add_argument('file_name')
+        parser.add_argument('year', type=int)
+        parser.add_argument('--delete-file', action='store_true')
+        parser.add_argument('--filter-hmda', action='store_true')
 
     def handle(self, *args, **options):
-        if len(args) < 2:
-            raise CommandError("Need args for CSV path and year, " + Command.args)
-
-        delete_file = False
-        filter_hmda = False
+        lar_path = options['file_name']
+        year = str(options['year'])
+        delete_file = options['delete_file']
+        filter_hmda = options['filter_hmda']
 
         self.total_skipped = 0
         self.na_skipped = 0
@@ -39,27 +41,8 @@ class Command(BaseCommand):
 
         get_logger()
 
-
-
-        ### if delete_file argument, remove csv file after processing
-        ### default is False
-        ### if filter_hmda is passed in, setup known_hmda & geo_states
-        ### else load all HMDA records without filtering
-        lar_path = args[0]
-        year = args[1]
-        if len(args) > 2:
-            for arg in args:
-                if  "delete_file:" in arg:
-                    tmp_delete_flag= arg.split(":")
-                    if tmp_delete_flag[1] == "true" or tmp_delete_flag[1] == "True":
-                        delete_file = True
-
-                        print "************* CSV File(s) WiLL BE REMOVED AFTER PROCESSING ***********"
-
-                if "filterhmda" in arg:
-                    filter_hmda = True
-
-
+        if delete_file:
+            print "************* CSV File(s) WiLL BE REMOVED AFTER PROCESSING ***********"
 
         csv_files = []
         if os.path.isfile(lar_path):

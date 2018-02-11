@@ -1,8 +1,12 @@
 import json
+import os
+from tempfile import NamedTemporaryFile
 
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test import RequestFactory, TestCase
 from mock import Mock, patch
+from model_mommy import mommy
 
 from geo.models import Geo
 from hmda.models import HMDARecord
@@ -47,18 +51,17 @@ class ReporterPanelLoadingTests(TestCase):
 class LoadTransmittalTests(TestCase):
     fixtures = ['agency']
 
-    @patch('__builtin__.open')
-    def test_handle(self, mock_open):
-        # Only care inside a "with"
-        mock_open = mock_open.return_value.__enter__.return_value
-        line = "2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
-        line += "1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
-        line += "FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t90210\t"
-        line += "FIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t3\t3657\tN"
-        mock_open.__iter__.return_value = [line]
+    def test_handle(self):
+        with NamedTemporaryFile(delete=False) as tmp:
+            tmp.write("2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
+                      "1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
+                      "FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t"
+                      "90210\tFIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t"
+                      "3\t3657\tN")
+            tmp.close()
 
-        cmd = load_transmittal.Command()
-        cmd.handle('somefile.txt')
+            call_command('load_transmittal', tmp.name)
+        os.remove(tmp.name)
 
         query = Institution.objects.all()
         self.assertEqual(query.count(), 1)
@@ -152,22 +155,24 @@ class ViewTest(TestCase):
     def test_search_name(self, SQS):
         SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
 
-        result1, result2 = Mock(), Mock()
+        result1 = Mock(num_loans=0, object=mommy.prepare(
+            Institution,
+            agency_id=1,
+            name='Some Bank',
+            respondent_id='0123456789',
+            year='2013',
+        ))
+        result2 = Mock(num_loans=0, object=mommy.prepare(
+            Institution,
+            agency_id=2,
+            name='Bank & Loan',
+            respondent_id='1122334455',
+            year='2013',
+        ))
         SQS.filter.return_value = [result1, result2]
 
-        result1.object.name = 'Some Bank'
-        result1.object.assets = 201
-        result1.object.agency_id = 1
-        result1.object.respondent_id = '0123456789'
-        result1.object.year = '2013'
-        result2.object.name = 'Bank & Loan'
-        result1.object.assets = 202
-        result2.object.agency_id = 2
-        result2.object.respondent_id = '1122334455'
-        result2.object.year = '2013'
         resp = self.client.get(reverse('respondents:search_results'),
                                {'q': 'Bank', 'year': '2013'})
-
 
         self.assertTrue('Bank' in str(SQS.filter.call_args))
         self.assertTrue('Some Bank' in resp.content)
@@ -178,10 +183,13 @@ class ViewTest(TestCase):
     @patch('respondents.views.SearchQuerySet')
     def test_search_autocomplete(self, SQS):
         SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock()
+        result = Mock(num_loans=0, object=mommy.prepare(
+            Institution,
+            agency_id=3,
+            respondent_id='3232434354',
+            year=2013,
+        ))
         SQS.filter.return_value = [result]
-        result.object.name, result.object.id = 'Some Bank', 1234
-        result.object.year, result.object.agency_id, result.object.respondent_id = 2013, 3, '3232434354'
         self.client.get(reverse('respondents:search_results'),
                         {'q': 'Bank', 'auto': '1', 'year': '2013'})
         self.assertTrue('Bank' in str(SQS.filter.call_args))
@@ -190,10 +198,14 @@ class ViewTest(TestCase):
     @patch('respondents.views.SearchQuerySet')
     def test_search_id(self, SQS):
         SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock()
+        result = Mock(num_loans=0, object=mommy.prepare(
+            Institution,
+            agency_id=3,
+            name='Some Bank',
+            respondent_id='1234543210',
+            year=2013,
+        ))
         SQS.filter.return_value = [result]
-        result.object.name, result.object.id = 'Some Bank', 1234
-        result.object.year, result.object.agency_id, result.object.respondent_id = 2013, 3, '1234543210'
 
         resp = self.client.get(reverse('respondents:search_results'),
                                {'q': '01234567', 'year': '2013'})

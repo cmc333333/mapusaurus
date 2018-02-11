@@ -1,3 +1,4 @@
+import argparse
 from csv import reader
 
 from django.core.management.base import BaseCommand, CommandError
@@ -12,31 +13,30 @@ class Command(BaseCommand):
     """Loads Summary File 1 data from the decennial census. Official
     documentation for fields at
     http://www.census.gov/prod/cen2010/doc/sf1.pdf"""
-    args = "<path/to/XXgeo2010.sf1> <year>"
     help = """
         Load Decennial Census data for a state.
         Assumes XX#####2010.sf1 files are in the same directory."""
 
+    def add_arguments(self, parser):
+        parser.add_argument('file_name')
+        parser.add_argument('year', type=int)
+
     def handle(self, *args, **options):
-        if len(args) != 2:
-            raise CommandError("Needs 2 arguments, "
-                               + "path/to/XXgeo2010.sf1 year")
         geoids_by_record = {}
-        geofile_name = args[0]
-        geofile = open(geofile_name, 'r')
-        year = args[1]
+        geofile_name = options['file_name']
+        year = str(options['year'])
         # As each file covers one state, all geos will have the same state id
         state = ""
-        for line in geofile:
-            if line[8:11] == '140':    # Aggregated by Census Tract
-                recordnum = line[18:25]
-                censustract = line[27:32] + line[54:60]
-                censustract = errors.in_2010.get(censustract, censustract)
-                censustract = errors.change_specific_year(censustract, year)
-                if censustract is not None:
-                    geoids_by_record[recordnum] = year + censustract
-                state = line[27:29]
-        geofile.close()
+        with open(geofile_name, 'r') as geofile:
+            for line in geofile:
+                if line[8:11] == '140':    # Aggregated by Census Tract
+                    recordnum = line[18:25]
+                    censustract = line[27:32] + line[54:60]
+                    censustract = errors.in_2010.get(censustract, censustract)
+                    censustract = errors.change_specific_year(censustract, year)
+                    if censustract is not None:
+                        geoids_by_record[recordnum] = year + censustract
+                    state = line[27:29]
         self.handle_filethree(geofile_name, year, state, geoids_by_record)
         self.handle_filefour(geofile_name, year, state, geoids_by_record)
         self.handle_filefive(geofile_name, year, state, geoids_by_record)

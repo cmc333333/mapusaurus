@@ -1,5 +1,6 @@
 import os
 
+from django.core.management import call_command
 from django.test import TestCase
 from mock import Mock, patch
 
@@ -12,9 +13,8 @@ class LoadHmdaTest(TestCase):
     fixtures = ['dummy_tracts']
 
     def test_handle(self):
-        command = Command()
-        command.stdout = Mock()
-        command.handle(
+        call_command(
+            'load_hmda',
             os.path.join(BASE_DIR, "hmda", "tests", "mock_2013.csv"),
             2013,
         )
@@ -38,9 +38,8 @@ class LoadHmdaTest(TestCase):
     @patch('hmda.management.commands.load_hmda.errors')
     def test_handle_errors_dict(self, errors):
         errors.in_2010 = {'1122233300': '9988877766'}
-        command = Command()
-        command.stdout = Mock()
-        command.handle(
+        call_command(
+            'load_hmda',
             os.path.join(BASE_DIR, "hmda", "tests", "mock_2013.csv"),
             '2013',
         )
@@ -54,16 +53,17 @@ class LoadHmdaTest(TestCase):
         HMDARecord.objects.all().delete()
 
     def test_multi_files(self):
-
-        command = Command()
-        command.stdout = Mock()
-
         main_csv_directory = os.path.abspath(os.path.join(
             BASE_DIR, "hmda", "tests"))
 
         main_csv_directory = main_csv_directory + "/"
 
-        command.handle(main_csv_directory, '2013', "delete_file:false", "filterhmda")
+        call_command(
+            'load_hmda',
+            main_csv_directory,
+            '2013',
+            '--filter-hmda',
+        )
         lenders = set(r.institution_id for r in HMDARecord.objects.all())
         geos = set(r.geo_id for r in HMDARecord.objects.all())
 

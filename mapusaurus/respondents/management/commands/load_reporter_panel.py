@@ -1,3 +1,4 @@
+import argparse
 import collections
 
 from django.core.management.base import BaseCommand
@@ -182,23 +183,24 @@ def process_reporter(reporters):
         bank.save()
 
 
-def parse_file(filename):
+def parse_file(file_obj):
     """ Parse the FFIEC HMDA reporterpanel.dat file. The format of this file is
     pre-determined by the FFIEC. """
 
     reporters = []
-    with open(filename) as panelcsv:
-        for line in panelcsv:
-            reporter_row = parse_line(line)
-            reporters.append(reporter_row)
+    for line in file_obj:
+        reporter_row = parse_line(line)
+        reporters.append(reporter_row)
     return reporters
 
 
 class Command(BaseCommand):
-    args = "<filename>"
     help = "Reporter panel contains parent information. Loads that."
 
+    def add_arguments(self, parser):
+        parser.add_argument('file_name', type=argparse.FileType('r'))
+
     def handle(self, *args, **options):
-        reporter_filename = args[0]
-        reporter_rows = parse_file(reporter_filename)
+        reporter_rows = parse_file(options['file_name'])
         process_reporter(reporter_rows)
+        options['file_name'].close()

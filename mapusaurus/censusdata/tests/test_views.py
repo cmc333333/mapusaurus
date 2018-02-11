@@ -67,7 +67,7 @@ class ViewsTest(TestCase):
         stats.save()
         mkrecord_household(stats.geoid_id,99)
         lendstats = LendingStats(
-            geo_id='10000', institution_id="736-4045996",
+            geo_id='10000', institution_id="91000000002",
             lar_median=3, lar_count=4,
             fha_count=2, fha_bucket=2)
         lendstats.save()
@@ -85,7 +85,7 @@ class ViewsTest(TestCase):
                                     'swLon':'0',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'736-4045996'})
+                                    'lender':'91000000002'})
         resp = json.loads(resp.content)
         self.assertEqual(len(resp), 4)
         self.assertTrue('1122233300' in resp)

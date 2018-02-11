@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.test import TestCase
 from mock import Mock, patch
+from model_mommy import mommy
 
 from geo.management.commands.load_geos_from import Command as LoadGeos
 from geo.management.commands.set_tract_csa_cbsa import Command as SetTractCBSA
@@ -42,7 +43,9 @@ class ViewTest(TestCase):
     @patch('geo.views.SearchQuerySet')
     def test_search_autocomplete(self, SQS):
         SQS = SQS.return_value.models.return_value.load_all.return_value
-        SQS.filter.return_value.filter.return_value = [Mock()]
+        SQS.filter.return_value.filter.return_value = [
+            Mock(object=mommy.prepare(Geo)),
+        ]
         self.client.get(reverse('geo:search'), {'q': 'Chicago', 'auto': '1', 'year': '2013'})
         self.assertTrue('Chicago' in str(SQS.filter.call_args))
         self.assertFalse('content' in str(SQS.filter.call_args))
