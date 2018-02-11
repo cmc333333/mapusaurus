@@ -66,6 +66,18 @@ class InstitutionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Institution
+        fields = (
+            'year',
+            'respondent_id',
+            'institution_id',
+            'tax_id',
+            'name',
+            'mailing_address',
+            'zip_code',
+            'assets',
+            'rssd_id',
+            'formatted_name',
+        )
 
 
 # 90123456789 (Agency Code + Respondent ID)

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "eb87a47b5aa3865b28718964be1cac093d3fa3fa296667b7a6075710c509b159"
+            "sha256": "b0a181e89eb0e43bb9926116a5e278caeaa207af5c3377f72d779f98907d354d"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -49,17 +49,17 @@
         },
         "django-localflavor": {
             "hashes": [
-                "sha256:c3443b2d4eb810e7762a8be2b693266827c03a034af874796ae0bd173c0e9180",
-                "sha256:77f5f5642f1f7464b4d097215063bc9daf9b053b1bc1a9c993cadb02fe0fa7b8"
+                "sha256:50d7b694c9851224c352dba9cac63879343be8bd2f86f6b8e1465de53da34c90",
+                "sha256:d9cde0b531c0d33f9d22e90a0bf27f56a8394c6a68e68cacdc03942a797b2aff"
             ],
-            "version": "==1.0"
+            "version": "==2.0"
         },
         "djangorestframework": {
             "hashes": [
-                "sha256:6d1f00a91b8d45f88a482720996c587b3488ca69b37880d670e5fa034123efa1",
-                "sha256:34f588119a6de012a0cbe3836c31a2d5f620993c3b955f64c951a3072e617e47"
+                "sha256:1f6baf40ed456ed2af6bd1a4ff8bbc3503cebea16509993aea2b7085bc097766",
+                "sha256:9f9e94e8d22b100ed3a43cee8c47a7ff7b185e778a1f2da9ec5c73fc4e081b87"
             ],
-            "version": "==3.4.7"
+            "version": "==3.7.7"
         },
         "elasticsearch": {
             "hashes": [],
@@ -110,12 +110,6 @@
                 "sha256:410bcd1d6409026fbaa65d9ed33bf6dd8b1e94a499e32168acfc7b332e4095c0"
             ],
             "version": "==2018.3"
-        },
-        "simplejson": {
-            "hashes": [
-                "sha256:2a3189f79d1c7b8a2149a0e783c0b4217fad9b30a6e7d60450f2553dc2c0e57e"
-            ],
-            "version": "==3.6.5"
         },
         "urllib3": {
             "hashes": [
@@ -367,7 +361,6 @@
                 "sha256:06330f386d6e4b195fbfc736b297f58c5a892e4440e54d294d7004e3a9bbea1b",
                 "sha256:cc44da8e1145637334317feebd728bd869a35285b93cbb4cca2577da7e62db4f"
             ],
-            "markers": "python_version < '3'",
             "version": "==1.22"
         }
     }
