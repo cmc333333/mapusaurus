@@ -173,7 +173,7 @@ There is also the option of removing these files after they are processed.
 
 ```
     split -l 50000 -d  "/path/to/2013HMDALAR\ -\ National.csv" hmda_csv_
-    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 delete_file:true
+    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 --delete-file
 ```
 
 

@@ -1,3 +1,4 @@
+import argparse
 import itertools
 
 from django.conf import settings
@@ -9,7 +10,10 @@ from geo.models import Geo
 
 class Command(BaseCommand):
     help = "Load shapes (tracts, counties, msas) from a shape file."
-    args = "<year> <path/to/shapefile>"
+
+    def add_arguments(self, parser):
+        parser.add_argument('year', type=int)
+        parser.add_argument('file_name')
 
     def geo_type(self, row_dict):
         """Inspect the row to determine which type of geometry it represents"""
@@ -73,9 +77,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         old_debug = settings.DEBUG
         settings.DEBUG = False
-        year = args[0]
-        shapefile_name = args[1]
-        ds = DataSource(shapefile_name, encoding='iso-8859-1')
+        year = str(options['year'])
+        ds = DataSource(options['file_name'], encoding='iso-8859-1')
         layer = ds[0]
         columns = [layer.get_fields(field) for field in layer.fields]
         columns.append(layer.get_geoms(True))

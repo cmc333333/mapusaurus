@@ -6,11 +6,13 @@ from hmda.models import HMDARecord, LendingStats
 
 class Command(BaseCommand):
     help = "Generate loans stats per lender, metro combination"
-    args = "<year>"
+
+    def add_arguments(self, parser):
+        parser.add_argument('year', type=int)
 
     def handle(self, *args, **kwargs):
         #   Remove existing stats; we're going to regenerate them
-        year = args[0]
+        year = str(kwargs['year'])
         LendingStats.objects.filter(institution__year=year).delete()
         lender_q = HMDARecord.objects.values_list('institution_id', flat=True).distinct('institution')
         for metro in Geo.objects.filter(

@@ -1,5 +1,8 @@
 import json
+import os
+from tempfile import NamedTemporaryFile
 
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test import RequestFactory, TestCase
 from mock import Mock, patch
@@ -48,18 +51,17 @@ class ReporterPanelLoadingTests(TestCase):
 class LoadTransmittalTests(TestCase):
     fixtures = ['agency']
 
-    @patch('__builtin__.open')
-    def test_handle(self, mock_open):
-        # Only care inside a "with"
-        mock_open = mock_open.return_value.__enter__.return_value
-        line = "2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
-        line += "1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
-        line += "FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t90210\t"
-        line += "FIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t3\t3657\tN"
-        mock_open.__iter__.return_value = [line]
+    def test_handle(self):
+        with NamedTemporaryFile(delete=False) as tmp:
+            tmp.write("2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
+                      "1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
+                      "FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t"
+                      "90210\tFIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t"
+                      "3\t3657\tN")
+            tmp.close()
 
-        cmd = load_transmittal.Command()
-        cmd.handle('somefile.txt')
+            call_command('load_transmittal', tmp.name)
+        os.remove(tmp.name)
 
         query = Institution.objects.all()
         self.assertEqual(query.count(), 1)

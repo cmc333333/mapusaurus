@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from hmda.models import HMDARecord
 
 class Command(BaseCommand):
-    args = "None"
     help = """ Validate HMDA Data in FairLending DB is Correct"""
 
     def handle(self, *args, **options):

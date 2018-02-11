@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.test import TestCase
 from mock import Mock
 
@@ -148,9 +149,7 @@ class PrecalcTest(TestCase):
     def test_saves_stats(self):
         year = "2013"
         lender_id = self.respondent.institution_id
-        command = Command()
-        command.stdout = Mock()
-        command.handle(year)
+        call_command('calculate_loan_stats', year)
 
         found = False
         for stats in LendingStats.objects.all():
