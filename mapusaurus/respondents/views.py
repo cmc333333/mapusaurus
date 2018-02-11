@@ -62,7 +62,7 @@ def select_metro(request, year, agency_id, respondent):
 
 class InstitutionSerializer(serializers.ModelSerializer):
     """Used in RESTful endpoints"""
-    formatted_name = serializers.CharField(source="formatted_name")
+    formatted_name = serializers.CharField()
 
     class Meta:
         model = Institution
@@ -93,8 +93,6 @@ def search_results(request):
     resp_only_match = RESP_RE.match(query_str)
     if resp_only_match:
         respondent_id = resp_only_match.group('respondent')
-
-    query = SearchQuerySet().models(Institution).load_all() # snl temporary
 
     current_sort = request.GET.get('sort')
     if current_sort == None:

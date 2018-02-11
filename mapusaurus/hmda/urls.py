@@ -1,6 +1,7 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-urlpatterns = patterns(
-    '',
-    url(r'^volume/', 'hmda.views.loan_originations_http', name='volume'),
-)
+from hmda import views
+
+urlpatterns = [
+    url(r'^volume/', views.loan_originations_http, name='volume'),
+]

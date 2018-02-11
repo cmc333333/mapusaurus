@@ -1,12 +1,9 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import RedirectView
 
 
-admin.autodiscover()
-
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/institutions/', permanent=False)),
     url(r'^api/', include('api.urls')),
     url(r'^institutions/', include('respondents.urls',
@@ -16,4 +13,4 @@ urlpatterns = patterns(
     url(r'^hmda/', include('hmda.urls', namespace='hmda')),
     url(r'^map/', include('mapping.urls')),
     url(r'^census/', include('censusdata.urls', namespace='censusdata'))
-)
+]

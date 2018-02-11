@@ -1,8 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
-urlpatterns = patterns(
-    '',
-    url(r'^$', 'mapping.views.map', {'template':'map.html'}, name='map'),
-    url(r'^print/', 'mapping.views.map', {'template' :'print_map.html'}, name='printmap'),
-    url(r'^faq/', 'mapping.views.map', {'template' :'faq.html'}, name='faq')
-)
+from mapping import views
+
+urlpatterns = [
+    url(r'^$', views.map, {'template':'map.html'}, name='map'),
+    url(r'^print/', views.map, {'template' :'print_map.html'}, name='printmap'),
+    url(r'^faq/', views.map, {'template' :'faq.html'}, name='faq')
+]

@@ -23,8 +23,6 @@ SECRET_KEY = 'YOUR-SECRET-KEY-HERE'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 # ADD HOST HERE
 ALLOWED_HOSTS = []
 
@@ -107,5 +105,21 @@ REST_FRAMEWORK = {
 }
 
 SOUTH_TESTS_MIGRATE = False
+
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+        'loaders': [
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+        ],
+    },
+}]
 
 from mapusaurus.settings.local_settings import *
