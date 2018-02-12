@@ -37,7 +37,7 @@ Python 2.7
 You will also need:
 PostgreSQL > 9.3, including 10
 PostGIS
-ElasticSearch 1
+ElasticSearch 6.x
 
 See the Pipfile (and Pipfile.lock) for more details; we recommend using
 [pipenv](https://docs.pipenv.org/) for managing your dependencies.
