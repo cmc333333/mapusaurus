@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9ff8872682381667c1135b41076ef017c3a0ce50da5ce3fb24d167664a443126"
+            "sha256": "00f7aeb550d963cfda0c7c47759a5b773e345a2647fe09debe14e5cc94ec3d9f"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -62,8 +62,11 @@
             "version": "==3.7.7"
         },
         "elasticsearch": {
-            "hashes": [],
-            "version": "==1.0"
+            "hashes": [
+                "sha256:307055861d0290b830bd1ec4b82d41ce0f19f6a4899635956bd16bc61e3e90b1",
+                "sha256:8d91a3fce12123a187b673f18c23bcffa6e7b49ba057555d59eeeded0ba15dce"
+            ],
+            "version": "==6.1.1"
         },
         "psycopg2-binary": {
             "hashes": [
@@ -292,7 +295,6 @@
             "hashes": [
                 "sha256:200d8686011d470b5e4de207d803445deee427455cd0cb7c982b68cf82524f81"
             ],
-            "markers": "python_version < '3'",
             "version": "==1.0.19"
         },
         "mock": {
