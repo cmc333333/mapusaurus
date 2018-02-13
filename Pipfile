@@ -10,15 +10,15 @@ name = "pypi"
 mock = "*"
 coverage = "*"
 coveralls = "*"
-model_mommy = "*"
+model-mommy = "*"
 
 
 [packages]
 
-Django = "~=1.11.10"
+django = "~=1.11.10"
 dj-database-url = "~=0.4.2"
 django-haystack = "~=2.7.0"
 django-localflavor = "==2.0"
 djangorestframework = "~=3.7.7"
-"psycopg2" = "*"
 elasticsearch = "==1.0"
+"psycopg2-binary" = "~=2.7.4"

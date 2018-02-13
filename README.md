@@ -35,11 +35,12 @@ Django 1.11
 Python 2.7
 
 You will also need:
-PostgreSQL 9.5
-PostGIS 2.2
+PostgreSQL > 9.3, including 10
+PostGIS
 ElasticSearch 1
 
-There's also a requirements.txt file in the repository root directory that can be installed with pip.
+See the Pipfile (and Pipfile.lock) for more details; we recommend using
+[pipenv](https://docs.pipenv.org/) for managing your dependencies.
 
 
 ## Loading the data

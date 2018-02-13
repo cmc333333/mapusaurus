@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-docker-compose run --rm database psql -h database -U docker gis
+docker-compose run --rm database psql -h database -U postgres postgres

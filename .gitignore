@@ -70,3 +70,4 @@ frontend/dist
 *.js.map
 
 .venv
+data
