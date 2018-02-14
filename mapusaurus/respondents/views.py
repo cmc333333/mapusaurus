@@ -1,18 +1,20 @@
 import re
 import math
 import json
-from django.db.models import Q
+
 from django.conf import settings
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import OuterRef, Q
+from django.db.models.expressions import RawSQL
+from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
-from haystack.inputs import AutoQuery, Exact
-from haystack.query import SearchQuerySet
+from django.utils.html import escape
 from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import HttpResponseBadRequest
+
+from hmda.models import HMDARecord, Year
 from respondents.models import Institution, Branch
-from hmda.models import Year
-from django.utils.html import escape
 
 
 def respondent(request, agency_id, respondent, year):
@@ -87,7 +89,7 @@ PAREN_RE = re.compile(r"^.*\((?P<agency>[0-9])(?P<respondent>[0-9-]{10})\)$")
 # 0123456789 (Respondent ID Only)
 RESP_RE = re.compile(r"^(?P<respondent>[0-9-]{10})$")
 LENDER_REGEXES = [PREFIX_RE, PAREN_RE]
-
+SORT_WHITELIST = ('assets', '-assets', 'num_loans', '-num_loans')
 
 @api_view(['GET'])
 def search_results(request):
@@ -106,22 +108,33 @@ def search_results(request):
     if resp_only_match:
         respondent_id = resp_only_match.group('respondent')
 
-    current_sort = request.GET.get('sort')
-    if current_sort == None:
-        current_sort = '-assets'
-
-    query = SearchQuerySet().models(Institution).load_all().order_by(current_sort)
+    query = Institution.objects\
+        .order_by('-assets')\
+        .annotate(num_loans=RawSQL("""
+            SELECT count(*) FROM hmda_hmdarecord
+            WHERE hmda_hmdarecord.institution_id
+                  = respondents_institution.institution_id
+        """, tuple()))\
+        .filter(num_loans__gt=0, year=year)
 
     if lender_id:
-        query = query.filter(lender_id=Exact(lender_id),year=year)
+        query = query.filter(institution_id=lender_id)
     elif respondent_id:
-        query = query.filter(respondent_id=Exact(respondent_id),year=year)
-    elif query_str and escape(request.GET.get('auto')): # snl temporary: escape creates a bug where None = True
-        query = query.filter(text_auto=AutoQuery(query_str),year=year)
+        query = query.filter(respondent_id=respondent_id)
     elif query_str:
-        query = query.filter(content=AutoQuery(query_str), year=year)
+        query = query\
+            .annotate(similarity=TrigramSimilarity('name', query_str))\
+            .filter(similarity__gte=0.3)\
+            .order_by('-similarity')
     else:
-        query = []
+        query = query.none()
+
+    if request.GET.get('sort') in SORT_WHITELIST:
+        query = query.order_by(request.GET['sort'])
+        sort = current_sort = request.GET['sort']
+    else:
+        sort = current_sort = ''
+
 
     # number of results per page
     try:
@@ -143,8 +156,6 @@ def search_results(request):
         start_results = 0
         end_results = num_results
 
-    sort = current_sort
-
     total_results = len(query)
 
     # total number of pages
@@ -165,10 +176,8 @@ def search_results(request):
     # previous page
     prev_page = page - 1
 
-    results = []
-    for result in query:
-        result.object.num_loans = result.num_loans
-        results.append(result.object)
+    results = query
+
     if request.accepted_renderer.format != 'html':
         results = InstitutionSerializer(results, many=True).data
 
