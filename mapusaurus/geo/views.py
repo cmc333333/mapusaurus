@@ -1,10 +1,9 @@
 import json
 
 from django.contrib.gis.geos import Point, Polygon
+from django.contrib.postgres.search import TrigramSimilarity
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from haystack.inputs import AutoQuery
-from haystack.query import SearchQuerySet
 from rest_framework import serializers
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
@@ -78,13 +77,12 @@ class GeoSerializer(serializers.ModelSerializer):
 def search(request):
     query_str = request.GET.get('q', '').strip()
     year= request.GET.get('year', '').strip()
-    query = SearchQuerySet().models(Geo).load_all()
-    if request.GET.get('auto'):
-        query = query.filter(text_auto=AutoQuery(query_str)).filter(year=year)
-    else:
-        query = query.filter(content=AutoQuery(query_str)).filter(year=year)
+    query = Geo.objects\
+        .filter(geo_type=Geo.METRO_TYPE, year=year)\
+        .annotate(similarity=TrigramSimilarity('name', query_str))\
+        .filter(similarity__gte=0.01)\
+        .order_by('-similarity')
     query = query[:25]
-    results = [result.object for result in query if result]
-    results = GeoSerializer(results, many=True).data
+    results = GeoSerializer(query, many=True).data
 
     return Response({'geos': results})

@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
-from django.test import RequestFactory, TestCase
+from django.test import TestCase
 from mock import Mock, patch
 from model_mommy import mommy
 
@@ -14,7 +14,6 @@ from respondents import views, zipcode_utils
 from respondents.models import Agency, Institution, ZipcodeCityStateYear
 from respondents.management.commands import load_reporter_panel
 from respondents.management.commands import load_transmittal
-from respondents.search_indexes import InstitutionIndex
 
 class ZipcodeUtilsTests(TestCase):
     def test_createzipcode(self):
@@ -102,8 +101,18 @@ class LenderHierarchyTest(TestCase):
         self.assertEqual(hierarchy_list_exclude_order[0].institution_id, "91000000002")        
         self.assertEqual(len(hierarchy_list_exclude_order), 2)
 
+
 class ViewTest(TestCase):
     fixtures = ['agency', 'fake_respondents', 'fake_hierarchy', 'fake_branches', 'fake_year']
+
+    def fetch_search(self, query, **kwargs):
+        return self.client.get(
+            reverse('respondents:search_results'),
+            dict(kwargs, format='json', q=query),
+        ).json()
+
+    def fetch_institutions(self, query, **kwargs):
+        return self.fetch_search(query, **kwargs)['institutions']
  
     def test_branch_locations(self):
         resp = self.client.get(reverse('branchLocations'), 
@@ -139,240 +148,119 @@ class ViewTest(TestCase):
         inst.delete()
         zipcode.delete()
 
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_empty(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value
-        self.client.get(reverse('respondents:search_results'))
-        self.assertFalse(SQS.filter.called)
+    def test_search_empty(self):
+        a10 = mommy.make(Institution, name='AAAAA', year=2010)
+        mommy.make(HMDARecord, institution_id=a10.institution_id)
 
-        self.client.get(reverse('respondents:search_results'), {'q': '', 'year': '2013'})
-        self.assertFalse(SQS.filter.called)
+        result = self.client.get(
+            reverse('respondents:search_results'), {'format': 'json'}
+        ).json()['institutions']
+        self.assertEqual(result, [])
 
-        self.client.get(reverse('respondents:search_results'), {'q': '     ', 'year': ''})
-        self.assertFalse(SQS.filter.called)
+        self.assertEqual(self.fetch_institutions('', year='2010'), [])
+        self.assertEqual(self.fetch_institutions('     ', year=''), [])
 
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_name(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
+    def test_search_requires_hmda(self):
+        a10 = mommy.make(Institution, name='AAAAA', year=2010)
+        mommy.make(Institution, name='AAAAA AAAAA', year=2010)
+        mommy.make(HMDARecord, institution_id=a10.institution_id)
+        self.assertEqual(len(self.fetch_institutions('aaaaa', year='2010')), 1)
 
-        result1 = Mock(num_loans=0, object=mommy.prepare(
-            Institution,
-            agency_id=1,
-            name='Some Bank',
-            respondent_id='0123456789',
-            year='2013',
-        ))
-        result2 = Mock(num_loans=0, object=mommy.prepare(
-            Institution,
-            agency_id=2,
-            name='Bank & Loan',
-            respondent_id='1122334455',
-            year='2013',
-        ))
-        SQS.filter.return_value = [result1, result2]
+    def test_search_name(self):
+        bank1 = mommy.make(Institution, name='Some Bank', year=2013)
+        mommy.make(HMDARecord, institution_id=bank1.institution_id)
+        bank2 = mommy.make(Institution, name='Bank & Loan', year=2013)
+        mommy.make(HMDARecord, institution_id=bank2.institution_id)
 
-        resp = self.client.get(reverse('respondents:search_results'),
-                               {'q': 'Bank', 'year': '2013'})
+        self.assertEqual(len(self.fetch_institutions('Bank', year='2013')), 2)
+        self.assertEqual(len(self.fetch_institutions('Loan', year='2013')), 1)
 
-        self.assertTrue('Bank' in str(SQS.filter.call_args))
-        self.assertTrue('Some Bank' in resp.content)
-        self.assertTrue('Bank &amp; Loan' in resp.content)
-        self.assertRaises(ValueError, json.loads, resp.content)
+    def test_search_trigram(self):
+        bank = mommy.make(Institution, name='This is a bank', year=2013)
+        mommy.make(HMDARecord, institution_id=bank.institution_id)
+        self.assertEqual(
+            len(self.fetch_institutions('that bank', year='2013')),
+            1,
+        )
+        self.assertEqual(self.fetch_institutions('xxxx', year='2013'), [])
 
-
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_autocomplete(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock(num_loans=0, object=mommy.prepare(
+    def test_search_id(self):
+        bank = mommy.make(
             Institution,
             agency_id=3,
-            respondent_id='3232434354',
-            year=2013,
-        ))
-        SQS.filter.return_value = [result]
-        self.client.get(reverse('respondents:search_results'),
-                        {'q': 'Bank', 'auto': '1', 'year': '2013'})
-        self.assertTrue('Bank' in str(SQS.filter.call_args))
-        self.assertTrue('text_auto' in str(SQS.filter.call_args))
-
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_id(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock(num_loans=0, object=mommy.prepare(
-            Institution,
-            agency_id=3,
+            institution_id='201331234543210',
             name='Some Bank',
-            respondent_id='1234543210',
+            respondent_id='123454321',
             year=2013,
-        ))
-        SQS.filter.return_value = [result]
+        )
+        mommy.make(HMDARecord, institution_id=bank.institution_id)
 
-        resp = self.client.get(reverse('respondents:search_results'),
-                               {'q': '01234567', 'year': '2013'})
+        self.assertEqual(
+            self.fetch_institutions(bank.respondent_id, year='2013'),
+             [],
+        )
 
-        self.assertTrue('01234567' in str(SQS.filter.call_args))
-        self.assertTrue('Some Bank' in resp.content)
-        self.assertRaises(ValueError, json.loads, resp.content)
+        bank.respondent_id='1234543210'     # now ten chars
+        bank.save()
+        self.assertEqual(
+            len(self.fetch_institutions(bank.respondent_id, year='2013')),
+            1,
+        )
 
-        resp = self.client.get(reverse('respondents:search_results'),
-                               {'q': '012345-7899', 'year': '2013'})
-        self.assertTrue('012345-7899' in str(SQS.filter.call_args))
-        self.assertTrue('lender_id' in str(SQS.filter.call_args))
-        self.assertTrue('Some Bank' in resp.content)
-        self.assertRaises(ValueError, json.loads, resp.content)
+        for q in ('1234543210', 'Some Bank (31234543210)'):
+            self.assertEqual(len(self.fetch_institutions(q, year='2013')), 1)
 
-        for q in ['01123456799',
-                  'Some Bank (01123456799)']:
-            resp = self.client.get(reverse('respondents:search_results'),
-                                   {'q': q, 'year': '2013'})
-            self.assertTrue('01123456799' in str(SQS.filter.call_args))
-            self.assertTrue('lender_id' in str(SQS.filter.call_args))
-            self.assertTrue('Some Bank' in resp.content)
-            self.assertRaises(ValueError, json.loads, resp.content)
+    def test_search_sort(self):
+        bank1 = mommy.make(Institution, name='aaa', assets=1111, year=2013)
+        mommy.make(HMDARecord, institution_id=bank1.institution_id)
+        mommy.make(HMDARecord, institution_id=bank1.institution_id)
+        bank2 = mommy.make(Institution, name='aaa bbb', assets=2222, year=2013)
+        mommy.make(HMDARecord, institution_id=bank2.institution_id)
 
-        resp = self.client.get(reverse('respondents:search_results'),
-                               {'q': 'Some Bank (0112345799)', 'year': '2013'})
-        self.assertTrue('0112345799' in str(SQS.filter.call_args))
-        self.assertFalse('lender_id' in str(SQS.filter.call_args))
-        self.assertTrue('Some Bank' in resp.content)
-        self.assertRaises(ValueError, json.loads, resp.content)
+        results = self.fetch_institutions('aaa', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa', 'aaa bbb'])
 
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_json(self, SQS):
-        #SQS = SQS.return_value.models.return_value.load_all.return_value.order_by_
-        SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock()
-        SQS.filter.return_value = [result]
+        results = self.fetch_institutions(
+            'aaa', sort='another-sort', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa', 'aaa bbb'])
 
-        result.object = Institution(name='Some Bank')
+        results = self.fetch_institutions('aaa', sort='assets', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa', 'aaa bbb'])
+        results = self.fetch_institutions('aaa', sort='-assets', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa bbb', 'aaa'])
+        results = self.fetch_institutions('aaa', sort='num_loans', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa bbb', 'aaa'])
+        results = self.fetch_institutions('aaa', sort='-num_loans', year='2013')
+        self.assertEqual([r['name'] for r in results], ['aaa', 'aaa bbb'])
 
-        resp = self.client.get(reverse('respondents:search_results'),
-                               {'q': 'Bank', 'year': '2013'},
-                               HTTP_ACCEPT='application/json')
-
-        resp = json.loads(resp.content)
-        self.assertEqual(1, len(resp['institutions']))
-        inst = resp['institutions'][0]
-        self.assertEqual('Some Bank', inst['name'])
-
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_num_loans(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value.order_by.return_value
-        result = Mock()
-        SQS.filter.return_value = [result]
-        result.num_loans = 45
-        result.object = Institution(name='Some Bank')
-
-        request = RequestFactory().get('/', data={'q': 'Bank', 'year': '2013'})
-        results = views.search_results(request)
-        self.assertEqual(len(results.data['institutions']), 1)
-        self.assertEqual(45, results.data['institutions'][0].num_loans)
-
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_sort(self, SQS):
-
-        load_all = SQS.return_value.models.return_value.load_all.return_value
-
-        request = RequestFactory().get('/', data={'q': 'Bank'})
-        views.search_results(request)
-        self.assertTrue(load_all.order_by.called)
-
-        request = RequestFactory().get('/', data={'q': 'Bank',
-                                                  'sort': 'another-sort', 'year': '2013'})
-        views.search_results(request)
-        self.assertTrue(load_all.order_by.called)
-
-        for sort in ('assets', '-assets', 'num_loans', '-num_loans'):
-            request = RequestFactory().get('/', data={'q': 'Bank',
-                                                      'sort': sort, 'year': '2013'})
-            views.search_results(request)
-            self.assertTrue(load_all.order_by.called)
-
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_pagination(self, SQS):
-        request = RequestFactory().get('/', data={'q': 'Bank', 'year': '2013'})
-        results = views.search_results(request)
+    def test_search_pagination(self):
+        for _ in range(10):
+            bank = mommy.make(Institution, name='ccc', year=2013)
+            mommy.make(HMDARecord, institution_id=bank.institution_id)
         # page number should default to 1
-        self.assertEqual(results.data['page_num'], 1)
+        results = self.fetch_search('ccc', num_results='2', year='2013')
+        self.assertEqual(results['page_num'], 1)
 
-        request = RequestFactory().get('/', data={'q': 'Bank',
-                                                  'page': 3, 'year': '2013'})
-        results = views.search_results(request)
-        self.assertEqual(results.data['page_num'], 3)
-        self.assertEqual(results.data['next_page'], 0)
-        self.assertEqual(results.data['prev_page'], 2)
+        results = self.fetch_search(
+            'ccc', num_results='2', page='5', year='2013')
+        self.assertEqual(results['page_num'], 5)
+        self.assertEqual(results['next_page'], 0)
+        self.assertEqual(results['prev_page'], 4)
 
-        request = RequestFactory().get('/', data={'q': 'Bank',
-                                                  'page': 'str', 'year': '2013'})
-        results = views.search_results(request)
-        self.assertEqual(results.data['page_num'], 1)
+        results = self.fetch_search(
+            'ccc', num_results='2', page='str', year='2013')
+        self.assertEqual(results['page_num'], 1)
 
-    @patch('respondents.views.SearchQuerySet')
-    def test_search_num_results(self, SQS):
-        request = RequestFactory().get('/', data={'q': 'Bank', 'year': '2013'})
-        results = views.search_results(request)
+    def test_search_num_results(self):
+        for _ in range(30):
+            bank = mommy.make(Institution, name='ddd', year=2013)
+            mommy.make(HMDARecord, institution_id=bank.institution_id)
+        results = self.fetch_search('ddd', year='2013')
         # number of results should default to 25
-        self.assertEqual(results.data['num_results'], 25)
+        self.assertEqual(results['num_results'], 25)
 
-        request = RequestFactory().get('/', data={'q': 'Bank',
-                                                  'num_results': 10, 'year': '2013'})
-        results = views.search_results(request)
-        self.assertEqual(results.data['num_results'], 10)
+        results = self.fetch_search('ddd', num_results='10', year='2013')
+        self.assertEqual(results['num_results'], 10)
 
-        request = RequestFactory().get('/', data={'q': 'Bank',
-                                                  'num_results': 'str', 'year': '2013'})
-        results = views.search_results(request)
-        self.assertEqual(results.data['num_results'], 25)
-
-class InstitutionIndexTests(TestCase):
-    fixtures = ['agency', 'many_tracts']
-
-    def setUp(self):
-        self.zipcode = ZipcodeCityStateYear.objects.create(
-            zip_code=12345, city='City', state='IL', year='2013')
-        self.inst1 = Institution.objects.create(
-            year=1234, respondent_id='9876543210', agency=Agency.objects.get(pk=9),
-            institution_id='99876543210', tax_id='1111111111', name='Institution', mailing_address='mail',
-            zip_code=self.zipcode)
-        self.inst2 = Institution.objects.create(
-            year=1234, respondent_id='0123456789', agency=Agency.objects.get(pk=9),
-            institution_id='90123456789', tax_id='2222222222', name='Institution', mailing_address='mail',
-            zip_code=self.zipcode)
-        self.hmda = HMDARecord.objects.create(
-            as_of_year=2005, respondent_id='9876543210', agency_code='9',
-            loan_type=1, property_type=1, loan_purpose=1, owner_occupancy=1,
-            loan_amount_000s=100, preapproval='1', action_taken=4,
-            msamd='01234', statefp='00', countyfp='000',
-            census_tract_number ='01234', applicant_ethnicity='1',
-            co_applicant_ethnicity='1', applicant_race_1='1', co_applicant_race_1='1',
-            applicant_sex='1', co_applicant_sex='1', applicant_income_000s='1000',
-            purchaser_type='1', rate_spread='0123', hoepa_status='1', lien_status='1',
-            sequence_number='1', population='1', minority_population='1',
-            ffieic_median_family_income='1000', tract_to_msamd_income='1000',
-            number_of_owner_occupied_units='1', number_of_1_to_4_family_units='1',
-            application_date_indicator=1, institution=self.inst1, geo=Geo.objects.all()[0])
-    def tearDown(self):
-        self.hmda.delete()
-        self.inst2.delete()
-        self.inst1.delete()
-        self.zipcode.delete()
-
-    def test_queryset_num_loans(self):
-        found1, found2 = False, False
-        index = InstitutionIndex()
-        for obj in index.index_queryset():
-            if obj.respondent_id == '9876543210':
-                found1 = True
-                self.assertEqual(obj.num_loans, 1)
-            elif obj.respondent_id == '0123456789':
-                found2 = True
-        self.assertTrue(found1)
-        self.assertFalse(found2)
-
-    def test_queryset_read(self):
-        found = False
-        index = InstitutionIndex()
-        for obj in index.read_queryset():
-            found = True
-            self.assertFalse(hasattr(obj, 'num_loans'))
-        self.assertTrue(found)
+        results = self.fetch_search('ddd', num_results='str', year='2013')
+        self.assertEqual(results['num_results'], 25)

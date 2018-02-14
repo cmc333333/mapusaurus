@@ -15,42 +15,18 @@ from censusdata.models import Census2010Sex
 class ViewTest(TestCase):
     fixtures = ['many_tracts', 'test_counties']
 
+    def fetch_search(self, query, **kwargs):
+        return self.client.get(
+            reverse('geo:search'),
+            dict(kwargs, format='json', q=query),
+        ).json()
 
-    @patch('geo.views.SearchQuerySet')
-    def test_search_name(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value
-        result = Mock()
-        result.object.geoid = '11111'
-        result.object.geo_type = 1
-        result.object.name = 'MSA 1'
-        result.object.centlat = 45
-        result.object.centlon = 52
-        result.object.year = 2013
-        SQS.filter.return_value.filter.return_value = [result]
-        resp = self.client.get(reverse('geo:search'), {'q': 'Chicago', 'year': '2013'})
-        self.assertTrue('Chicago' in str(SQS.filter.call_args))
-        self.assertTrue('content' in str(SQS.filter.call_args))
-        self.assertFalse('text_auto' in str(SQS.filter.call_args))
-        resp = json.loads(resp.content)
-        self.assertEqual(1, len(resp['geos']))
-        geo = resp['geos'][0]
-        self.assertEqual('11111', geo['geoid'])
-        self.assertEqual('MSA 1', geo['name'])
-        self.assertEqual(1, geo['geo_type'])
-        self.assertEqual(45, geo['centlat'])
-        self.assertEqual(52, geo['centlon'])
+    def test_search_name(self):
+        mommy.make(Geo, geo_type=Geo.METRO_TYPE, name='Chicago', year=2013)
+        result = self.fetch_search('cago', year='2013')
+        self.assertEqual(1, len(result['geos']))
+        self.assertEqual('Chicago', result['geos'][0]['name'])
 
-    @patch('geo.views.SearchQuerySet')
-    def test_search_autocomplete(self, SQS):
-        SQS = SQS.return_value.models.return_value.load_all.return_value
-        SQS.filter.return_value.filter.return_value = [
-            Mock(object=mommy.prepare(Geo)),
-        ]
-        self.client.get(reverse('geo:search'), {'q': 'Chicago', 'auto': '1', 'year': '2013'})
-        self.assertTrue('Chicago' in str(SQS.filter.call_args))
-        self.assertFalse('content' in str(SQS.filter.call_args))
-        self.assertTrue('text_auto' in str(SQS.filter.call_args))
-        self.assertTrue('year' in str(SQS.filter.return_value.filter.call_args))
 
 class UtilsTest(TestCase):
     def test_check_bounds(self):
