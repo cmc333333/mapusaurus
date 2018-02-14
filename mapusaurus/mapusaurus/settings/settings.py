@@ -39,7 +39,6 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.postgres',
     'localflavor',
-    'haystack',
     'rest_framework',
     'basestyle',
     'mapping',
@@ -89,14 +88,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 STATIC_URL = '/static/'
-
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
-        'INDEX_NAME': 'mapusaurus',
-    },
-}
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
