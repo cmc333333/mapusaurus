@@ -1,4 +1,4 @@
-from urllib import unquote
+from urllib.parse import unquote
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -27,29 +27,29 @@ class ViewTest(TestCase):
 
     def test_home(self):
         resp = self.client.get(reverse('map'))
-        self.assertFalse('lender-info' in resp.content)
+        self.assertNotContains(resp, 'lender-info')
         resp = self.client.get(reverse('map'), {'some': 'thing'})
-        self.assertFalse('lender-info' in resp.content)
+        self.assertNotContains(resp, 'lender-info')
         resp = self.client.get(reverse('map'), {'lender': 'thing'})
-        self.assertFalse('lender-info' in resp.content)
+        self.assertNotContains(resp, 'lender-info')
         resp = self.client.get(reverse('map'), {'lender': '"922-33"89'})
-        self.assertFalse('lender-info' in resp.content)
+        self.assertNotContains(resp, 'lender-info')
 
         resp = self.client.get(reverse('map'), {'lender': '922-333'})
-        self.assertTrue('lender-info' in resp.content)
-        self.assertTrue('Some Bank' in resp.content)
-        self.assertTrue('1970' in resp.content)
-        self.assertTrue('Somewhere' in resp.content)
-        self.assertTrue('NE' in resp.content)
+        self.assertContains(resp, 'lender-info')
+        self.assertContains(resp, 'Some Bank')
+        self.assertContains(resp, '1970')
+        self.assertContains(resp, 'Somewhere')
+        self.assertContains(resp, 'NE')
 
     def test_center(self):
         resp = self.client.get(reverse('map'), {'metro': '12121'})
-        self.assertTrue('45.4545' in resp.content)
-        self.assertTrue('67.6767' in resp.content)
-        self.assertTrue('10' in resp.content)
-        self.assertTrue('12' in resp.content)
-        self.assertTrue('MetMetMet' in resp.content)
-        self.assertTrue('year' in resp.content)
+        self.assertContains(resp, '45.4545')
+        self.assertContains(resp, '67.6767')
+        self.assertContains(resp, '10')
+        self.assertContains(resp, '12')
+        self.assertContains(resp, 'MetMetMet')
+        self.assertContains(resp, 'year')
 
     def test_make_download_url(self):
         self.assertEqual("https://api.consumerfinance.gov/data/hmda/slice/hmda_lar.csv?%24where=&%24limit=0", make_download_url(None, None))

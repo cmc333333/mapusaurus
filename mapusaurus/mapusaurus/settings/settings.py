@@ -113,5 +113,3 @@ TEMPLATES = [{
         ],
     },
 }]
-
-from mapusaurus.settings.local_settings import *

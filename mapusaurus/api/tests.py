@@ -1,4 +1,6 @@
+import csv
 import json
+from io import StringIO
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseNotFound
@@ -6,7 +8,7 @@ from django.http import HttpResponseNotFound
 from django.test import TestCase
 from mock import Mock
 
-from utils import use_GET_in
+from api.utils import use_GET_in
 from api.views import msas, tables, tables_csv
 
 class ConversionTest(TestCase):
@@ -24,7 +26,7 @@ class ConversionTest(TestCase):
         fn.return_value = HttpResponseNotFound('Oh noes')
         response = use_GET_in(fn, request)
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content, 'Oh noes')
+        self.assertEqual(response.content, b'Oh noes')
 
 
 class ViewsTests(TestCase):
@@ -102,12 +104,11 @@ class ViewsTests(TestCase):
         self.assertTrue(len(result_dict['msa']) > 0)
 
     def test_api_tables_csv(self):
-        import csv, StringIO
         """should return table_data csv for a lender/MSA pair"""
         params = {'lender': '90000451965', 'metro': '49180', 'year': '2013'}
         url = reverse(tables_csv)
         resp = self.client.get(url, params)
-        f = StringIO.StringIO(resp.content)
+        f = StringIO(resp.content.decode('utf-8'))
         result = csv.DictReader(f, delimiter=',')
         for result_dict in result:
             pass

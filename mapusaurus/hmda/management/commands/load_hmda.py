@@ -37,12 +37,14 @@ class Command(BaseCommand):
 
         def log_info(message):
             logging.info(message)
-            print message
+            print(message)
 
         get_logger()
 
         if delete_file:
-            print "************* CSV File(s) WiLL BE REMOVED AFTER PROCESSING ***********"
+            print("************* "
+                  "CSV File(s) WILL BE REMOVED AFTER PROCESSING "
+                  "***********")
 
         csv_files = []
         if os.path.isfile(lar_path):

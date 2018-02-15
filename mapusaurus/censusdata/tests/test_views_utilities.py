@@ -1,13 +1,17 @@
 """
 tests of the helper functions for assembling tables for map page
 """
+from decimal import Decimal
 
 from django.http import HttpRequest
 from django.test import TestCase
-# from mock import Mock, patch
-from censusdata.views import minority_aggregation_as_json, assemble_stats, odds_ratio, get_minority_area_stats
-from hmda.views import loan_originations_as_json
+
+from censusdata.views import (
+    assemble_stats, get_minority_area_stats, minority_aggregation_as_json,
+    odds_ratio
+)
 from geo.models import Geo
+from hmda.views import loan_originations_as_json
 from respondents.models import Institution
 
 params = {'lender': '90000451965', 'metro': '49180'}
@@ -58,17 +62,13 @@ class ViewsUtilitiesTests(TestCase):
         should return demical representing the odds ratio
         for a lender/MSA pair compared with the lender's peers
         """
-        odds1 = odds_ratio(1, 1)
-        odds2 = odds_ratio(2, 5)
-        odds3 = odds_ratio(0.2, 0.3)
-        odds4 = odds_ratio(0.5, 0.5)
-        self.assertEqual(odds1, 1.0)
-        self.assertEqual(odds2, 0.0)
-        self.assertEqual(odds3, 0.583)
-        self.assertEqual(odds4, 1.0)
+        self.assertEqual(odds_ratio(1, 1), 1)
+        self.assertEqual(odds_ratio(2, 5), 0)
+        self.assertEqual(odds_ratio(0.2, 0.3), Decimal('0.583'))
+        self.assertEqual(odds_ratio(0.5, 0.5), 1)
         self.assertIsNone(odds_ratio(1, 0))
         self.assertIsNone(odds_ratio(0, 0))
-        self.assertEqual(0, odds_ratio(0, 1))
+        self.assertEqual(odds_ratio(0, 1), 0)
 
 
 

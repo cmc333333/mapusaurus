@@ -21,7 +21,7 @@ class Command(BaseCommand):
         # count = 1 # use if want to see which item failed, see comment below where we create institution individually
         for inst_line in transmittal_reader:
             if len(inst_line) != 22:
-                print 'Skipping line', inst_line
+                print(f"Skipping line {inst_line}")
                 break
             year = inst_line[0]
             zip_code = inst_line[8]

@@ -1,9 +1,13 @@
+import json
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.db import models
 from django.template import defaultfilters
 from localflavor.us.models import USStateField
-import json
-from respondents.managers import AgencyManager
+
 from hmda.models import LendingStats
+from respondents.managers import AgencyManager
+
 
 class ZipcodeCityStateYear(models.Model):
     """ For each zipcode, maintain the city, state information by year. """
@@ -121,9 +125,14 @@ class Institution(models.Model):
     def get_peer_list(self, metro, exclude, order_by):
         loan_stats = self.lendingstats_set.filter(geo_id=metro.geoid).first()
         if loan_stats:
-            percent_50 = round(loan_stats.lar_count * .50)
+            half_raw = Decimal(loan_stats.lar_count) / 2
+            percent_50 = half_raw.quantize(1, rounding=ROUND_HALF_UP)
             percent_200 = loan_stats.lar_count * 2.0
-            peer_list = LendingStats.objects.filter(geo_id=metro.geoid, fha_bucket=loan_stats.fha_bucket, lar_count__range=(percent_50, percent_200)).select_related('institution')
+            peer_list = LendingStats.objects.filter(
+                geo_id=metro.geoid,
+                fha_bucket=loan_stats.fha_bucket,
+                lar_count__range=(percent_50, percent_200)
+            ).select_related('institution')
             if exclude:
                 peer_list = peer_list.exclude(institution=self)
             if order_by:

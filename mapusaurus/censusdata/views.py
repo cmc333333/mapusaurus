@@ -1,5 +1,7 @@
 import json
 import csv
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.utils.encoding import smart_str
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -10,6 +12,8 @@ from geo.views import get_censustract_geos
 from geo.models import Geo
 from hmda.views import loan_originations_as_json
 from respondents.models import Institution
+
+THREE_PLACES = Decimal(10) ** -3
 
 def get_minority_area_stats(target_lar_data, peer_lar_data, tracts):
     lma_sum = 0
@@ -61,10 +65,14 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
 
     target_lar_total = lma_sum + mma_sum + hma_sum
     if target_lar_total:
-        lma_pct = round(1.0 * lma_sum / target_lar_total, 3)
-        mma_pct = round(1.0 * mma_sum / target_lar_total, 3)
-        hma_pct = round(1.0 * hma_sum / target_lar_total, 3)
-        maj_pct = round(mma_pct + hma_pct, 3)
+        lma_pct = (Decimal(lma_sum) / target_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        mma_pct = (Decimal(mma_sum) / target_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        hma_pct = (Decimal(hma_sum) / target_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        maj_pct = (Decimal(mma_pct) + hma_pct).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
                 'lma': lma_sum, 
                 'lma_pct': lma_pct, 
@@ -88,10 +96,14 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
     #assemble peer data
     peer_lar_total = peer_lma_sum + peer_mma_sum + peer_hma_sum
     if peer_lar_total:
-        peer_lma_pct = round(1.0 * peer_lma_sum / peer_lar_total, 3)
-        peer_mma_pct = round(1.0 * peer_mma_sum / peer_lar_total, 3)
-        peer_hma_pct = round(1.0 * peer_hma_sum / peer_lar_total, 3)
-        peer_maj_pct = round(peer_mma_pct + peer_hma_pct, 3)
+        peer_lma_pct = (Decimal(peer_lma_sum) / peer_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        peer_mma_pct = (Decimal(peer_mma_sum) / peer_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        peer_hma_pct = (Decimal(peer_hma_sum) / peer_lar_total).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
+        peer_maj_pct = (Decimal(peer_mma_pct) + peer_hma_pct).quantize(
+            THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
                 'peer_lma': peer_lma_sum, 
                 'peer_lma_pct': peer_lma_pct, 
@@ -132,16 +144,20 @@ def odds_ratio(target_pct, peer_pct):
     this algorithm has not been vetted, so its current use 
     is only for mocking data flow to tables
     """
-    odds_ratio = 0.0
+    odds_ratio = Decimal(0)
     if peer_pct == 0.0:
         return None
     elif target_pct == 0.0:
-        odds_ratio = 0.0
+        odds_ratio = Decimal(0)
     elif target_pct == peer_pct:
-        odds_ratio = 1.0
+        odds_ratio = Decimal(1)
     elif peer_pct > 0.0 and target_pct < 1.0 and peer_pct < 1.0:
-        odds_ratio = (target_pct/(1-target_pct))/(peer_pct/(1-peer_pct))
-    return round(odds_ratio, 3)
+        odds_ratio = (
+            (Decimal(target_pct) / Decimal(1 - target_pct))
+            /
+            (Decimal(peer_pct) / Decimal(1 - peer_pct))
+        )
+    return odds_ratio.quantize(THREE_PLACES, rounding=ROUND_HALF_UP)
 
 def minority_aggregation_as_json(request):
     """

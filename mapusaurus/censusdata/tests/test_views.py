@@ -88,7 +88,7 @@ class ViewsTest(TestCase):
                                     'lender':'91000000002'})
         resp = json.loads(resp.content)
         self.assertEqual(len(resp), 4)
-        self.assertTrue('1122233300' in resp)
+        self.assertIn('1122233300', resp)
         self.assertEqual(resp['1122233300']['total_pop'], 10)
         self.assertEqual(resp['1122233300']['hispanic'], 1)
         self.assertEqual(resp['1122233300']['non_hisp_white_only'], 2)
@@ -98,7 +98,7 @@ class ViewsTest(TestCase):
         self.assertEqual(resp['1122233300']['non_hisp_white_only_perc'], .2)
         self.assertEqual(resp['1122233300']['non_hisp_black_only_perc'], .4)
         self.assertEqual(resp['1122233300']['non_hisp_asian_only_perc'], .5)
-        self.assertTrue('1122233400' in resp)
+        self.assertIn('1122233400', resp)
         self.assertEqual(resp['1122233400']['total_pop'], 20)
         self.assertEqual(resp['1122233400']['hispanic'], 2)
         self.assertEqual(resp['1122233400']['non_hisp_white_only'], 1)
@@ -114,14 +114,7 @@ class ViewsTest(TestCase):
         self.assertEqual(resp.status_code, 404)
         resp = self.client.get(reverse('censusdata:race_summary_csv'),
             {'metro':'10000', 'lender':'91000000001', 'action_taken':'1,2,3,4'})
-        resp = resp.content
-        self.assertTrue('1122233300' in resp)
-        self.assertTrue('1122233400' in resp)
-        self.assertTrue('1122333300' in resp)
-        self.assertTrue('1237' in resp)
-
-
-
-
-
-
+        self.assertContains(resp, '1122233300')
+        self.assertContains(resp, '1122233400')
+        self.assertContains(resp, '1122333300')
+        self.assertContains(resp, '1237')

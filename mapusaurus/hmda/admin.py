@@ -1,5 +1,6 @@
 from django.contrib.gis import admin
-from models import HMDARecord, LendingStats
+
+from hmda.models import HMDARecord, LendingStats
 from geo.models import Geo
 
 # Register your models here.

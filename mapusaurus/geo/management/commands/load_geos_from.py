@@ -1,5 +1,4 @@
 import argparse
-import itertools
 
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource
@@ -82,7 +81,7 @@ class Command(BaseCommand):
         layer = ds[0]
         columns = [layer.get_fields(field) for field in layer.fields]
         columns.append(layer.get_geoms(True))
-        rows = itertools.izip(*columns)
+        rows = zip(*columns)
         batch, batch_count = [], 0
         for row in rows:
             batch.append(self.process_row(year, row, layer.fields))

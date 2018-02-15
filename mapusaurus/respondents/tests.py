@@ -52,11 +52,11 @@ class LoadTransmittalTests(TestCase):
 
     def test_handle(self):
         with NamedTemporaryFile(delete=False) as tmp:
-            tmp.write("2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
-                      "1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
-                      "FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t"
-                      "90210\tFIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t"
-                      "3\t3657\tN")
+            tmp.write(b"2013\t0000055547\t1\tTAXIDHERE\tFIRST FAKE BK NA\t"
+                      b"1122 S 3RD ST\tTERRE HAUTE\tCA\t90210\t"
+                      b"FIRST FAKE CORPORATION\tONE ADDR\tTERRE HAUTE\tCA\t"
+                      b"90210\tFIRST FAKE BK NA\tTERRE HAUTE\tCA\t121212\t0\t"
+                      b"3\t3657\tN")
             tmp.close()
 
             call_command('load_transmittal', tmp.name)

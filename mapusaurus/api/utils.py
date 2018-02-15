@@ -28,7 +28,7 @@ def state_county_filter(counties):
         state, county = county[:2], county[2:]
         by_state[state] = by_state.get(state, []) + [county]
     query = None
-    for state, counties in by_state.iteritems():
+    for state, counties in by_state.items():
         subquery = Q(geoid__state=state, geoid__county__in=counties)
         if query:
             query = query | subquery

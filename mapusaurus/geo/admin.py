@@ -1,5 +1,6 @@
 from django.contrib.gis import admin
-from models import Geo
+
+from geo.models import Geo
 
 # Register your models here.
 

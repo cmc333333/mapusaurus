@@ -1,5 +1,7 @@
 from django.contrib import admin
-from models import ZipcodeCityStateYear, Agency, ParentInstitution, Institution
+
+from respondents.models import (
+    Agency, Institution, ParentInstitution, ZipcodeCityStateYear)
 
 admin.site.disable_action('delete_selected')
 # Register your models here.

@@ -1,11 +1,13 @@
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.shortcuts import render
 from django.db.models.query import QuerySet
+
 from geo.models import Geo
 from hmda.models import LendingStats, Year
 from hmda.management.commands.calculate_loan_stats import (calculate_median_loans)
 from respondents.models import Institution
+
 
 def map(request, template):
     """Display the map. If lender info is present, provide it to the
