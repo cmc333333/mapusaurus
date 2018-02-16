@@ -14,7 +14,7 @@ services:
     - database
     environment:
       DATABASE_URL: postgis://postgres@database/postgres
-      DJANGO_SETTINGS_MODULE: mapusaurus.settings.docker
+      DJANGO_SETTINGS_MODULE: mapusaurus.settings
     command: .docker/wait_for_db_then pipenv run python mapusaurus/manage.py runserver 0.0.0.0:8000
     ports:
     - 8000:8000

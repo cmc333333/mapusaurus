@@ -6,7 +6,7 @@ from mock import Mock, patch
 
 from hmda.management.commands.load_hmda import Command
 from hmda.models import HMDARecord
-from mapusaurus.settings.settings import BASE_DIR
+from mapusaurus.settings import BASE_DIR
  
 
 class LoadHmdaTest(TestCase):

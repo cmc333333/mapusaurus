@@ -9,7 +9,7 @@ from mock import patch
 import geo.errors
 from censusdata import models
 from censusdata.management.commands.load_summary_one import Command
-from mapusaurus.settings.settings import BASE_DIR
+from mapusaurus.settings import BASE_DIR
 
 class LoadSummaryDataTest(TestCase):
     fixtures = ['mock_geo']
