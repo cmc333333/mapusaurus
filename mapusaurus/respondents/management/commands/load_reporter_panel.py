@@ -169,7 +169,7 @@ def process_reporter(reporters):
     for reporter in reporters:
         bank = get_institution(reporter)
         if not bank:
-            print 'Missing institution', reporter
+            print(f'Missing institution {reporter}')
             break
 
         if reporter.respondent_rssd_id == '0000000000':

@@ -33,16 +33,17 @@ class Command(BaseCommand):
             if Institution.objects.filter(institution_id=record.institution_id).count() > 0:
                 branch_location.append(record)
             else:
-                print "Can't find institution_id"
-                print '{}\t{}\t{}'.format(record.institution_id, record.name, record.street)
+                print("Can't find institution_id")
+                print(f"{record.institution_id}\t{record.name}\t"
+                      f"{record.street}")
             if len(branch_location) > 9999:
                 count += len(branch_location)
                 Branch.objects.bulk_create(branch_location, batch_size=1000)
-                print "Record count: " + str(count)
+                print(f"Record count: {count}")
                 branch_location[:] = []
         if len(branch_location) > 0:
             count += len(branch_location)
             Branch.objects.bulk_create(branch_location, batch_size=1000)
-            print "Record count: " + str(count)
+            print(f"Record count: {count}")
             branch_location[:] = []
         options['file_name'].close()

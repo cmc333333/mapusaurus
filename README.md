@@ -32,7 +32,7 @@ http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAReporterPanel.zip
 
 This currently uses:
 Django 1.11
-Python 2.7
+Python 3.6
 
 You will also need:
 PostgreSQL > 9.3, including 10
@@ -188,15 +188,6 @@ Finally, we need to populate a listing of every (HMDA, census, geo) year.
 
 ```
     python manage.py load_years 2013 2010 2013
-```
-
-## Autocompletion
-
-After populating our MSAs and Respondent names, we can generate a search index
-for use in autocompletion.
-
-```
-    python manage.py rebuild_index
 ```
 
 ## Styles

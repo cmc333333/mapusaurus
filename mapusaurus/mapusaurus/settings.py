@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import sys
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
+import dj_database_url
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 # Quick-start development settings - unsuitable for production
@@ -69,7 +72,7 @@ WSGI_APPLICATION = 'mapusaurus.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-#DATABASES = {'default': {'ENGINE': '', 'NAME': '', 'USER': '', 'PASSWORD': ''}}
+DATABASES = {'default': dj_database_url.config()}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -114,4 +117,4 @@ TEMPLATES = [{
     },
 }]
 
-from mapusaurus.settings.local_settings import *
+CONTACT_US_EMAIL = os.environ.get('CONTACT_US_EMAIL', '')

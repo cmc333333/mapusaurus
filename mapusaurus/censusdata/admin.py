@@ -1,8 +1,10 @@
 from django.contrib import admin
-from models import Census2010Race, Census2010HispanicOrigin, Census2010Sex, Census2010Age, Census2010RaceStats, Census2010Households
 
-#def unbound_callable(geoid):
-#    return geo.geo.name
+from censusdata.models import (
+    Census2010Age, Census2010HispanicOrigin, Census2010Households,
+    Census2010Race, Census2010RaceStats, Census2010Sex,
+)
+
 
 class Census2010RaceAdmin(admin.ModelAdmin):
     actions = None

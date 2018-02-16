@@ -53,7 +53,7 @@ def tables_csv(request):
     writer = csv.writer(response, csv.excel)
     writer.writerow([header_dict[k] for k in keys])
     writer.writerow([msa[k] for k in keys])
-    for id,county in counties.iteritems():
+    for id, county in counties.items():
         county = counties[id]
         county['msa_or_county_id'] = id
         writer.writerow([county[k] for k in keys])

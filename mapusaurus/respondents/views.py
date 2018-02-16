@@ -161,8 +161,10 @@ def search_results(request):
     # total number of pages
     if total_results <= num_results:
         total_pages = 1
+    elif total_results % num_results:
+        total_pages = total_results // num_results + 1
     else:
-        total_pages = int( math.ceil( float(total_results) / float(num_results) ) )
+        total_pages = total_results // num_results
 
     query = query[start_results:end_results]
 
