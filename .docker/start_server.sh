@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ${DEBUG^^} == "TRUE" ]; then
+if [ "${DEBUG^^}" == "TRUE" ]; then
   python mapusaurus/manage.py runserver 0.0.0.0:"$PORT"
 else
   cd mapusaurus
