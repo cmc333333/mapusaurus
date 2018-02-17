@@ -1,33 +1,17 @@
-"""
-Django settings for mapusaurus project.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/1.6/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.6/ref/settings/
-"""
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import json
 import os
 import sys
 
 import dj_database_url
+from django.utils.crypto import get_random_string
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', get_random_string(50))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
+DEBUG = os.environ.get('DEBUG', 'FALSE').upper() == 'TRUE'
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'YOUR-SECRET-KEY-HERE'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# ADD HOST HERE
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = json.loads(os.environ.get('ALLOWED_HOSTS', '[]'))
 
 # Application definition
 
@@ -52,8 +36,10 @@ INSTALLED_APPS = (
     'api',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,33 +49,31 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
-STATIC_ROOT = '/var/www/static/'
+CSRF_COOKIE_HTTPONLY = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+USING_SSL = os.environ.get('USING_SSL', 'TRUE').upper() == 'TRUE'
+SESSION_COOKIE_SECURE = USING_SSL
+CSRF_COOKIE_SECURE = USING_SSL
+SECURE_SSL_REDIRECT = USING_SSL
+X_FRAME_OPTIONS = 'DENY'
+
 
 ROOT_URLCONF = 'mapusaurus.urls'
 
 WSGI_APPLICATION = 'mapusaurus.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 DATABASES = {'default': dj_database_url.config()}
 
-# Internationalization
-# https://docs.djangoproject.com/en/1.6/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.6/howto/static-files/
+STATIC_ROOT = os.path.join(BASE_DIR, 'public')
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
@@ -98,8 +82,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
     ],
 }
-
-SOUTH_TESTS_MIGRATE = False
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
