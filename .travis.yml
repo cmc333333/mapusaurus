@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6"
+  - "3.6.4"
 install:
   - pip install pipenv
   - pipenv install --dev
@@ -13,7 +13,9 @@ before_script:
   - psql -c 'CREATE DATABASE travisdb;' -U postgres
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d travisdb
 env:
-  - DATABASE_URL="postgis://postgres@localhost/travisdb"
+  - DATABASE_URL="postgis://postgres@localhost/travisdb"\
+    DEBUG="true"\
+    USING_SSL="False"
 script:
   - cd mapusaurus
   - pipenv run coverage run --source='.' manage.py test
