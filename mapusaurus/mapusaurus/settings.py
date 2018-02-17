@@ -64,7 +64,12 @@ ROOT_URLCONF = 'mapusaurus.urls'
 WSGI_APPLICATION = 'mapusaurus.wsgi.application'
 
 
-DATABASES = {'default': dj_database_url.config()}
+DATABASES = {'default': dj_database_url.config(default=(
+    f"postgis://{os.environ.get('DATABASE_USER')}"
+    f":{os.environ.get('DATABASE_PASS')}"
+    f"@{os.environ.get('DATABASE_HOST')}"
+    f"/{os.environ.get('DATABASE_NAME')}"
+))}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
