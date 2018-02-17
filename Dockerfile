@@ -11,6 +11,7 @@ WORKDIR /app
 RUN pipenv install
 
 COPY ["mapusaurus", "/app/mapusaurus"]
+COPY [".docker", "/app/.docker"]
 RUN pipenv run python mapusaurus/manage.py collectstatic --noinput -c
 
 ENV ALLOWED_HOSTS="[\"localhost\", \"0.0.0.0\", \"127.0.0.1\"]"\
