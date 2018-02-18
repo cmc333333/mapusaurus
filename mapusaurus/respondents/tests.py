@@ -70,6 +70,28 @@ class LoadTransmittalTests(TestCase):
         self.assertEqual(inst.agency_id, 1)
         self.assertEqual(inst.assets, 121212)
 
+    @patch('respondents.management.commands.load_transmittal.load_from_csv')
+    def test_handle_replacements(self, load_from_csv):
+        v1 = mommy.make(Institution)
+        v2 = mommy.prepare(
+            Institution,
+            agency=v1.agency,
+            institution_id=v1.institution_id,
+            zip_code=v1.zip_code,
+        )
+        load_from_csv.return_value = [v2]
+        self.assertNotEqual(v1.name, v2.name)
+
+        with NamedTemporaryFile() as tmp:
+            call_command('load_transmittal', tmp.name)
+        from_db = Institution.objects.get(institution_id=v1.institution_id)
+        self.assertEqual(from_db.name, v1.name)
+
+        with NamedTemporaryFile() as tmp:
+            call_command('load_transmittal', tmp.name, '--replace')
+        from_db = Institution.objects.get(institution_id=v1.institution_id)
+        self.assertEqual(from_db.name, v2.name)
+
 class LenderHierarchyTest(TestCase):
     fixtures = ['agency', 'fake_respondents', 'fake_hierarchy']
 

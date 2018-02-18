@@ -12,7 +12,7 @@ from respondents.managers import AgencyManager
 class ZipcodeCityStateYear(models.Model):
     """ For each zipcode, maintain the city, state information by year. """
     zip_code = models.IntegerField()
-    plus_four = models.IntegerField(null=True)
+    plus_four = models.IntegerField(blank=True, null=True)
     city = models.CharField(max_length=25)
     state = USStateField()
     year = models.SmallIntegerField()
@@ -49,11 +49,12 @@ class ParentInstitution(models.Model):
     year = models.SmallIntegerField(db_index=True)
     name = models.CharField(max_length=30)
     city = models.CharField(max_length=25)
-    state = models.CharField(max_length=2, null=True)
-    country = models.CharField(max_length=40, null=True)
+    state = models.CharField(max_length=2, blank=True, null=True)
+    country = models.CharField(max_length=40, blank=True, null=True)
     rssd_id = models.CharField(
         max_length=10,
         help_text='Id on the National Information Center repository',
+        blank=True,
         null=True)
 
     class Meta:
@@ -80,22 +81,26 @@ class Institution(models.Model):
         help_text='Prior year reported assets in thousands of dollars'
     )
     rssd_id = models.CharField(
+        blank=True,
         max_length=10,
         null=True,
         help_text='From Reporter Panel. Id on the National Information Center repository')
     parent = models.ForeignKey(
         'self',
+        blank=True,
         null=True,
         related_name='children',
         help_text='The parent institution')
     non_reporting_parent = models.ForeignKey(
         'ParentInstitution',
+        blank=True,
         null=True,
         related_name='children',
         help_text='Non-HMDA reporting parent')
     top_holder = models.ForeignKey(
         'ParentInstitution',
         related_name='descendants',
+        blank=True,
         null=True,
         help_text='The company at the top of the ownership chain.')
 
@@ -139,10 +144,6 @@ class Institution(models.Model):
                 peer_list = peer_list.order_by('-institution__assets')
             return peer_list
         return []
-
-    class Meta:
-        unique_together = ('institution_id', 'year')
-        index_together = [['institution_id', 'year']]
 
     def __unicode__(self):
         return self.name
