@@ -13,10 +13,18 @@ from respondents.zipcode_utils import create_zipcode
 logger = logging.getLogger(__name__)
 
 
+def fixup(line):
+    """Account for misformatted data from FFIEC with one-off fixups"""
+    if line[0] == '2016' and line[1] == '0000021122' and len(line) == 23:
+        return line[:6] + line[7:]
+    return line
+
+
 def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
-    line_number = 1
     transmittal_reader = csv.reader(csv_file, delimiter='\t')
-    for line in transmittal_reader:
+    for zero_line_number, line in enumerate(transmittal_reader):
+        line_number = zero_line_number + 1
+        line = fixup(line)
         if len(line) != 22:
             logger.warning("Line %s is invalid, has length %s (expected 22)",
                            line_number, len(line))
@@ -57,13 +65,12 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
             break
 
         yield inst
-        line_number += 1
 
 
 T = TypeVar('T')
 
 
-def batches(elts: Iterator[T], batch_size:int=100) -> Iterator[List[T]]:
+def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch = []
     for elt in elts:
@@ -79,6 +86,7 @@ def load_save_batches(
     """Load Institutions from csv, replace duplicates if desired, then
     save."""
     institutions = load_from_csv(agencies, csv_file)
+    count_saved, count_skipped = 0, 0
     for batch in batches(institutions):
         ids = {inst.institution_id for inst in batch}
         existing = Institution.objects.filter(institution_id__in=ids)
@@ -89,9 +97,13 @@ def load_save_batches(
                 inst_id for inst_id
                 in existing.values_list('institution_id', flat=True)
             }
+            original_batch_size = len(batch)
             batch = [inst for inst in batch
                      if inst.institution_id not in existing_ids]
+            count_skipped += original_batch_size - len(batch)
         Institution.objects.bulk_create(batch)
+        count_saved += len(batch)
+    logger.info('%s new respondents, %s skipped', count_saved, count_skipped)
 
 
 class Command(BaseCommand):
