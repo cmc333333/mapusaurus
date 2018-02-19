@@ -178,21 +178,21 @@ module.exports = function(grunt) {
             expand: true,
             cwd: 'frontend/dist/basestyle/',
             src: ['**'],
-            dest: 'mapusaurus/basestyle/static/basestyle/',
+            dest: 'basestyle/static/basestyle/',
             filter: 'isFile'
           },
           {
             expand: true,
             cwd: 'frontend/dist/search/',
             src: ['**'],
-            dest: 'mapusaurus/respondents/static/respondents/',
+            dest: 'respondents/static/respondents/',
             filter: 'isFile'
           },
           {
             expand: true,
             cwd: 'frontend/dist/map/',
             src: ['**'],
-            dest: 'mapusaurus/mapping/static/mapping/',
+            dest: 'mapping/static/mapping/',
             filter: 'isFile'
           }
 
