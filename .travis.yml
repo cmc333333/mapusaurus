@@ -17,6 +17,6 @@ env:
     DEBUG="true"\
     USING_SSL="False"
 script:
-  - pipenv run coverage run --source='.' manage.py test
+  - pipenv run pytest --cov
 after_success:
   - pipenv run coveralls
