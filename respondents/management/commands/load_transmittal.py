@@ -63,7 +63,7 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
 T = TypeVar('T')
 
 
-def batches(elts: Iterator[T], batch_size:int=100) -> Iterator[List[T]]:
+def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch = []
     for elt in elts:
@@ -79,6 +79,7 @@ def load_save_batches(
     """Load Institutions from csv, replace duplicates if desired, then
     save."""
     institutions = load_from_csv(agencies, csv_file)
+    count_saved, count_skipped = 0, 0
     for batch in batches(institutions):
         ids = {inst.institution_id for inst in batch}
         existing = Institution.objects.filter(institution_id__in=ids)
@@ -89,9 +90,13 @@ def load_save_batches(
                 inst_id for inst_id
                 in existing.values_list('institution_id', flat=True)
             }
+            original_batch_size = len(batch)
             batch = [inst for inst in batch
                      if inst.institution_id not in existing_ids]
+            count_skipped += original_batch_size - len(batch)
         Institution.objects.bulk_create(batch)
+        count_saved += len(batch)
+    logger.info('%s new respondents, %s skipped', count_saved, count_skipped)
 
 
 class Command(BaseCommand):

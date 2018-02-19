@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4f793c5b95da9cd25d6116b4f5c7ffd36efb59b4c777b4d9b446f91868ca86b0"
+            "sha256": "3c47a37bdc19c8b6afe4e7b70c6e34a59a27739e674c87c7401238b6941ca283"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -213,6 +213,13 @@
             ],
             "version": "==0.6.2"
         },
+        "freezegun": {
+            "hashes": [
+                "sha256:8842688de9497c82ecb40c30274ecc676e97ac78765b0ade105a97063d5b7a11",
+                "sha256:783ccccd7f60968bfe49ad9e114c18ea2b63831faaaf61c1f1f71ddfde1c0eee"
+            ],
+            "version": "==0.3.9"
+        },
         "idna": {
             "hashes": [
                 "sha256:8c7309c718f94b3a625cb648ace320157ad16ff131ae0af362c9f21b80ef6ec4",
@@ -287,6 +294,13 @@
             ],
             "version": "==4.1.0"
         },
+        "python-dateutil": {
+            "hashes": [
+                "sha256:95511bae634d69bc7329ba55e646499a842bc4ec342ad54a8cdb65645a0aad3c",
+                "sha256:891c38b2a02f5bb1be3e4793866c8df49c7d19baabf9c1bad62547e0b4866aca"
+            ],
+            "version": "==2.6.1"
+        },
         "pytz": {
             "hashes": [
                 "sha256:ed6509d9af298b7995d69a440e2822288f2eca1681b8cce37673dbb10091e5fe",
@@ -326,6 +340,13 @@
                 "sha256:9c443e7324ba5b85070c4a818ade28bfabedf16ea10206da1132edaa6dda237e"
             ],
             "version": "==2.18.4"
+        },
+        "requests-mock": {
+            "hashes": [
+                "sha256:96a1e45b1c0bd18d14fcb2d55b3b09d6d46237e37bcae3155df4cb75bc42619e",
+                "sha256:2931887853c42e1d73879983d5bf03041109472991c5b4b8dba5d11ed23b9d0b"
+            ],
+            "version": "==1.4.0"
         },
         "six": {
             "hashes": [
