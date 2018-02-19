@@ -1,27 +1,11 @@
-from io import BytesIO
 from unittest.mock import MagicMock, Mock
-from zipfile import ZipFile
 
 import pytest
 import requests
-import requests_mock
 from django.core.management import call_command
 from freezegun import freeze_time
 
 from respondents.management.commands import fetch_load_transmittals
-
-
-def test_fetch_and_unzip_file():
-    content = BytesIO()
-    with ZipFile(content, 'w') as archive:
-        with archive.open('contents.txt', 'w') as contained_file:
-            contained_file.write(b'Some contents')
-
-    with requests_mock.mock() as api:
-        api.get(requests_mock.ANY, content=content.getvalue())
-        url = 'http://example.com/something.zip'
-        with fetch_load_transmittals.fetch_and_unzip_file(url) as unzipped:
-            assert unzipped.read() == b'Some contents'
 
 
 def test_handle_no_args(monkeypatch):

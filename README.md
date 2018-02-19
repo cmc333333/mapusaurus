@@ -11,23 +11,6 @@ Financial institution data is loaded from raw HMDA files and welded to National 
 The Mapusaurus back-end is a Python/Django application. Additional requirements are defined below.
 
 
-## Data
-
-The data you can load is:
-
-* HMDA Transmittal Sheet
-* HMDA Reporter Panel
-
-Both are available from the FFIEC.
-
-Here are the 2013 files:
-
-Transmittal sheet:
-http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAInstitutionRecords.zip
-
-Reporter panel:
-http://www.ffiec.gov/hmdarawdata/OTHER/2013HMDAReporterPanel.zip
-
 ## Requirements
 
 This currently uses:
@@ -42,8 +25,7 @@ See the Pipfile (and Pipfile.lock) for more details; we recommend using
 [pipenv](https://docs.pipenv.org/) for managing your dependencies.
 
 
-## Loading the data
-
+## Respondent/Institution data
 
 To create the tables, you need to run:
 
@@ -59,14 +41,11 @@ There's also a fixture that you need to load some information from:
 
 This loads static regulator agency data.
 
-Download the two transmittal sheet and reporter panel flat files.
-
-There are two management commands that will load data, and need to be run
-in the following order:
+Finally, we'll fetch and load the transmittal sheets and reporter data files.
 
 ```
-1. python manage.py load_transmittal <path/to/transmittal_sheet>
-2. python manage.py load_reporter_panel <path/to/reporter_panel>
+python manage.py fetch_load_transmittal --year 2013
+python manage.py fetch_load_reporter_panel --year 2013
 ```
 
 
