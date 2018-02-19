@@ -13,10 +13,18 @@ from respondents.zipcode_utils import create_zipcode
 logger = logging.getLogger(__name__)
 
 
+def fixup(line):
+    """Account for misformatted data from FFIEC with one-off fixups"""
+    if line[0] == '2016' and line[1] == '0000021122' and len(line) == 23:
+        return line[:6] + line[7:]
+    return line
+
+
 def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
-    line_number = 1
     transmittal_reader = csv.reader(csv_file, delimiter='\t')
-    for line in transmittal_reader:
+    for zero_line_number, line in enumerate(transmittal_reader):
+        line_number = zero_line_number + 1
+        line = fixup(line)
         if len(line) != 22:
             logger.warning("Line %s is invalid, has length %s (expected 22)",
                            line_number, len(line))
@@ -57,7 +65,6 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
             break
 
         yield inst
-        line_number += 1
 
 
 T = TypeVar('T')
