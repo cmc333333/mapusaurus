@@ -169,5 +169,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for line in options['file_name']:
-            row = ReporterRow.from_line(line)
-            row.update_institution()
+            ReporterRow.from_line(line).update_institution()
