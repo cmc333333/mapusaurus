@@ -1,13 +1,14 @@
 import argparse
 import csv
 import logging
-from typing import BinaryIO, Dict, Iterator, List, TypeVar
+from typing import BinaryIO, Dict
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from respondents.models import Institution, Agency
+from respondents.management.utils import save_batches
 from respondents.zipcode_utils import create_zipcode
 
 logger = logging.getLogger(__name__)
@@ -67,45 +68,6 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
         yield inst
 
 
-T = TypeVar('T')
-
-
-def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
-    """Split an iterator of elements into an iterator of batches."""
-    batch = []
-    for elt in elts:
-        if len(batch) == batch_size:
-            yield batch
-            batch = []
-        batch.append(elt)
-    yield batch
-
-
-def load_save_batches(
-        agencies: Dict[int, Agency], csv_file: BinaryIO, replace: bool=False):
-    """Load Institutions from csv, replace duplicates if desired, then
-    save."""
-    institutions = load_from_csv(agencies, csv_file)
-    count_saved, count_skipped = 0, 0
-    for batch in batches(institutions):
-        ids = {inst.institution_id for inst in batch}
-        existing = Institution.objects.filter(institution_id__in=ids)
-        if replace:
-            existing.delete()
-        else:
-            existing_ids = {
-                inst_id for inst_id
-                in existing.values_list('institution_id', flat=True)
-            }
-            original_batch_size = len(batch)
-            batch = [inst for inst in batch
-                     if inst.institution_id not in existing_ids]
-            count_skipped += original_batch_size - len(batch)
-        Institution.objects.bulk_create(batch)
-        count_saved += len(batch)
-    logger.info('%s new respondents, %s skipped', count_saved, count_skipped)
-
-
 class Command(BaseCommand):
     help = "Loads data from a HMDA Transmittal Sheet."
 
@@ -116,5 +78,6 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
-        load_save_batches(agencies, options['file_name'], options['replace'])
+        institutions = load_from_csv(agencies, options['file_name'])
+        save_batches(institutions, Institution, options['replace'])
         options['file_name'].close()

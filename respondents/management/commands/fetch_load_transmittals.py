@@ -5,9 +5,9 @@ from io import TextIOWrapper
 import requests
 from django.core.management.base import BaseCommand
 
-from respondents.management.commands.load_transmittal import load_save_batches
-from respondents.management.utils import fetch_and_unzip_file
-from respondents.models import Agency
+from respondents.management.commands.load_transmittal import load_from_csv
+from respondents.management.utils import fetch_and_unzip_file, save_batches
+from respondents.models import Agency, Institution
 
 ZIP_TPL = ('http://www.ffiec.gov/hmdarawdata/OTHER/'
            '{year}HMDAInstitutionRecords.zip')
@@ -32,10 +32,8 @@ class Command(BaseCommand):
             url = ZIP_TPL.format(year=year)
             try:
                 with fetch_and_unzip_file(url) as transmittal_file:
-                    load_save_batches(
-                        agencies,
-                        TextIOWrapper(transmittal_file, 'utf-8'),
-                        options['replace'],
-                    )
+                    institutions = load_from_csv(
+                        agencies, TextIOWrapper(transmittal_file, 'utf-8'))
+                    save_batches(institutions, Institution, options['replace'])
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
