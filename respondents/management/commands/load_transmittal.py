@@ -5,7 +5,6 @@ from typing import BinaryIO, Dict
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 from respondents.models import Institution, Agency
 from respondents.management.utils import save_batches
@@ -75,7 +74,6 @@ class Command(BaseCommand):
         parser.add_argument('file_name', type=argparse.FileType('r'))
         parser.add_argument('--replace', action='store_true')
 
-    @transaction.atomic
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
         institutions = load_from_csv(agencies, options['file_name'])

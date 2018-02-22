@@ -5,13 +5,14 @@ from typing import Iterator, List, Type, TypeVar
 from zipfile import ZipFile
 
 import requests
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 
 @contextmanager
 def fetch_and_unzip_file(url: str):
-    response = requests.get(url, stream=True, timeout=120)
+    response = requests.get(url, timeout=120)
     response.raise_for_status()
     resp_buffer = BytesIO(response.content)
     with ZipFile(resp_buffer) as archive:
@@ -23,6 +24,7 @@ def fetch_and_unzip_file(url: str):
 T = TypeVar('T')
 
 
+@transaction.atomic
 def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch = []

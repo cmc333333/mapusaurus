@@ -84,3 +84,15 @@ class Geo(models.Model):
         tracts = get_list_or_404(Geo, geo_type=Geo.TRACT_TYPE,
                                  cbsa=self.cbsa, year=self.year)
         return tracts
+
+    def update_from_geom(self):
+        points = [point
+                  for polygon in self.geom.coords
+                  for line in polygon
+                  for point in line]
+        lons, lats = zip(*points)   # unzips into pairs
+
+        self.minlat = min(lats)
+        self.maxlat = max(lats)
+        self.minlon = min(lons)
+        self.maxlon = max(lons)
