@@ -49,7 +49,7 @@ python manage.py fetch_load_reporter_panel --year 2013
 ```
 
 
-## GEO
+## Geo
 
 The 'geo' application requires GeoDjango and PostGIS. Follow the instructions
 for installing GeoDjango.
@@ -61,28 +61,20 @@ Here are some separate instructions for running the geo application.
 ```
 
 Currently, we load census tract, county, CBSA, and metropolitan division files.
-You can download them from the census.gov FTP site:
+E.g.
 
 ```
-ftp://ftp2.census.gov/geo/tiger/TIGER2013/TRACT/
-ftp://ftp2.census.gov/geo/tiger/TIGER2013/COUNTY/
-ftp://ftp2.census.gov/geo/tiger/TIGER2013/CBSA/
-ftp://ftp2.census.gov/geo/tiger/TIGER2013/METDIV/
+https://www2.census.gov/geo/tiger/TIGER2013/TRACT/
+https://www2.census.gov/geo/tiger/TIGER2013/COUNTY/
+https://www2.census.gov/geo/tiger/TIGER2013/CBSA/
+https://www2.census.gov/geo/tiger/TIGER2013/METDIV/
 ```
 
-This is how you load the data:
+You can fetch and load this data with one command:
 
 ```
-    # This example only loads census tracts from IL (FIPS code: 17); repeat
-    # for other states as needed
-    python manage.py load_geos_from 2013 /path/to/tl_2013_17_tract.shp
-    python manage.py load_geos_from 2013 /path/to/tl_2013_us_county.shp
-    python manage.py load_geos_from 2013 /path/to/tl_2013_us_cbsa.shp
-    python manage.py load_geos_from 2013 /path/to/tl_2013_us_metdiv.shp
+    python manage.py fetch_load_geos --year 2013
 ```
-
-These import scripts are set up to update geos in place -- no need to delete
-records manually.
 
 Once census tracts and counties are loaded, run the following command to
 associate census tracts with their CBSAs.
