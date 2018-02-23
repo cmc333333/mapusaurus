@@ -12,7 +12,8 @@ def test_handle_no_args(monkeypatch):
     monkeypatch.setattr(
         fetch_load_transmittals, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_transmittals.fetch_and_unzip_file
-    monkeypatch.setattr(fetch_load_transmittals, 'load_save_batches', Mock())
+    monkeypatch.setattr(fetch_load_transmittals, 'load_from_csv', Mock())
+    monkeypatch.setattr(fetch_load_transmittals, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'Agency', Mock())
     with freeze_time('2018-01-01'):
         call_command('fetch_load_transmittals')
@@ -22,8 +23,9 @@ def test_handle_no_args(monkeypatch):
     for year in range(2013, 2018):
         assert any(str(year) in url for url in called_urls)
 
-    assert fetch_load_transmittals.load_save_batches.call_count == 5
-    replace = fetch_load_transmittals.load_save_batches.call_args[0][2]
+    assert fetch_load_transmittals.load_from_csv.call_count == 5
+    assert fetch_load_transmittals.save_batches.call_count == 5
+    replace = fetch_load_transmittals.save_batches.call_args[0][2]
     assert not replace
 
 
@@ -31,7 +33,8 @@ def test_handle_specific_args(monkeypatch):
     monkeypatch.setattr(
         fetch_load_transmittals, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_transmittals.fetch_and_unzip_file
-    monkeypatch.setattr(fetch_load_transmittals, 'load_save_batches', Mock())
+    monkeypatch.setattr(fetch_load_transmittals, 'load_from_csv', Mock())
+    monkeypatch.setattr(fetch_load_transmittals, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'Agency', Mock())
     call_command(
         'fetch_load_transmittals',
@@ -44,8 +47,8 @@ def test_handle_specific_args(monkeypatch):
     assert '2014' in called_urls[0]
     assert '2017' in called_urls[1]
 
-    assert fetch_load_transmittals.load_save_batches.call_count == 2
-    replace = fetch_load_transmittals.load_save_batches.call_args[0][2]
+    assert fetch_load_transmittals.save_batches.call_count == 2
+    replace = fetch_load_transmittals.save_batches.call_args[0][2]
     assert replace
 
 

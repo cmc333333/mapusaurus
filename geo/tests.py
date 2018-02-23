@@ -1,199 +1,104 @@
-import json
+from unittest.mock import MagicMock, Mock
 
+import pytest
+from django.core.management import call_command
 from django.core.urlresolvers import reverse
-from django.contrib.gis.geos import MultiPolygon, Polygon
-from django.test import TestCase
-from mock import Mock, patch
+from django.contrib.gis.geos import Polygon
 from model_mommy import mommy
 
-from geo.management.commands.load_geos_from import Command as LoadGeos
-from geo.management.commands.set_tract_csa_cbsa import Command as SetTractCBSA
+from geo.management.commands import load_geos_from
 from geo.models import Geo
 from geo.utils import check_bounds
-from censusdata.models import Census2010Sex
-
-class ViewTest(TestCase):
-    fixtures = ['many_tracts', 'test_counties']
-
-    def fetch_search(self, query, **kwargs):
-        return self.client.get(
-            reverse('geo:search'),
-            dict(kwargs, format='json', q=query),
-        ).json()
-
-    def test_search_name(self):
-        mommy.make(Geo, geo_type=Geo.METRO_TYPE, name='Chicago', year=2013)
-        result = self.fetch_search('cago', year='2013')
-        self.assertEqual(1, len(result['geos']))
-        self.assertEqual('Chicago', result['geos'][0]['name'])
 
 
-class UtilsTest(TestCase):
-    def test_check_bounds(self):
-        self.assertIsNone(check_bounds('100', '100', '100', ''))
-        self.assertIsNone(check_bounds('-100', '100', '200', 'asdf'))
-        expected_bounds = (float('10.0'), float('40.1234'), float('20.20'), float('-10.123456'))
-        actual_bounds = check_bounds('10.0', '-10.123456', '20.20', '40.1234')
-        self.assertEqual(expected_bounds, actual_bounds)
+@pytest.mark.django_db
+def test_search_name(client):
+    call_command('loaddata', 'many_tracts', 'test_counties')
+    mommy.make(Geo, geo_type=Geo.METRO_TYPE, name='Chicago', year=2013)
+    result = client.get(
+        reverse('geo:search'),
+        {'format': 'json', 'q': 'cago', 'year': '2013'},
+    ).json()
+    assert len(result['geos']) == 1
+    assert result['geos'][0]['name'] == 'Chicago'
 
 
-class SetTractCBSATest(TestCase):
-    def setUp(self):
-        generic_geo = {
-            'minlat': -1, 'maxlat': 1, 'minlon': -1, 'maxlon': 1, 'centlat': 0,
-            'centlon': 0, 'name': 'Generic Geo', 'geom': MultiPolygon(
-                Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))),
-                Polygon(((-4, -2), (-6, -1), (-2, -2), (-4, -2))))
-        }
-        self.county1 = Geo.objects.create(
-            geoid='11222', geo_type=Geo.COUNTY_TYPE, state='11', county='222',
-            csa='987', year='2012', **generic_geo)
-        self.county2 = Geo.objects.create(
-            geoid='11223', geo_type=Geo.COUNTY_TYPE, state='11', county='223',
-            cbsa='88776', year='2012', **generic_geo)
-        self.metro = Geo.objects.create(
-            geoid='88776', geo_type=Geo.METRO_TYPE, cbsa='88776', year='2012',
-            **generic_geo)
-        self.tract1 = Geo.objects.create(
-            geoid='1122233333', geo_type=Geo.TRACT_TYPE, state='11', year='2012',
-            county='222', tract='33333', **generic_geo)
-        self.tract2 = Geo.objects.create(
-            geoid='1122333333', geo_type=Geo.TRACT_TYPE, state='11', year='2012',
-            county='223', tract='33333', **generic_geo)
-
-    def tearDown(self):
-        self.county1.delete()
-        self.county2.delete()
-        self.tract1.delete()
-        self.tract2.delete()
-        self.metro.delete()
-
-    def test_set_fields(self):
-        SetTractCBSA().handle()
-        tract1 = Geo.objects.filter(geoid='1122233333').get()
-        tract2 = Geo.objects.filter(geoid='1122333333').get()
-        self.assertEqual('987', tract1.csa)
-        self.assertEqual(None, tract1.cbsa)
-        self.assertEqual(None, tract2.csa)
-        self.assertEqual('88776', tract2.cbsa)
+def test_check_bounds():
+    assert check_bounds('100', '100', '100', '') is None
+    assert check_bounds('-100', '100', '200', 'asdf') is None
+    expected_bounds = (
+        float('10.0'),
+        float('40.1234'),
+        float('20.20'),
+        float('-10.123456'),
+    )
+    actual_bounds = check_bounds('10.0', '-10.123456', '20.20', '40.1234')
+    assert actual_bounds == expected_bounds
 
 
-class LoadGeosFromTest(TestCase):
-    def test_census_tract(self):
-        year = "2013"
-        row = ('1122233333', 'Tract 33333', '11', '222', '33333', '-45',
-               '45', Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))))
-        field_names = ('GEOID', 'NAME', 'STATEFP', 'COUNTYFP', 'TRACTCE',
-                       'INTPTLAT', 'INTPTLON')
-        command = LoadGeos()
-        geo = command.process_row(year, row, field_names)
+@pytest.mark.django_db
+def test_set_tract_cbsa():
+    mommy.make(Geo, geoid='11222', geo_type=Geo.COUNTY_TYPE, state='11',
+               county='222', csa='987', year='2012')
+    mommy.make(Geo, geoid='11223', geo_type=Geo.COUNTY_TYPE, state='11',
+               county='223', cbsa='88776', year='2012')
+    mommy.make(Geo, geoid='88776', geo_type=Geo.METRO_TYPE, cbsa='88776',
+               year='2012')
+    mommy.make(Geo, geoid='1122233333', geo_type=Geo.TRACT_TYPE, state='11',
+               year='2012', county='222', tract='33333')
+    mommy.make(Geo, geoid='1122333333', geo_type=Geo.TRACT_TYPE, state='11',
+               year='2012', county='223', tract='33333')
+    call_command('set_tract_csa_cbsa')
+    tract1 = Geo.objects.filter(geoid='1122233333').get()
+    tract2 = Geo.objects.filter(geoid='1122333333').get()
+    assert tract1.csa == '987'
+    assert tract1.cbsa is None
+    assert tract2.csa is None
+    assert tract2.cbsa == '88776'
 
-        self.assertEqual('20131122233333', geo['geoid'])
-        self.assertEqual(Geo.TRACT_TYPE, geo['geo_type'])
-        self.assertEqual('Tract 33333', geo['name'])
-        self.assertEqual('11', geo['state'])
-        self.assertEqual('222', geo['county'])
-        self.assertEqual('33333', geo['tract'])
-        self.assertEqual(None, geo['csa'])
-        self.assertEqual(None, geo['cbsa'])
-        self.assertEqual((-1, 0), (geo['minlon'], geo['maxlon']))
-        self.assertEqual((0, 2), (geo['minlat'], geo['maxlat']))
-        self.assertEqual(-45, geo['centlat'])
-        self.assertEqual(45, geo['centlon'])
-        self.assertEqual("2013", geo['year'])
 
-    def test_county(self):
-        year = "2010"
-        poly1 = Polygon(((0, 0), (0, 2), (-1, 2), (0, 0)))
-        poly2 = Polygon(((-4, -2), (-6, -1), (-2, -2), (-4, -2)))
-        row = ('11222', 'Some County', '11', '222', '-45', '45',
-               MultiPolygon(poly1, poly2))
-        field_names = ('GEOID', 'NAME', 'STATEFP', 'COUNTYFP', 'INTPTLAT',
-                       'INTPTLON')
-        command = LoadGeos()
-        geo = command.process_row(year, row, field_names)
+def test_parse_models(monkeypatch):
+    monkeypatch.setattr(load_geos_from, 'DataSource', Mock())
+    mock_data = {
+        'GEOID': '1122233333',
+        'NAME': 'Tract 33333',
+        'STATEFP': '11',
+        'COUNTYFP': '222',
+        'TRACTCE': '33333',
+        'INTPTLAT': '-45',
+        'INTPTLON': '45',
+    }
+    feature = Mock(
+        geom=Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))),
+        get=mock_data.get,
+    )
+    load_geos_from.DataSource.return_value = MagicMock(layer_count=1)
+    load_geos_from.DataSource.return_value.__getitem__ = lambda s, i: [feature]
+    [geo] = list(load_geos_from.parse_models('', 2013))
 
-        self.assertEqual('201011222', geo['geoid'])
-        self.assertEqual(Geo.COUNTY_TYPE, geo['geo_type'])
-        self.assertEqual('Some County', geo['name'])
-        self.assertEqual('11', geo['state'])
-        self.assertEqual('222', geo['county'])
-        self.assertEqual(None, geo['tract'])
-        self.assertEqual(None, geo['csa'])
-        self.assertEqual(None, geo['cbsa'])
-        self.assertEqual((-6, 0), (geo['minlon'], geo['maxlon']))
-        self.assertEqual((-2, 2), (geo['minlat'], geo['maxlat']))
-        self.assertEqual(-45, geo['centlat'])
-        self.assertEqual(45, geo['centlon'])
-        self.assertEqual("2010", geo['year'])
+    assert geo.cbsa is None
+    assert geo.centlat == -45
+    assert geo.centlon == 45
+    assert geo.county == '222'
+    assert geo.csa is None
+    assert geo.geo_type == Geo.TRACT_TYPE
+    assert geo.geoid == '20131122233333'
+    assert geo.maxlat == 2
+    assert geo.maxlon == 0
+    assert geo.minlat == 0
+    assert geo.minlon == -1
+    assert geo.name == 'Tract 33333'
+    assert geo.state == '11'
+    assert geo.tract == '33333'
+    assert geo.year == 2013
 
-    def test_metro(self):
-        year = "2010"
-        row = ('12345', 'Big City', '090', '12345', 'M1', '-45', '45',
-               Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))))
-        field_names = ('GEOID', 'NAME', 'CSAFP', 'CBSAFP', 'LSAD', 'INTPTLAT',
-                       'INTPTLON')
-        command = LoadGeos()
-        geo = command.process_row(year, row, field_names)
 
-        self.assertEqual('201012345', geo['geoid'])
-        self.assertEqual(Geo.METRO_TYPE, geo['geo_type'])
-        self.assertEqual('Big City', geo['name'])
-        self.assertEqual(None, geo['state'])
-        self.assertEqual(None, geo['county'])
-        self.assertEqual(None, geo['tract'])
-        self.assertEqual('090', geo['csa'])
-        self.assertEqual('12345', geo['cbsa'])
-        self.assertEqual("2010", geo['year'])
-
-    def test_micro(self):
-        year = '1900'
-        row = ('12345', 'Small Town', '', '12345', 'M2', '-45', '45',
-               Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))))
-        field_names = ('GEOID', 'NAME', 'CSAFP', 'CBSAFP', 'LSAD', 'INTPTLAT',
-                       'INTPTLON')
-        command = LoadGeos()
-        geo = command.process_row(year, row, field_names)
-
-        self.assertEqual('190012345', geo['geoid'])
-        self.assertEqual(Geo.MICRO_TYPE, geo['geo_type'])
-        self.assertEqual('Small Town', geo['name'])
-        self.assertEqual(None, geo['state'])
-        self.assertEqual(None, geo['county'])
-        self.assertEqual(None, geo['tract'])
-        self.assertEqual(None, geo['csa'])
-        self.assertEqual('12345', geo['cbsa'])
-        self.assertEqual('1900', geo['year'])
-
-    def test_replacing(self):
-        command = LoadGeos()
-        old_geo = {
-            'geoid': '1111111111', 'geo_type': Geo.TRACT_TYPE,
-            'name': 'Geo in 1990', 'year': '1990', 'state': '11', 'county': '111',
-            'tract': '11111', 'minlat': -1, 'maxlat': 1, 'minlon': -1,
-            'maxlon': 1, 'centlat': 0, 'centlon': 0,
-            'geom': MultiPolygon(
-                Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))),
-                Polygon(((-4, -2), (-6, -1), (-2, -2), (-4, -2))))
-        }
-        command.save_batch([old_geo])
-        # Geo save worked
-        self.assertEqual(1, Geo.objects.filter(geoid='1111111111').count())
-
-        census = Census2010Sex(total_pop=100, male=45, female=55)
-        census.geoid_id = '1111111111'
-        census.save()
-        # Census data worked
-        self.assertEqual(1, Census2010Sex.objects.all().count())
-
-        new_geo = old_geo.copy()
-        new_geo['name'] = 'Geo in 2000'
-        command.save_batch([new_geo])
-        # check that both models still exist
-        query = Geo.objects.filter(geoid='1111111111')
-        self.assertEqual(1, query.count())
-        self.assertEqual('Geo in 2000', query.get().name)
-        self.assertEqual(1, Census2010Sex.objects.all().count())
-
-        Geo.objects.all().delete()
-        Census2010Sex.objects.all().delete()
+@pytest.mark.parametrize('row, geo_type', [
+    ({'TRACTCE': '33333'}, Geo.TRACT_TYPE),
+    ({'COUNTYFP': '11', 'STATEFP': '222'}, Geo.COUNTY_TYPE),
+    ({'LSAD': 'M1'}, Geo.METRO_TYPE),
+    ({'LSAD': 'M2'}, Geo.MICRO_TYPE),
+    ({'LSAD': 'M3'}, Geo.METDIV_TYPE),
+])
+def test_geo_type_county(row, geo_type):
+    assert load_geos_from.geo_type(row) == geo_type
