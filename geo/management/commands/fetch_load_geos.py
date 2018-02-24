@@ -59,8 +59,9 @@ class Command(BaseCommand):
         parser.add_argument('--shape', nargs='*', default=shape_choices,
                             choices=shape_choices, help="Defaults to all")
 
+        choices = us.STATES + us.TERRITORIES
         parser.add_argument('--state', type=us.states.lookup, nargs='*',
-                            default=us.STATES + us.TERRITORIES),
+                            default=choices, choices=choices)
         parser.add_argument('--replace', action='store_true')
 
     def handle(self, *args, **options):

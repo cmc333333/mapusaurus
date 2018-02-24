@@ -95,21 +95,15 @@ First, run migrate to create the appropriate tables
 ```
 
 You'll then want to import census data related to the tracts you've loaded
-while setting up the 'geo' app. Go to
+while setting up the 'geo' app. These will come from
 ```
 http://www2.census.gov/census_2010/04-Summary_File_1/
 ```
-and select the state you care about. Download the associated `*.sf1.zip` file,
-which you should then unzip.
 
 Loading the data looks like this:
 ```
-    python manage.py load_summary_one /path/to/XXgeo2010.sf1 2013
+    python manage.py fetch_load_summary_ones
 ```
-
-Warning: currently, data will not be updated in place; to re-import, you'll
-need to delete everything from the `censusdata_census2010*` tables.
-
 
 ## HMDA Data
 
