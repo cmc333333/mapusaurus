@@ -1,12 +1,165 @@
-import argparse
-from csv import reader
+import csv
+from typing import BinaryIO, Dict, Iterator, List, NewType, Tuple, Type
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.db.models import Model, QuerySet
 
 from censusdata.models import (
     Census2010Age, Census2010HispanicOrigin, Census2010Households,
     Census2010Race, Census2010RaceStats, Census2010Sex)
 from geo import errors
+from geo.models import Geo
+
+RecordId = NewType('RecordId', str)
+TractId = NewType('TractId', str)
+TractByRecord = Dict[RecordId, TractId]
+File3Models = Tuple[Census2010Race, Census2010HispanicOrigin,
+                    Census2010RaceStats]
+File4Models = Tuple[Census2010Sex, Census2010Age]
+File5Models = Tuple[Census2010Households]
+AGE_FIELDS = (
+    'under_five', 'five_nine', 'ten_fourteen', 'fifteen_seventeen',
+    'eighteen_nineteen', 'twenty', 'twentyone', 'twentytwo_twentyfour',
+    'twentyfive_twentynine', 'thirty_thirtyfour', 'thirtyfive_thirtynine',
+    'forty_fortyfour', 'fortyfive_fortynine', 'fifty_fiftyfour',
+    'fiftyfive_fiftynine', 'sixty_sixtyone', 'sixtytwo_sixtyfour',
+    'sixtyfive_sixtysix', 'sixtyseven_sixynine', 'seventy_seventyfour',
+    'seventyfive_seventynine', 'eighty_eightyfour', 'eightyfive_up',
+)
+HOUSEHOLD_FIELDS = (
+    'total', 'total_family', 'husband_wife', 'total_family_other',
+    'male_no_wife', 'female_no_husband', 'total_nonfamily', 'living_alone',
+    'not_living_alone',
+)
+
+
+def make_file_loader(model_classes: List[Type[Model]], parser):
+    """Bulk create Census2010 stat models using the parser function. Skip if
+    data's already loaded."""
+    @transaction.atomic
+    def load_file(datafile: BinaryIO, geo_query: QuerySet, replace: bool,
+                  tracts: TractByRecord):
+        skip = all(model_class.objects.filter(geoid__in=geo_query).exists()
+                   for model_class in model_classes)
+
+        if replace or not skip:
+            for model_class in model_classes:
+                model_class.objects.filter(geoid__in=geo_query).delete()
+
+            untupled_models = zip(*list(parser(datafile, tracts)))
+            for model_class, models in zip(model_classes, untupled_models):
+                models = list(models)
+                model_class.objects.bulk_create(models)
+    return load_file
+
+
+def file3_models(datafile: BinaryIO,
+                 tracts: TractByRecord) -> Iterator[File3Models]:
+    """File three contains race and ethnicity summaries. Documentation starts
+    at page 6-22"""
+    for row in csv.reader(datafile):
+        recordnum = RecordId(row[4])
+        geoid_id = tracts.get(recordnum)
+        if geoid_id:
+            race = Census2010Race(
+                total_pop=row[5],
+                white_alone=row[6],
+                black_alone=row[7],
+                amind_alone=row[8],
+                asian_alone=row[9],
+                pacis_alone=row[10],
+                other_alone=row[11],
+                two_or_more=row[12],
+                geoid_id=geoid_id,
+            )
+            race.clean_fields()
+
+            hisp = Census2010HispanicOrigin(
+                total_pop=row[13],
+                non_hispanic=row[14],
+                hispanic=row[15],
+                geoid_id=geoid_id,
+            )
+            hisp.clean_fields()
+
+            stat = Census2010RaceStats(
+                total_pop=int(row[16]),
+                hispanic=int(row[25]),
+                non_hisp_white_only=int(row[18]),
+                non_hisp_black_only=int(row[19]),
+                non_hisp_asian_only=int(row[21]),
+                geoid_id=geoid_id,
+            )
+            stat.auto_fields()
+            stat.clean_fields()
+
+            yield (race, hisp, stat)
+
+
+def file4_models(datafile: BinaryIO,
+                 tracts: TractByRecord) -> Iterator[File4Models]:
+    """File four contains age demographics and correlations with race,
+    ethnicity, and sex. Documentation starts at page 6-30"""
+    for row in csv.reader(datafile):
+        recordnum = RecordId(row[4])
+        geoid_id = tracts.get(recordnum)
+        if geoid_id:
+            sex = Census2010Sex(
+                total_pop=row[149],
+                male=row[150],
+                female=row[174],
+                geoid_id=geoid_id,
+            )
+            sex.clean_fields()
+
+            age = Census2010Age(total_pop=row[149], geoid_id=geoid_id)
+            for idx, field_name in enumerate(AGE_FIELDS):
+                male_count = int(row[151 + idx])
+                female_count = int(row[175 + idx])
+                setattr(age, field_name, male_count + female_count)
+            age.clean_fields()
+
+            yield (sex, age)
+
+
+def file5_models(datafile: BinaryIO,
+                 tracts: TractByRecord) -> Iterator[File5Models]:
+    """File five contains household metrics, including divisions by household
+    type, household size, etc. Documentation starts at page 6-38"""
+    for row in csv.reader(datafile):
+        recordnum = RecordId(row[4])
+        geoid_id = tracts.get(recordnum)
+        if geoid_id:
+            household = Census2010Households(geoid_id=geoid_id)
+            for idx, field_name in enumerate(HOUSEHOLD_FIELDS):
+                setattr(household, field_name, row[28 + idx])
+            household.clean_fields()
+
+            yield (household,)
+
+
+load_file_three = make_file_loader(File3Models.__args__, file3_models)
+load_file_four = make_file_loader(File4Models.__args__, file4_models)
+load_file_five = make_file_loader(File5Models.__args__, file5_models)
+
+
+def load_state_tracts(datafile: BinaryIO,
+                      year: int) -> Tuple[str, TractByRecord]:
+    # As each file covers one state, all tracts will have the same state id
+    state = ''
+    tracts = {}
+    for line in datafile:
+        if line[8:11] == '140':    # Aggregated by Census Tract
+            recordnum = RecordId(line[18:25])
+            censustract = line[27:32] + line[54:60]
+            censustract = errors.in_2010.get(censustract, censustract)
+            censustract = errors.change_specific_year(censustract,
+                                                      year)
+            if censustract is not None:
+                tracts[recordnum] = TractId(f"{year}{censustract}")
+            state = line[27:29]
+    return (state, tracts)
 
 
 class Command(BaseCommand):
@@ -20,133 +173,20 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('file_name')
         parser.add_argument('year', type=int)
+        parser.add_argument('--replace', action='store_true')
 
     def handle(self, *args, **options):
-        geoids_by_record = {}
+        year = options['year']
         geofile_name = options['file_name']
-        year = str(options['year'])
-        # As each file covers one state, all geos will have the same state id
-        state = ""
         with open(geofile_name, 'r') as geofile:
-            for line in geofile:
-                if line[8:11] == '140':    # Aggregated by Census Tract
-                    recordnum = line[18:25]
-                    censustract = line[27:32] + line[54:60]
-                    censustract = errors.in_2010.get(censustract, censustract)
-                    censustract = errors.change_specific_year(censustract, year)
-                    if censustract is not None:
-                        geoids_by_record[recordnum] = year + censustract
-                    state = line[27:29]
-        self.handle_filethree(geofile_name, year, state, geoids_by_record)
-        self.handle_filefour(geofile_name, year, state, geoids_by_record)
-        self.handle_filefive(geofile_name, year, state, geoids_by_record)
+            state, tracts = load_state_tracts(geofile, year)
 
-    def handle_filethree(self, geofile_name, year, state, geoids_by_record):
-        """File three (XX000032010.sf1) contains race and ethnicity summaries.
-        Documentation starts at page 6-22."""
-        file3_name = geofile_name[:-11] + "000032010.sf1"
-        datafile = open(file3_name, 'r')
-        race, hispanic, stats = [], [], []
-        skip_race = Census2010Race.objects.filter(
-            geoid__state=state, geoid__year=year).exists()
-        skip_hisp = Census2010HispanicOrigin.objects.filter(
-            geoid__state=state, geoid__year=year).exists()
-        skip_stats = Census2010RaceStats.objects.filter(
-            geoid__state=state, geoid__year=year).exists()
+        geo_query = Geo.objects.filter(state=state, year=year)
+        replace = options['replace']
 
-        if not skip_race or not skip_hisp or not skip_stats:
-            for row in reader(datafile):
-                recordnum = row[4]
-                if recordnum in geoids_by_record:
-                    data = Census2010Race(
-                        total_pop=int(row[5]), white_alone=int(row[6]),
-                        black_alone=int(row[7]), amind_alone=int(row[8]),
-                        asian_alone=int(row[9]), pacis_alone=int(row[10]),
-                        other_alone=int(row[11]), two_or_more=int(row[12]))
-                    # Save geoid separately so we don't need to load the
-                    # Tracts
-                    data.geoid_id = geoids_by_record[recordnum]
-                    race.append(data)
-
-                    data = Census2010HispanicOrigin(
-                        total_pop=int(row[13]), non_hispanic=int(row[14]),
-                        hispanic=int(row[15]))
-                    data.geoid_id = geoids_by_record[recordnum]
-                    hispanic.append(data)
-
-                    data = Census2010RaceStats(
-                        total_pop=int(row[16]), hispanic=int(row[25]),
-                        non_hisp_white_only=int(row[18]),
-                        non_hisp_black_only=int(row[19]),
-                        non_hisp_asian_only=int(row[21]))
-                    data.geoid_id = geoids_by_record[recordnum]
-                    data.auto_fields()
-                    stats.append(data)
-        datafile.close()
-
-        if not skip_race:
-            Census2010Race.objects.bulk_create(race)
-        if not skip_hisp:
-            Census2010HispanicOrigin.objects.bulk_create(hispanic)
-        if not skip_stats:
-            Census2010RaceStats.objects.bulk_create(stats)
-
-    def handle_filefour(self, geofile_name, year, state, geoids_by_record):
-        """File four (XX000042010.sf1) contains age demographics and
-        correlations with race, ethnicity, and sex. Documentation starts at
-        page 6-30"""
-        file4_name = geofile_name[:-11] + "000042010.sf1"
-        datafile = open(file4_name, 'r')
-        sex, age = [], []
-        skip_sex = Census2010Sex.objects.filter(geoid__state=state, geoid__year=year).exists()
-        skip_age = Census2010Age.objects.filter(geoid__state=state, geoid__year=year).exists()
-        if not skip_sex or not skip_age:
-            for row in reader(datafile):
-                recordnum = row[4]
-                if recordnum in geoids_by_record:
-                    data = Census2010Sex(
-                        total_pop=int(row[149]), male=int(row[150]),
-                        female=int(row[174]))
-                    # Save geoid separately so we don't need to load the Tracts
-                    data.geoid_id = geoids_by_record[recordnum]
-                    sex.append(data)
-
-                    fields = [None]     # Ignore geoid until later
-                    fields.append(int(row[149]))    # total_pop
-                    # age groups are calculated by adding male to female values
-                    fields.extend(map(
-                        lambda i: int(row[i + 151]) + int(row[i + 175]),
-                        range(23)))
-                    data = Census2010Age(*fields)
-                    data.geoid_id = geoids_by_record[recordnum]
-                    age.append(data)
-        datafile.close()
-
-        if not skip_sex:
-            Census2010Sex.objects.bulk_create(sex)
-        if not skip_age:
-            Census2010Age.objects.bulk_create(age)
-
-    def handle_filefive(self, geofile_name, year, state, geoids_by_record):
-        """File five (XX000052010.sf1) contains household metrics, including
-        divisions by household type, household size, etc. Documentation starts
-        at page 6-38"""
-        file4_name = geofile_name[:-11] + "000052010.sf1"
-        datafile = open(file4_name, 'r')
-        households = []
-        skip_households = Census2010Households.objects.filter(
-            geoid__state=state, geoid__year=year).exists()
-        if not skip_households:
-            for row in reader(datafile):
-                recordnum = row[4]
-                if recordnum in geoids_by_record:
-                    fields = [None]     # Ignore geoid until later
-                    # fields match the values in the census
-                    fields.extend(int(row[idx]) for idx in range(28, 37))
-                    data = Census2010Households(*fields)
-                    data.geoid_id = geoids_by_record[recordnum]
-                    households.append(data)
-        datafile.close()
-
-        if not skip_households:
-            Census2010Households.objects.bulk_create(households)
+        with open(geofile_name[:-11] + '000032010.sf1') as file3:
+            load_file_three(file3, geo_query, replace, tracts)
+        with open(geofile_name[:-11] + "000042010.sf1") as file4:
+            load_file_four(file4, geo_query, replace, tracts)
+        with open(geofile_name[:-11] + "000052010.sf1") as file5:
+            load_file_five(file5, geo_query, replace, tracts)

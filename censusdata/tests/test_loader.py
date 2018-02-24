@@ -1,142 +1,91 @@
-import os
-import shutil
-import tempfile
+from pathlib import Path
 
+import pytest
 from django.core.management import call_command
-from django.test import TestCase
-from mock import patch
 
-import geo.errors
-from censusdata import models
-from censusdata.management.commands.load_summary_one import Command
-from mapusaurus.settings import BASE_DIR
+from censusdata.management.commands import load_summary_one
+from censusdata.models import Census2010Households, Census2010RaceStats
+from geo.models import Geo
 
-class LoadSummaryDataTest(TestCase):
-    fixtures = ['mock_geo']
 
-    def setUp(self):
-        self.tempdir = tempfile.mkdtemp()
+@pytest.fixture
+def mock_data_dir(db, settings):
+    call_command('loaddata', 'mock_geo')
+    yield Path(settings.BASE_DIR) / 'censusdata' / 'tests'
 
-    def tearDown(self):
-        shutil.rmtree(self.tempdir)
 
-    @patch.object(Command, 'handle_filefive')
-    @patch.object(Command, 'handle_filefour')
-    @patch.object(Command, 'handle_filethree')
-    def test_handle(self, hf3, hf4, hf5):
-        # Create Mock GEO file
-        year = '2013'
-        shutil.copyfile(
-            os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
-            os.path.join(self.tempdir, "ZZgeo2010.sf1"))
+def test_load_state_tracts_errors_dict(mock_data_dir, monkeypatch):
+    monkeypatch.setattr(load_summary_one.errors, 'in_2010', {
+        '11001000100': '22002000200',
+        '11001000902': None,
+    })
+    with (mock_data_dir / 'mock_geo.txt').open() as datafile:
+        _, tracts = load_summary_one.load_state_tracts(datafile, 2001)
 
-        call_command(
-            'load_summary_one',
-            os.path.join(self.tempdir, 'ZZgeo2010.sf1'),
-            year,
-        )
-        positional_args = hf4.call_args[0]
-        self.assertEqual(positional_args[0],
-                         os.path.join(self.tempdir, "ZZgeo2010.sf1"))
-        self.assertEqual(positional_args[1], year)
-        self.assertEqual(positional_args[2], '11')  # State
-        self.assertEqual(len(positional_args[3]), 2)
-        self.assertEqual(positional_args[3]['0007159'], year+'11001000100')
-        self.assertEqual(positional_args[3]['0007211'], year+'11001000902')
-
-    @patch.object(Command, 'handle_filefive')
-    @patch.object(Command, 'handle_filefour')
-    @patch.object(Command, 'handle_filethree')
-    def test_handle_errors_dict(self, hf3, hf4, hf5):
-        year = '2001'
-        old_geo_errors = geo.errors.in_2010
-        geo.errors.in_2010 = {'11001000100': '22002000200', '11001000902': None}
-
-        # Create Mock GEO file
-        shutil.copyfile(
-            os.path.join(BASE_DIR, "censusdata", "tests", "mock_geo.txt"),
-            os.path.join(self.tempdir, "ZZgeo2010.sf1"))
-
-        call_command(
-            'load_summary_one',
-            os.path.join(self.tempdir, 'ZZgeo2010.sf1'),
-            year,
-        )
-        positional_args = hf4.call_args[0]
         # The None causes us to skip 11001000902
-        self.assertEqual(len(positional_args[2]), 2)
+        assert len(tracts) == 1
         # This entry was converted
-        self.assertEqual(positional_args[3]['0007159'], year+'22002000200')
+        assert tracts['0007159'] == '200122002000200'
 
-        geo.errors.in_2010 = old_geo_errors
 
-    def test_handle_filethree(self):
-        shutil.copyfile(
-            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file3.txt"),
-            os.path.join(self.tempdir, "ZZ000032010.sf1"))
-        command = Command()
-        command.handle_filethree(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
-                                 '2013', '11',  # State
-                                 {'0007159': '11001000100',
-                                  '0007211': '11001000902'})
-        model = models.Census2010RaceStats.objects.get(pk='11001000100')
-        self.assertEqual(model.total_pop, 4890)
-        self.assertEqual(model.hispanic, 296)
-        self.assertEqual(model.non_hisp_white_only, 4202)
-        self.assertEqual(model.non_hisp_black_only, 101)
-        self.assertEqual(model.non_hisp_asian_only, 198)
-        model.delete()
+def test_handle_filethree(mock_data_dir):
+    tracts = {'0007159': '11001000100', '0007211': '11001000902'}
+    with (mock_data_dir / 'mock_file3.txt').open() as datafile:
+        load_summary_one.load_file_three(datafile, [], False, tracts)
+    assert Census2010RaceStats.objects.count() == 2
 
-        model = models.Census2010RaceStats.objects.get(pk='11001000902')
-        self.assertEqual(model.total_pop, 2092)
-        self.assertEqual(model.hispanic, 107)
-        self.assertEqual(model.non_hisp_white_only, 1776)
-        self.assertEqual(model.non_hisp_black_only, 63)
-        self.assertEqual(model.non_hisp_asian_only, 77)
-        model.delete()
+    model = Census2010RaceStats.objects.get(pk='11001000100')
+    assert model.total_pop == 4890
+    assert model.hispanic == 296
+    assert model.non_hisp_white_only == 4202
+    assert model.non_hisp_black_only == 101
+    assert model.non_hisp_asian_only == 198
 
-        self.assertEqual(len(models.Census2010RaceStats.objects.all()), 0)
+    model = Census2010RaceStats.objects.get(pk='11001000902')
+    assert model.total_pop == 2092
+    assert model.hispanic == 107
+    assert model.non_hisp_white_only == 1776
+    assert model.non_hisp_black_only == 63
+    assert model.non_hisp_asian_only == 77
 
-    def test_handle_filethree_no_delete(self):
-        shutil.copyfile(
-            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file3.txt"),
-            os.path.join(self.tempdir, "ZZ000032010.sf1"))
-        command = Command()
-        command.handle_filethree(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
-                                 '2013', '11',  # State
-                                 {'0007159': '11001000100',
-                                  '0007211': '11001000902'})
-        self.assertEqual(len(models.Census2010RaceStats.objects.all()), 2)
-        models.Census2010RaceStats.objects.all()[0].delete()
-        self.assertEqual(len(models.Census2010RaceStats.objects.all()), 1)
 
-        # Importing again should do nothing
-        command.handle_filethree(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
-                                 '2013', '11',  # State
-                                 {'0007159': '11001000100',
-                                  '0007211': '11001000902'})
-        self.assertEqual(len(models.Census2010RaceStats.objects.all()), 1)
-        models.Census2010RaceStats.objects.all().delete()
+def test_handle_filethree_replace(mock_data_dir):
+    geo_query = Geo.objects.all()
+    tracts = {'0007159': '11001000100', '0007211': '11001000902'}
+    file_path = mock_data_dir / 'mock_file3.txt'
 
-    def test_handle_filefive(self):
-        shutil.copyfile(
-            os.path.join(BASE_DIR, "censusdata", "tests", "mock_file5.txt"),
-            os.path.join(self.tempdir, "ZZ000052010.sf1"))
-        command = Command()
-        command.handle_filefive(os.path.join(self.tempdir, "ZZgeo2010.sf1"),
-                                '2013', '11',  # State
-                                {'0007159': '11001000100',
-                                 '0007211': '11001000902'})
-        model = models.Census2010Households.objects.get(pk='11001000100')
-        self.assertEqual(model.total, 1853624)
-        self.assertEqual(model.total_family, 1067203)
-        self.assertEqual(model.total_nonfamily, 786421)
-        model.delete()
+    with file_path.open() as datafile:
+        load_summary_one.load_file_three(datafile, geo_query, False, tracts)
 
-        model = models.Census2010Households.objects.get(pk='11001000902')
-        self.assertEqual(model.total, 2738936)
-        self.assertEqual(model.total_family, 1951351)
-        self.assertEqual(model.total_nonfamily, 787585)
-        model.delete()
+    assert Census2010RaceStats.objects.count() == 2
+    Census2010RaceStats.objects.first().delete()
+    assert Census2010RaceStats.objects.count() == 1
 
-        self.assertEqual(len(models.Census2010Households.objects.all()), 0)
+    # Importing again should do nothing
+    with file_path.open() as datafile:
+        load_summary_one.load_file_three(datafile, geo_query, False, tracts)
+
+    assert Census2010RaceStats.objects.count() == 1
+
+    # Importing with replacement, however, should
+    with file_path.open() as datafile:
+        load_summary_one.load_file_three(datafile, geo_query, True, tracts)
+
+    assert Census2010RaceStats.objects.count() == 2
+
+
+def test_load_file_five(mock_data_dir):
+    tracts = {'0007159': '11001000100', '0007211': '11001000902'}
+    with (mock_data_dir / 'mock_file5.txt').open() as datafile:
+        load_summary_one.load_file_five(datafile, [], False, tracts)
+    assert Census2010Households.objects.count() == 2
+
+    model = Census2010Households.objects.get(pk='11001000100')
+    assert model.total == 1853624
+    assert model.total_family == 1067203
+    assert model.total_nonfamily == 786421
+
+    model = Census2010Households.objects.get(pk='11001000902')
+    assert model.total == 2738936
+    assert model.total_family == 1951351
+    assert model.total_nonfamily == 787585
