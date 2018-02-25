@@ -77,5 +77,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
         institutions = load_from_csv(agencies, options['file_name'])
-        save_batches(institutions, Institution, options['replace'])
+        save_batches(institutions, Institution, options['replace'],
+                     batch_size=1000)
         options['file_name'].close()
