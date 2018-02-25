@@ -19,7 +19,7 @@ def test_parse_models(monkeypatch):
         'TRACTCE': '33333',
     }
     feature = Mock(
-        fields=mock_data.keys(),
+        fields=[key.encode('utf-8') for key in mock_data.keys()],
         geom=OGRGeometry('POLYGON((0 0, 0 2, -1 2, 0 0))'),
         get=mock_data.__getitem__,
     )
@@ -52,5 +52,6 @@ def test_parse_models(monkeypatch):
     ({'LSAD': 'M3'}, Geo.METDIV_TYPE),
 ])
 def test_geo_type_county(row, geo_type):
-    feature = Mock(fields=row.keys(), get=row.__getitem__)
+    fields = [key.encode('utf-8') for key in row.keys()]
+    feature = Mock(fields=fields, get=row.__getitem__)
     assert load_geos_from.geo_type(feature) == geo_type

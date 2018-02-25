@@ -22,16 +22,16 @@ optional_feature_fields = {
 
 def geo_type(feature: Feature):
     """Inspect the feature to determine which type of geometry it represents"""
-    if 'TRACTCE' in feature.fields and feature.get('TRACTCE'):
+    if b'TRACTCE' in feature.fields and feature.get('TRACTCE'):
         return Geo.TRACT_TYPE
-    if ('COUNTYFP' in feature.fields and 'STATEFP' in feature.fields
+    if (b'COUNTYFP' in feature.fields and b'STATEFP' in feature.fields
             and feature.get('COUNTYFP') and feature.get('STATEFP')):
         return Geo.COUNTY_TYPE
-    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M1':
+    if b'LSAD' in feature.fields and feature.get('LSAD') == 'M1':
         return Geo.METRO_TYPE
-    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M2':
+    if b'LSAD' in feature.fields and feature.get('LSAD') == 'M2':
         return Geo.MICRO_TYPE
-    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M3':
+    if b'LSAD' in feature.fields and feature.get('LSAD') == 'M3':
         return Geo.METDIV_TYPE
 
 
@@ -57,7 +57,7 @@ def parse_models(file_name: str, year: int) -> Iterator[Geo]:
             year=year,
         )
         for model_field, feature_field in optional_feature_fields.items():
-            if feature_field in feature.fields:
+            if feature_field.encode('utf-8') in feature.fields:
                 # Use "or None" to convert '' into None
                 setattr(model, model_field, feature.get(feature_field) or None)
             else:
