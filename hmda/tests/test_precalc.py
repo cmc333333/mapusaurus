@@ -58,19 +58,44 @@ class PrecalcTest(TestCase):
             'application_date_indicator':1}
         self.hmdas = []
         self.hmdas.append(HMDARecord.objects.create(
-            geo=self.city_tract1, institution=self.respondent, loan_type=2, **hmda_params))
+            hmda_record_id=self.respondent.pk + '0',
+            geo=self.city_tract1,
+            institution=self.respondent,
+            loan_type=2,
+            **hmda_params,
+        ))
         for i in range(3):
             self.hmdas.append(HMDARecord.objects.create(
-                geo=self.city_tract2, institution=self.respondent, loan_type=1, **hmda_params))
+                hmda_record_id=self.respondent.pk + str(len(self.hmdas)),
+                geo=self.city_tract2,
+                institution=self.respondent,
+                loan_type=1,
+                **hmda_params,
+            ))
         for i in range(8):
             self.hmdas.append(HMDARecord.objects.create(
-                geo=self.city_tract3, institution=self.respondent, loan_type=1, **hmda_params))
+                hmda_record_id=self.respondent.pk + str(len(self.hmdas)),
+                geo=self.city_tract3,
+                institution=self.respondent,
+                loan_type=1,
+                **hmda_params,
+            ))
         for i in range(7):
             self.hmdas.append(HMDARecord.objects.create(
-                geo =self.non_city_tract1, institution=self.respondent, loan_type=1, **hmda_params))
+                hmda_record_id=self.respondent.pk + str(len(self.hmdas)),
+                geo =self.non_city_tract1,
+                institution=self.respondent,
+                loan_type=1,
+                **hmda_params,
+            ))
         for i in range(11):
             self.hmdas.append(HMDARecord.objects.create(
-                geo=self.non_city_tract2, institution=self.respondent, loan_type=2, **hmda_params))
+                hmda_record_id=self.respondent.pk + str(len(self.hmdas)),
+                geo=self.non_city_tract2,
+                institution=self.respondent,
+                loan_type=2,
+                **hmda_params,
+            ))
 
         hmda_params['respondent_id'] = 'other'
         self.zipcode = ZipcodeCityStateYear.objects.create(
@@ -82,7 +107,12 @@ class PrecalcTest(TestCase):
         # these should not affect the results, since they are another lender
         for i in range(3):
             self.hmdas.append(HMDARecord.objects.create(
-                geo=self.city_tract2, institution=self.inst1, loan_type=1, **hmda_params))
+                hmda_record_id=self.inst1.pk + str(i),
+                geo=self.city_tract2,
+                institution=self.inst1,
+                loan_type=1,
+                **hmda_params,
+            ))
 
     def tearDown(self):
         for hmda in self.hmdas:

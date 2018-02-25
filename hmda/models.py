@@ -138,6 +138,8 @@ class HMDARecord(models.Model):
        HMDA Loan Application Register Format
        https://www.ffiec.gov/hmdarawdata/FORMATS/2013HMDALARRecordFormat.pdf
     """
+    # compound key: institution_id + sequence_number
+    hmda_record_id = models.CharField(max_length=22, primary_key=True)
     as_of_year = models.PositiveIntegerField(
         db_index=True, help_text="The reporting year of the HMDA record.")
     respondent_id = models.CharField(

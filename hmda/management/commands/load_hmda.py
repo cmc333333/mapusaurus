@@ -28,7 +28,7 @@ class Command(BaseCommand):
         self.total_skipped = 0
         self.na_skipped = 0
         self.total_lines_read = 0
-        self.other_skipped  = 0
+        self.other_skipped = 0
 
         def get_logger():
             logging.basicConfig(filename='hmdaload.log',
@@ -48,7 +48,7 @@ class Command(BaseCommand):
 
         csv_files = []
         if os.path.isfile(lar_path):
-            csv_files.append(lar_path);
+            csv_files.append(lar_path)
         elif os.path.isdir(lar_path):
             working_directory = lar_path
 
@@ -125,6 +125,8 @@ class Command(BaseCommand):
                     record.geo_id = str(record.as_of_year) + censustract
 
                     record.institution_id = str(record.as_of_year) + record.agency_code + record.respondent_id
+                    record.hmda_record_id = (
+                        record.institution_id + record.sequence_number)
 
                     self.total_lines_read = self.total_lines_read + 1
 

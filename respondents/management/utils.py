@@ -24,7 +24,6 @@ def fetch_and_unzip_file(url: str):
 T = TypeVar('T')
 
 
-@transaction.atomic
 def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch = []
@@ -36,6 +35,7 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     yield batch
 
 
+@transaction.atomic
 def save_batches(models: Iterator[T], model_class: Type[T],
                  replace: bool=False):
     """Save (optionally, replacing) batches of models."""

@@ -24,6 +24,7 @@ class ViewsTest(TestCase):
             None, 200, 160, 100, 60, 40, 20, 40, 30, 10)
         stats.geoid_id = '1222233300'
         stats.save()
+        self.seq_num = 0
    
         def mkrecord(institution_id, action_taken, countyfp, geoid):
             respondent = Institution.objects.get(institution_id=institution_id)
@@ -37,12 +38,14 @@ class ViewsTest(TestCase):
                 co_applicant_ethnicity='1', applicant_race_1='1', co_applicant_race_1='1',
                 applicant_sex='1', co_applicant_sex='1', applicant_income_000s='1000',
                 purchaser_type='1', rate_spread='0123', hoepa_status='1', lien_status='1',
-                sequence_number='1', population='1', minority_population='1',
+                sequence_number=str(self.seq_num), population='1', minority_population='1',
                 ffieic_median_family_income='1000', tract_to_msamd_income='1000',
                 number_of_owner_occupied_units='1', number_of_1_to_4_family_units='1',
                 application_date_indicator=1)
             record.geo = geo
             record.institution = respondent
+            record.hmda_record_id = respondent.pk + str(self.seq_num)
+            self.seq_num += 1
             record.save()
 
         #institution #1 records, total = 6; selected institution
