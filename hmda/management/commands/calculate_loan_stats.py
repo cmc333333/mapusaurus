@@ -74,7 +74,7 @@ def calculate_median_loans(lender_str, metro):
     # Next, aggregate the # of loans per tract. This query will *not*
     # include zeros
     query = """
-        SELECT COUNT(hmda_hmdarecord.id) AS loan_count
+        SELECT COUNT(hmda_hmdarecord.hmda_record_id) AS loan_count
         FROM geo_geo LEFT JOIN hmda_hmdarecord ON (geoid=geo_id)
         WHERE geo_type = %s
         AND institution_id = %s

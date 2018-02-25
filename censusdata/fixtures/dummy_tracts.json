@@ -2,7 +2,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "1122233300",
+      "geoid": "20131122233300",
       "geo_type": 3,
       "name": "333",
       "state": "11",
@@ -22,7 +22,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "1122233400",
+      "geoid": "20131122233400",
       "geo_type": 3,
       "name": "334",
       "state": "11",
@@ -42,7 +42,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "1122333300",
+      "geoid": "20131122333300",
       "geo_type": 3,
       "name": "333",
       "state": "11",
@@ -62,7 +62,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "1222233300",
+      "geoid": "20131222233300",
       "geo_type": 3,
       "name": "333",
       "state": "12",
@@ -82,7 +82,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "10000",
+      "geoid": "201310000",
       "geo_type": 4,
       "name": "TEST METRO",
       "state": "12",
@@ -102,7 +102,7 @@
   {
     "model": "geo.geo",
     "fields": {
-      "geoid": "10001",
+      "geoid": "201310001",
       "geo_type": 4,
       "name": "TEST METRO",
       "state": "12",

@@ -24,7 +24,6 @@ def fetch_and_unzip_file(url: str):
 T = TypeVar('T')
 
 
-@transaction.atomic
 def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch = []
@@ -36,12 +35,20 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     yield batch
 
 
+@transaction.atomic
 def save_batches(models: Iterator[T], model_class: Type[T],
-                 replace: bool=False):
+                 replace: bool=False, filter_fn=None, batch_size: int=100):
     """Save (optionally, replacing) batches of models."""
     count_saved, count_skipped = 0, 0
-    for batch_idx, batch in enumerate(batches(models)):
-        logger.info('Processing batch %s', batch_idx + 1)
+    for batch_idx, batch in enumerate(batches(models, batch_size)):
+        logger.info(
+            'Processing batch %s (%s - %s)',
+            batch_idx + 1,
+            batch_idx * batch_size + 1,
+            batch_idx * batch_size + batch_size,
+        )
+        if filter_fn:
+            batch = filter_fn(batch)
         pks = {m.pk for m in batch}
         existing = model_class.objects.filter(pk__in=pks)
         if replace:
