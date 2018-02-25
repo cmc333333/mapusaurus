@@ -44,8 +44,8 @@ This loads static regulator agency data.
 Finally, we'll fetch and load the transmittal sheets and reporter data files.
 
 ```
-python manage.py fetch_load_transmittal --year 2013
-python manage.py fetch_load_reporter_panel --year 2013
+python manage.py fetch_load_transmittals --year 2013
+python manage.py fetch_load_reporter_panels --year 2013
 ```
 
 
