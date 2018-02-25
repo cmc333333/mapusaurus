@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.gdal import OGRGeometry
 
 from geo.management.commands import load_geos_from
 from geo.models import Geo
@@ -10,17 +10,18 @@ from geo.models import Geo
 def test_parse_models(monkeypatch):
     monkeypatch.setattr(load_geos_from, 'DataSource', Mock())
     mock_data = {
-        'GEOID': '1122233333',
-        'NAME': 'Tract 33333',
-        'STATEFP': '11',
         'COUNTYFP': '222',
-        'TRACTCE': '33333',
+        'GEOID': '1122233333',
         'INTPTLAT': '-45',
         'INTPTLON': '45',
+        'NAME': 'Tract 33333',
+        'STATEFP': '11',
+        'TRACTCE': '33333',
     }
     feature = Mock(
-        geom=Polygon(((0, 0), (0, 2), (-1, 2), (0, 0))),
-        get=mock_data.get,
+        fields=mock_data.keys(),
+        geom=OGRGeometry('POLYGON((0 0, 0 2, -1 2, 0 0))'),
+        get=mock_data.__getitem__,
     )
     load_geos_from.DataSource.return_value = MagicMock(layer_count=1)
     load_geos_from.DataSource.return_value.__getitem__ = lambda s, i: [feature]
@@ -51,4 +52,5 @@ def test_parse_models(monkeypatch):
     ({'LSAD': 'M3'}, Geo.METDIV_TYPE),
 ])
 def test_geo_type_county(row, geo_type):
-    assert load_geos_from.geo_type(row) == geo_type
+    feature = Mock(fields=row.keys(), get=row.__getitem__)
+    assert load_geos_from.geo_type(feature) == geo_type

@@ -3,25 +3,36 @@ from typing import Iterator
 
 from django.contrib.gis.gdal import DataSource
 from django.contrib.gis.gdal.feature import Feature
-from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.core.management.base import BaseCommand
 
 from geo.models import Geo
 from respondents.management.utils import save_batches
 
 logger = logging.getLogger(__name__)
+optional_feature_fields = {
+    'state': 'STATEFP',
+    'county': 'COUNTYFP',
+    'tract': 'TRACTCE',
+    'csa': 'CSAFP',
+    'cbsa': 'CBSAFP',
+    'metdiv': 'METDIVFP',
+}
 
 
 def geo_type(feature: Feature):
     """Inspect the feature to determine which type of geometry it represents"""
-    return (
-        (feature.get('TRACTCE') and Geo.TRACT_TYPE)
-        or (feature.get('COUNTYFP') and feature.get('STATEFP')
-            and Geo.COUNTY_TYPE)
-        or (feature.get('LSAD') == 'M1' and Geo.METRO_TYPE)
-        or (feature.get('LSAD') == 'M2' and Geo.MICRO_TYPE)
-        or (feature.get('LSAD') == 'M3' and Geo.METDIV_TYPE)
-    )
+    if 'TRACTCE' in feature.fields and feature.get('TRACTCE'):
+        return Geo.TRACT_TYPE
+    if ('COUNTYFP' in feature.fields and 'STATEFP' in feature.fields
+            and feature.get('COUNTYFP') and feature.get('STATEFP')):
+        return Geo.COUNTY_TYPE
+    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M1':
+        return Geo.METRO_TYPE
+    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M2':
+        return Geo.MICRO_TYPE
+    if 'LSAD' in feature.fields and feature.get('LSAD') == 'M3':
+        return Geo.METDIV_TYPE
 
 
 def parse_models(file_name: str, year: int) -> Iterator[Geo]:
@@ -32,27 +43,26 @@ def parse_models(file_name: str, year: int) -> Iterator[Geo]:
 
     for feature in layer:
         # Convert everything into multi polygons
-        if isinstance(feature.geom, Polygon):
-            geom = MultiPolygon(feature.geom)
-        else:
-            geom = feature.geom
+        geom = GEOSGeometry(feature.geom.wkb)
+        if isinstance(geom, Polygon):
+            geom = MultiPolygon(geom)
 
         model = Geo(
             geoid=f"{year}{feature.get('GEOID')}",
             geo_type=geo_type(feature),
             name=feature.get('NAME'),
-            # Use ".get('field') or None" to convert empty strings into Nones
-            state=feature.get('STATEFP') or None,
-            county=feature.get('COUNTYFP') or None,
-            tract=feature.get('TRACTCE') or None,
-            csa=feature.get('CSAFP') or None,
-            cbsa=feature.get('CBSAFP') or None,
-            metdiv=feature.get('METDIVFP') or None,
             centlat=float(feature.get('INTPTLAT')),
             centlon=float(feature.get('INTPTLON')),
             geom=geom,
             year=year,
         )
+        for model_field, feature_field in optional_feature_fields.items():
+            if feature_field in feature.fields:
+                # Use "or None" to convert '' into None
+                setattr(model, model_field, feature.get(feature_field) or None)
+            else:
+                setattr(model, model_field, None)
+
         model.update_from_geom()
         model.clean_fields()
         yield model
