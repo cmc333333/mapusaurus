@@ -28,15 +28,17 @@ def fetch_institutions(client, query, **kwargs):
 def test_branch_locations(client):
     resp = client.get(
         reverse('branchLocations'),
-        {'lender': '91000000001',
+        {'lender': '201391000000001',
          'neLat': '1',
          'neLon': '1',
          'swLat': '0',
          'swLon': '0'},
     ).json()
-    assert resp['features'][0]['properties']['institution_id'] == '91000000001'
+    assert resp['features'][0]['properties']['institution_id'] == \
+        '201391000000001'
     assert resp['features'][0]['properties']['name'] == 'Dev Test Branch 2'
-    assert resp['features'][1]['properties']['institution_id'] == '91000000001'
+    assert resp['features'][1]['properties']['institution_id'] == \
+        '201391000000001'
     assert resp['features'][1]['properties']['name'] == 'Dev Test Branch 1'
 
 

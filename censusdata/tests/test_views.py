@@ -40,34 +40,34 @@ class ViewsTest(TestCase):
         stats = Census2010RaceStats(
             total_pop=10, hispanic=1, non_hisp_white_only=2,
             non_hisp_black_only=4, non_hisp_asian_only=5)
-        stats.geoid_id = '1122233300'
+        stats.geoid_id = '20131122233300'
         stats.save()
-        mkrecord_hmda("91000000001", 1, '222', stats.geoid_id)
+        mkrecord_hmda("201391000000001", 1, '222', stats.geoid_id)
         mkrecord_household(stats.geoid_id,99)
 
         stats = Census2010RaceStats(
             total_pop=20, hispanic=2, non_hisp_white_only=1,
             non_hisp_black_only=5, non_hisp_asian_only=4)
-        stats.geoid_id = '1122233400'
+        stats.geoid_id = '20131122233400'
         stats.save()
-        mkrecord_hmda("91000000001", 1, '222', stats.geoid_id)
+        mkrecord_hmda("201391000000001", 1, '222', stats.geoid_id)
         mkrecord_household(stats.geoid_id,1237)
 
         stats = Census2010RaceStats(
             total_pop=100, hispanic=10, non_hisp_white_only=20,
             non_hisp_black_only=30, non_hisp_asian_only=4)
-        stats.geoid_id = '1122333300'
+        stats.geoid_id = '20131122333300'
         stats.save()
         mkrecord_household(stats.geoid_id,99)
 
         stats = Census2010RaceStats(
             total_pop=100, hispanic=0, non_hisp_white_only=0,
             non_hisp_black_only=0, non_hisp_asian_only=7)
-        stats.geoid_id = '1222233300'
+        stats.geoid_id = '20131222233300'
         stats.save()
         mkrecord_household(stats.geoid_id,99)
         lendstats = LendingStats(
-            geo_id='10000', institution_id="91000000002",
+            geo_id='201310000', institution_id="201391000000002",
             lar_median=3, lar_count=4,
             fha_count=2, fha_bucket=2)
         lendstats.save()
@@ -85,36 +85,36 @@ class ViewsTest(TestCase):
                                     'swLon':'0',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'91000000002'})
+                                    'lender':'201391000000002'})
         resp = json.loads(resp.content)
         self.assertEqual(len(resp), 4)
-        self.assertIn('1122233300', resp)
-        self.assertEqual(resp['1122233300']['total_pop'], 10)
-        self.assertEqual(resp['1122233300']['hispanic'], 1)
-        self.assertEqual(resp['1122233300']['non_hisp_white_only'], 2)
-        self.assertEqual(resp['1122233300']['non_hisp_black_only'], 4)
-        self.assertEqual(resp['1122233300']['non_hisp_asian_only'], 5)
-        self.assertEqual(resp['1122233300']['hispanic_perc'], .1)
-        self.assertEqual(resp['1122233300']['non_hisp_white_only_perc'], .2)
-        self.assertEqual(resp['1122233300']['non_hisp_black_only_perc'], .4)
-        self.assertEqual(resp['1122233300']['non_hisp_asian_only_perc'], .5)
-        self.assertIn('1122233400', resp)
-        self.assertEqual(resp['1122233400']['total_pop'], 20)
-        self.assertEqual(resp['1122233400']['hispanic'], 2)
-        self.assertEqual(resp['1122233400']['non_hisp_white_only'], 1)
-        self.assertEqual(resp['1122233400']['non_hisp_black_only'], 5)
-        self.assertEqual(resp['1122233400']['non_hisp_asian_only'], 4)
-        self.assertEqual(resp['1122233400']['hispanic_perc'], .1)
-        self.assertEqual(resp['1122233400']['non_hisp_white_only_perc'], .05)
-        self.assertEqual(resp['1122233400']['non_hisp_black_only_perc'], .25)
-        self.assertEqual(resp['1122233400']['non_hisp_asian_only_perc'], .2)
+        self.assertIn('20131122233300', resp)
+        self.assertEqual(resp['20131122233300']['total_pop'], 10)
+        self.assertEqual(resp['20131122233300']['hispanic'], 1)
+        self.assertEqual(resp['20131122233300']['non_hisp_white_only'], 2)
+        self.assertEqual(resp['20131122233300']['non_hisp_black_only'], 4)
+        self.assertEqual(resp['20131122233300']['non_hisp_asian_only'], 5)
+        self.assertEqual(resp['20131122233300']['hispanic_perc'], .1)
+        self.assertEqual(resp['20131122233300']['non_hisp_white_only_perc'], .2)
+        self.assertEqual(resp['20131122233300']['non_hisp_black_only_perc'], .4)
+        self.assertEqual(resp['20131122233300']['non_hisp_asian_only_perc'], .5)
+        self.assertIn('20131122233400', resp)
+        self.assertEqual(resp['20131122233400']['total_pop'], 20)
+        self.assertEqual(resp['20131122233400']['hispanic'], 2)
+        self.assertEqual(resp['20131122233400']['non_hisp_white_only'], 1)
+        self.assertEqual(resp['20131122233400']['non_hisp_black_only'], 5)
+        self.assertEqual(resp['20131122233400']['non_hisp_asian_only'], 4)
+        self.assertEqual(resp['20131122233400']['hispanic_perc'], .1)
+        self.assertEqual(resp['20131122233400']['non_hisp_white_only_perc'], .05)
+        self.assertEqual(resp['20131122233400']['non_hisp_black_only_perc'], .25)
+        self.assertEqual(resp['20131122233400']['non_hisp_asian_only_perc'], .2)
 
     def test_race_summary_csv(self):
         resp = self.client.get(reverse('censusdata:race_summary_csv'))
         self.assertEqual(resp.status_code, 404)
         resp = self.client.get(reverse('censusdata:race_summary_csv'),
-            {'metro':'10000', 'lender':'91000000001', 'action_taken':'1,2,3,4'})
-        self.assertContains(resp, '1122233300')
-        self.assertContains(resp, '1122233400')
-        self.assertContains(resp, '1122333300')
+            {'metro':'10000', 'lender':'201391000000001', 'action_taken':'1,2,3,4'})
+        self.assertContains(resp, '20131122233300')
+        self.assertContains(resp, '20131122233400')
+        self.assertContains(resp, '20131122333300')
         self.assertContains(resp, '1237')

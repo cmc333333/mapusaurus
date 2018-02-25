@@ -14,13 +14,13 @@ from geo.models import Geo
 from hmda.views import loan_originations_as_json
 from respondents.models import Institution
 
-params = {'lender': '90000451965', 'metro': '49180'}
+params = {'lender': '201390000451965', 'metro': '49180'}
 request = HttpRequest()
 for param in params:
     request.GET[param]=params[param]
 
 class ViewsUtilitiesTests(TestCase):
-    fixtures = ['agency.json', 'fake_msa.json', 'api_tracts.json', 'test_counties.json', 'fake_respondents.json']
+    fixtures = ['agency', 'fake_msa', 'api_tracts', 'test_counties', 'fake_respondents']
 
     def test_minority_aggregation_as_json(self):
         """should return a dict of 5 dicts returning minority values"""
@@ -69,7 +69,3 @@ class ViewsUtilitiesTests(TestCase):
         self.assertIsNone(odds_ratio(1, 0))
         self.assertIsNone(odds_ratio(0, 0))
         self.assertEqual(odds_ratio(0, 1), 0)
-
-
-
-

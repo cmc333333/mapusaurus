@@ -14,7 +14,7 @@ class ViewTest(TestCase):
     fixtures = ['agency', 'fake_respondents']
 
     def setUp(self):
-        self.respondent = Institution.objects.get(institution_id="922-333")
+        self.respondent = Institution.objects.get(institution_id="1970922-333")
         self.metro = Geo.objects.create(
             geoid='12121', cbsa='12345', geo_type=Geo.METRO_TYPE, name='MetMetMet',
             geom="MULTIPOLYGON (((0 0, 0 1, 1 1, 0 0)))", minlat=0.11,
@@ -32,10 +32,10 @@ class ViewTest(TestCase):
         self.assertNotContains(resp, 'lender-info')
         resp = self.client.get(reverse('map'), {'lender': 'thing'})
         self.assertNotContains(resp, 'lender-info')
-        resp = self.client.get(reverse('map'), {'lender': '"922-33"89'})
+        resp = self.client.get(reverse('map'), {'lender': '"1970922-33"89'})
         self.assertNotContains(resp, 'lender-info')
 
-        resp = self.client.get(reverse('map'), {'lender': '922-333'})
+        resp = self.client.get(reverse('map'), {'lender': '1970922-333'})
         self.assertContains(resp, 'lender-info')
         self.assertContains(resp, 'Some Bank')
         self.assertContains(resp, '1970')

@@ -30,7 +30,7 @@ class ConversionTest(TestCase):
 
 
 class ViewsTests(TestCase):
-    fixtures = ['agency.json', 'fake_msa.json', 'api_tracts.json', 'test_counties.json', 'fake_respondents.json']
+    fixtures = ['agency', 'fake_msa', 'api_tracts', 'test_counties', 'fake_respondents']
 
     def test_api_all_user_errors(self):
         resp = self.client.get(reverse('all'), {'neLat':'42.048794',
@@ -39,7 +39,7 @@ class ViewsTests(TestCase):
                                     'swLon':'-88.225583',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'736-4045996'})
+                                    'lender':'2013736-4045996'})
 
         self.assertEqual(resp.status_code, 404)
 
@@ -49,7 +49,7 @@ class ViewsTests(TestCase):
                                     'swLon':'',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'736-4045996'})
+                                    'lender':'2013736-4045996'})
         self.assertEqual(resp.status_code, 404)
 
 
@@ -63,7 +63,7 @@ class ViewsTests(TestCase):
                                     'swLon':'-88.225583',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'736-4045996'})
+                                    'lender':'2013736-4045996'})
 
         self.assertEqual(resp.status_code, 404)
 
@@ -73,7 +73,7 @@ class ViewsTests(TestCase):
                                     'swLon':'',
                                     'year':'2013',
                                     'action_taken':'1,2,3,4,5',
-                                    'lender':'736-4045996'})
+                                    'lender':'2013736-4045996'})
         self.assertEqual(resp.status_code, 404)
 
     def test_api_msas_endpoint(self):
@@ -90,7 +90,7 @@ class ViewsTests(TestCase):
 
     def test_api_tables_endpoint(self):
         """should return table_data json for a lender/MSA pair"""
-        params = {'lender': '90000451965', 'metro': '49180', 'year':'2013'}
+        params = {'lender': '201390000451965', 'metro': '49180', 'year':'2013'}
         url = reverse(tables)
         resp = self.client.get(url, params)
         result_dict = json.loads(resp.content)
@@ -105,7 +105,7 @@ class ViewsTests(TestCase):
 
     def test_api_tables_csv(self):
         """should return table_data csv for a lender/MSA pair"""
-        params = {'lender': '90000451965', 'metro': '49180', 'year': '2013'}
+        params = {'lender': '201390000451965', 'metro': '49180', 'year': '2013'}
         url = reverse(tables_csv)
         resp = self.client.get(url, params)
         f = StringIO(resp.content.decode('utf-8'))

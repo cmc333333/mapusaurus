@@ -8,7 +8,7 @@ class Census2010RaceStatsTest(TestCase):
     fixtures = ['dummy_tracts']
 
     def test_auto_populated(self):
-        tract = Geo.objects.get(pk='1122233300')
+        tract = Geo.objects.get(pk='20131122233300')
         stats = Census2010RaceStats(
             geoid=tract, total_pop=20, hispanic=1, non_hisp_white_only=2,
             non_hisp_black_only=4, non_hisp_asian_only=5)

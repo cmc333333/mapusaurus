@@ -321,7 +321,7 @@
     "pk": 100,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "37067000700",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -362,7 +362,7 @@
     "pk": 101,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "37067000700",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -403,7 +403,7 @@
     "pk": 102,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "37067001200",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -444,7 +444,7 @@
     "pk": 103,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "1122233300",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -485,7 +485,7 @@
     "pk": 104,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "1122233400",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -526,7 +526,7 @@
     "pk": 105,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "1122233500",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -567,7 +567,7 @@
     "pk": 106,
     "model": "hmda.hmdarecord",
     "fields": {
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "geo": "1122233600",
       "as_of_year": 2013,
       "respondent_id": "1",
@@ -609,7 +609,7 @@
     "model": "hmda.lendingstats",
     "fields": {
       "geo": "49180",
-      "institution": "90000451965",
+      "institution": "201390000451965",
       "lar_median": 3,
       "lar_count": 4,
       "fha_count": 2,
