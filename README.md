@@ -117,30 +117,14 @@ First, run migrate to create the appropriate tables
     python manage.py migrate hmda
 ```
 
-Next, download a flat file representing all of the HMDA LAR data:
+Next, we'll be fetching files representing all the HMDA LAR data:
 ```
 http://www.ffiec.gov/hmda/hmdaflat.htm
 ```
-and download the zip file. Unzip it and then:
+To do this, run
 ```
-    python manage.py load_hmda /path/to/2013HMDALAR\ -\ National.csv 2013
+    python manage.py fetchload_hmda --year 2013
 ```
-
-Note that this process takes several minutes (though you will receive progress
-notifications). This import can be run repeatedly (if additional geos are
-added later, for example).
-
-Warning: At the moment, the import assumes a single year of information.
-That's a todo.
-
-Alternatively, the load_hmda script can read a directory of CSV files and load them one by one.
-There is also the option of removing these files after they are processed.
-
-```
-    split -l 50000 -d  "/path/to/2013HMDALAR\ -\ National.csv" hmda_csv_
-    python manage.py load_hmda /path/to/2013HMDALAR/ 2013 --delete-file
-```
-
 
 You will most likely want to pre-calculate the median number of loans for a
 particular lender X city pair -- this speeds up map loading quite a bit.
