@@ -35,30 +35,30 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     yield batch
 
 
-@transaction.atomic
 def save_batches(models: Iterator[T], model_class: Type[T],
                  replace: bool=False, filter_fn=None, batch_size: int=100):
     """Save (optionally, replacing) batches of models."""
     count_saved, count_skipped = 0, 0
     for batch_idx, batch in enumerate(batches(models, batch_size)):
-        logger.info(
-            'Processing batch %s (%s - %s)',
-            batch_idx + 1,
-            batch_idx * batch_size + 1,
-            batch_idx * batch_size + batch_size,
-        )
-        if filter_fn:
-            batch = filter_fn(batch)
-        pks = {m.pk for m in batch}
-        existing = model_class.objects.filter(pk__in=pks)
-        if replace:
-            existing.delete()
-        else:
-            existing_ids = set(existing.values_list('pk', flat=True))
-            original_batch_size = len(batch)
-            batch = [m for m in batch if m.pk not in existing_ids]
-            count_skipped += original_batch_size - len(batch)
-        model_class.objects.bulk_create(batch)
+        with transaction.atomic():
+            logger.info(
+                'Processing batch %s (%s - %s)',
+                batch_idx + 1,
+                batch_idx * batch_size + 1,
+                batch_idx * batch_size + batch_size,
+            )
+            if filter_fn:
+                batch = filter_fn(batch)
+            pks = {m.pk for m in batch}
+            existing = model_class.objects.filter(pk__in=pks)
+            if replace:
+                existing.delete()
+            else:
+                existing_ids = set(existing.values_list('pk', flat=True))
+                original_batch_size = len(batch)
+                batch = [m for m in batch if m.pk not in existing_ids]
+                count_skipped += original_batch_size - len(batch)
+            model_class.objects.bulk_create(batch)
         count_saved += len(batch)
     logger.info(
         '%s new %s, %s skipped',
