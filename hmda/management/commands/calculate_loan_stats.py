@@ -4,6 +4,7 @@ from django.db import connection
 from geo.models import Geo
 from hmda.models import HMDARecord, LendingStats
 
+
 class Command(BaseCommand):
     help = "Generate loans stats per lender, metro combination"
 
@@ -14,7 +15,9 @@ class Command(BaseCommand):
         #   Remove existing stats; we're going to regenerate them
         year = str(kwargs['year'])
         LendingStats.objects.filter(institution__year=year).delete()
-        lender_q = HMDARecord.objects.values_list('institution_id', flat=True).distinct('institution')
+        lender_q = HMDARecord.objects\
+            .values_list('institution_id', flat=True)\
+            .distinct('institution')
         for metro in Geo.objects.filter(
                 geo_type=Geo.METRO_TYPE, year=year).order_by('name'):
             self.stdout.write("Processing " + metro.name)
@@ -29,36 +32,44 @@ class Command(BaseCommand):
                     fha_percentage = 0.0
                 bucket = get_fha_bucket(fha_percentage)
                 LendingStats.objects.create(
-                    institution_id=lender_str, geo=metro, lar_median=median, 
+                    institution_id=lender_str, geo=metro, lar_median=median,
                     lar_count=lar, fha_count=fha, fha_bucket=bucket)
 
+
 def lar_query(lender_str, metro):
-    lar_query = HMDARecord.objects.filter(institution_id=lender_str, 
-       geo__cbsa=metro.cbsa, geo__geo_type=Geo.TRACT_TYPE, action_taken__in=[1,2,3,4,5])
-    return lar_query
+    return HMDARecord.objects.filter(
+        institution_id=lender_str,
+        geo__cbsa=metro.cbsa,
+        geo__geo_type=Geo.TRACT_TYPE,
+        action_taken__in=[1, 2, 3, 4, 5],
+    )
+
 
 def calculate_lar_count(lender_str, metro):
     lar = lar_query(lender_str, metro)
     return lar.count()
 
+
 def calculate_fha_count(lender_str, metro):
     lar = lar_query(lender_str, metro)
     return lar.filter(loan_type=2).count()
 
+
 def get_fha_bucket(fha_percentage):
     if fha_percentage == 0:
-        bucket = 0 
+        bucket = 0
     elif fha_percentage > 0 and fha_percentage <= .1:
-        bucket = 1 
+        bucket = 1
     elif fha_percentage > .10 and fha_percentage <= .3:
-        bucket = 2 
+        bucket = 2
     elif fha_percentage > .3 and fha_percentage <= .5:
         bucket = 3
     elif fha_percentage > .5 and fha_percentage <= .7:
         bucket = 4
     elif fha_percentage > .7:
-        bucket =5
+        bucket = 5
     return bucket
+
 
 def calculate_median_loans(lender_str, metro):
     """For a given lender, find the median loans per census tract. Limit to
@@ -94,4 +105,3 @@ def calculate_median_loans(lender_str, metro):
     result = cursor.fetchone()
     if result:
         return result[0]
-    
