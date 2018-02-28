@@ -36,8 +36,8 @@ def test_handle(settings):
 
 @pytest.mark.django_db
 def test_handle_errors_dict(monkeypatch, settings):
-    monkeypatch.setattr(load_hmda.errors, 'in_2010',
-                        {'1122233300': '1122233400'})
+    monkeypatch.setattr(load_hmda.errors, 'changes',
+                        {2013: {'1122233300': '1122233400'}})
     call_command('loaddata', 'dummy_tracts', 'agency', 'fake_respondents')
     call_command(
         'load_hmda',

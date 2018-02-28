@@ -153,7 +153,6 @@ def load_state_tracts(datafile: TextIO,
         if line[8:11] == '140':    # Aggregated by Census Tract
             recordnum = RecordId(line[18:25])
             censustract = line[27:32] + line[54:60]
-            censustract = errors.in_2010.get(censustract, censustract)
             censustract = errors.change_specific_year(censustract,
                                                       year)
             if censustract is not None:

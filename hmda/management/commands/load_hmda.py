@@ -64,7 +64,8 @@ def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
             application_date_indicator=row[44],
         )
         censustract = row[11] + row[12] + row[13].replace('.', '')
-        censustract = errors.in_2010.get(censustract, censustract)
+        censustract = errors.change_specific_year(censustract,
+                                                  record.as_of_year)
         record.geo_id = f"{record.as_of_year}{censustract}"
         record.institution_id = f"{record.as_of_year}{record.agency_code}"
         record.institution_id += record.respondent_id

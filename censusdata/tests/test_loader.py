@@ -15,9 +15,8 @@ def mock_data_dir(db, settings):
 
 
 def test_load_state_tracts_errors_dict(mock_data_dir, monkeypatch):
-    monkeypatch.setattr(load_summary_one.errors, 'in_2010', {
-        '11001000100': '22002000200',
-        '11001000902': None,
+    monkeypatch.setattr(load_summary_one.errors, 'changes', {
+        2000: {'11001000100': '22002000200', '11001000902': None},
     })
     with (mock_data_dir / 'mock_geo.txt').open() as datafile:
         _, tracts = load_summary_one.load_state_tracts(datafile, 2001)
