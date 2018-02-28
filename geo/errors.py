@@ -6,7 +6,7 @@
 # table-and-geography-changes.201X.html, where X is the last digit of the year
 
 changes = {
-    # Original -> Correctec
+    # 2010 name -> Modern name
     2011: {
         # Madison County, New York
         "36053940101": "36053030101",
@@ -39,7 +39,13 @@ changes = {
         "06037930401": "06037137000",
     },
     2013: {},
-    2014: {},
+    2014: {
+        # Bedford City, Virginia changed its legal status to town, ending its
+        # independent city status (county equivalent), and was absorbed as a
+        # municipality within Bedford County, Virginia. Its former FIPS State
+        # and FIPS County codes 51-515 have ceased to exist.
+        "51515050100": None,
+    },
     2015: {
         # Wade Hampton Census Area, Alaska, was renamed as Kusilvak Census
         # Area and the county code changed from 270 to 158
@@ -48,9 +54,9 @@ changes = {
         # Shannon County, South Dakota, was renamed as Oglala Lakota County
         # and the county code changed to 102 from 113.
         # https://www2.census.gov/geo/maps/dc10map/tract/st46_sd/c46113_shannon/DC10CT_C46113_CT2MS.txt
-        "46102940500": "46113940500",
-        "46102940800": "46113940800",
-        "46102940900": "46113940900",
+        "46113940500": "46102940500",
+        "46113940800": "46102940800",
+        "46113940900": "46102940900",
     },
     2016: {}
 }
