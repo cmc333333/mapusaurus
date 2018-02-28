@@ -59,7 +59,7 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
             assets=int(assets),
         )
         try:
-            inst.clean_fields()
+            inst.full_clean(exclude=['agency'], validate_unique=False)
         except ValidationError:
             logger.exception('Line %s has invalid data:', line_number)
             break

@@ -64,7 +64,7 @@ def parse_models(file_name: str, year: int) -> Iterator[Geo]:
                 setattr(model, model_field, None)
 
         model.update_from_geom()
-        model.clean_fields()
+        model.full_clean(validate_unique=False)
         yield model
 
 

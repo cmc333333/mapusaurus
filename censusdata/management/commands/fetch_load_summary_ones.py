@@ -38,7 +38,7 @@ class Summary1Files(NamedTuple):
     def load_data(self, replace: bool, year: int):
         """Insert the associated summary data into the db, attaching it to
         year-specific geos."""
-        with self.geofile.open() as geofile:
+        with self.geofile.open(encoding='latin') as geofile:
             state_fips, tracts = load_state_tracts(geofile, year)
 
         geo_query = Geo.objects.filter(state=state_fips, year=year)
