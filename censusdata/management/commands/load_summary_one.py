@@ -1,5 +1,5 @@
 import csv
-from typing import BinaryIO, Dict, Iterator, List, NewType, Tuple, Type
+from typing import Dict, Iterator, List, NewType, TextIO, Tuple, Type
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -38,7 +38,7 @@ def make_file_loader(model_classes: List[Type[Model]], parser):
     """Bulk create Census2010 stat models using the parser function. Skip if
     data's already loaded."""
     @transaction.atomic
-    def load_file(datafile: BinaryIO, geo_query: QuerySet, replace: bool,
+    def load_file(datafile: TextIO, geo_query: QuerySet, replace: bool,
                   tracts: TractByRecord):
         skip = all(model_class.objects.filter(geoid__in=geo_query).exists()
                    for model_class in model_classes)
@@ -54,7 +54,7 @@ def make_file_loader(model_classes: List[Type[Model]], parser):
     return load_file
 
 
-def file3_models(datafile: BinaryIO,
+def file3_models(datafile: TextIO,
                  tracts: TractByRecord) -> Iterator[File3Models]:
     """File three contains race and ethnicity summaries. Documentation starts
     at page 6-22"""
@@ -92,12 +92,12 @@ def file3_models(datafile: BinaryIO,
                 geoid_id=geoid_id,
             )
             stat.auto_fields()
-            stat.clean_fields()
+            stat.full_clean(exclude=['geoid'], validate_unique=False)
 
             yield (race, hisp, stat)
 
 
-def file4_models(datafile: BinaryIO,
+def file4_models(datafile: TextIO,
                  tracts: TractByRecord) -> Iterator[File4Models]:
     """File four contains age demographics and correlations with race,
     ethnicity, and sex. Documentation starts at page 6-30"""
@@ -111,19 +111,19 @@ def file4_models(datafile: BinaryIO,
                 female=row[174],
                 geoid_id=geoid_id,
             )
-            sex.clean_fields()
+            sex.full_clean(exclude=['geoid'], validate_unique=False)
 
             age = Census2010Age(total_pop=row[149], geoid_id=geoid_id)
             for idx, field_name in enumerate(AGE_FIELDS):
                 male_count = int(row[151 + idx])
                 female_count = int(row[175 + idx])
                 setattr(age, field_name, male_count + female_count)
-            age.clean_fields()
+            age.full_clean(exclude=['geoid'], validate_unique=False)
 
             yield (sex, age)
 
 
-def file5_models(datafile: BinaryIO,
+def file5_models(datafile: TextIO,
                  tracts: TractByRecord) -> Iterator[File5Models]:
     """File five contains household metrics, including divisions by household
     type, household size, etc. Documentation starts at page 6-38"""
@@ -144,7 +144,7 @@ load_file_four = make_file_loader(File4Models.__args__, file4_models)
 load_file_five = make_file_loader(File5Models.__args__, file5_models)
 
 
-def load_state_tracts(datafile: BinaryIO,
+def load_state_tracts(datafile: TextIO,
                       year: int) -> Tuple[str, TractByRecord]:
     # As each file covers one state, all tracts will have the same state id
     state = ''
@@ -178,7 +178,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         year = options['year']
         geofile_name = options['file_name']
-        with open(geofile_name, 'r') as geofile:
+        with open(geofile_name, 'r', encoding='latin') as geofile:
             state, tracts = load_state_tracts(geofile, year)
 
         geo_query = Geo.objects.filter(state=state, year=year)
