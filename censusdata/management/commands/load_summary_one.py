@@ -73,7 +73,7 @@ def file3_models(datafile: TextIO,
                 two_or_more=row[12],
                 geoid_id=geoid_id,
             )
-            race.clean_fields()
+            race.full_clean(exclude=['geoid'], validate_unique=False)
 
             hisp = Census2010HispanicOrigin(
                 total_pop=row[13],
@@ -81,7 +81,7 @@ def file3_models(datafile: TextIO,
                 hispanic=row[15],
                 geoid_id=geoid_id,
             )
-            hisp.clean_fields()
+            hisp.full_clean(exclude=['geoid'], validate_unique=False)
 
             stat = Census2010RaceStats(
                 total_pop=int(row[16]),
@@ -134,7 +134,7 @@ def file5_models(datafile: TextIO,
             household = Census2010Households(geoid_id=geoid_id)
             for idx, field_name in enumerate(HOUSEHOLD_FIELDS):
                 setattr(household, field_name, row[28 + idx])
-            household.clean_fields()
+            household.full_clean(exclude=['geoid'], validate_unique=False)
 
             yield (household,)
 
