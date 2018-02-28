@@ -6,4 +6,4 @@ docker run\
   --volume $PWD:/app\
   --workdir /app/frontend\
   --entrypoint npm\
-  node:0.10 "$@"
+  node:8 "$@"

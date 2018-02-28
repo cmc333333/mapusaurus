@@ -6,4 +6,4 @@ docker run\
   --volume $PWD:/app\
   --workdir /app/frontend\
   --entrypoint node_modules/.bin/grunt\
-  node:0.10 "$@"
+  node:8 "$@"
