@@ -106,7 +106,7 @@ module.exports = function(grunt) {
           'frontend/bower_components/Leaflet.utfgrid/dist/leaflet.utfgrid.js',
           'frontend/bower_components/leaflet-rrose/rrose-src.js',
           'frontend/bower_components/numeral-js/min/numeral.min.js',
-          'frontend/bower_components/leaflet-MiniMap/dist/Control.MiniMap.min.js'
+          'frontend/bower_components/leaflet-minimap/dist/Control.MiniMap.min.js'
         ],
         dest: 'frontend/dist/map/js/map-vendor.min.js'
       },
