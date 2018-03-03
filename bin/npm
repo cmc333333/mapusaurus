@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+docker run\
+  --rm -it\
+  --volume $PWD:/app\
+  --workdir /app/frontend\
+  --entrypoint npm\
+  node:8 "$@"
