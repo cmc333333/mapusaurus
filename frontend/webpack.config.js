@@ -9,6 +9,7 @@ module.exports = [
     name: 'styles',
     devtool: 'source-map',
     entry: {
+      'base': './src/less/base.less',
       'map': './src/less/map.less',
     },
     output: {
@@ -32,7 +33,7 @@ module.exports = [
           }),
         },
         {
-          test: /\.(jpe?g|png|gif|svg)$/i,
+          test: /\.(jpe?g|png|gif|svg|eot|ttf|woff2?)$/i,
           loader: 'file-loader',
           options: {
             name: '[name].[ext]',
