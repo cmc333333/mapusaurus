@@ -66,9 +66,20 @@ Install grunt:
 sudo npm install -g grunt-cli
 ```
 
-Run grunt to build the "dist" or distrobution copy of the CSS and JS file
+Run grunt to build the "dist" or distribution copy of the CSS and JS file
 
 ```
 cd /vagrant/mapusaurus/frontend
 grunt build
+```
+
+
+### 5. Webpack
+
+Run Webpack to finish the process. We're slowly replacing Bower and Grunt with
+Webpack.
+
+```
+cd /vagrant/mapusaurus/frontend
+webpack
 ```

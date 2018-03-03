@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 
 import dj_database_url
 from django.utils.crypto import get_random_string
@@ -78,8 +77,11 @@ USE_L10N = True
 USE_TZ = True
 
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'public')
+STATIC_ROOT = os.path.join(BASE_DIR, 'out')
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend', 'out'),
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
