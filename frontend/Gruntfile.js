@@ -11,66 +11,6 @@ module.exports = function(grunt) {
      */
     pkg: grunt.file.readJSON('package.json'),
 
-    /* 
-     * CONCAT
-     * 
-     * Combine vendor supplied CSS files
-     * 
-    */
-
-    concat: {
-      main: {
-        src: [
-          'frontend/bower_components/normalize.css/normalize.css',
-          'frontend/bower_components/font-awesome/css/font-awesome.min.css'
-        ],
-        dest: 'frontend/dist/basestyle/css/vendor.css',
-      },
-      map: {
-        src: [
-          'frontend/src/less/leaflet.rrose.css',
-          'frontend/bower_components/leaflet-minimap/dist/Control.MiniMap.min.css'
-        ],
-        dest: 'frontend/dist/map/css/vendor.css',
-      }
-    },
-
-
-    /**
-     * LESS: https://github.com/gruntjs/grunt-contrib-less
-     * 
-     * Compile LESS files to CSS.
-     * All of the cf-framework LESS files have been added to styles.css.
-     */
-    less: {
-      main: {
-        options: {
-          paths: ['frontend/src/less'],
-          compress: false,
-          sourceMap: !isCI,
-          sourceMapFilename: 'frontend/dist/basestyle/css/mapusaurus_sourcemap.css.map',
-          sourceMapURL: '/static/basestyle/css/mapusaurus_sourcemap.css.map'
-        },
-        files: {
-          'frontend/dist/basestyle/css/<%= pkg.name %>.css': ['frontend/src/less/<%= pkg.name %>.less']
-        }
-      }
-    },
-
-    /**
-     * CSSMin: https://github.com/gruntjs/grunt-contrib-cssmin
-     * 
-     * Create a Minified CSS.
-     * 
-     */
-    cssmin: {
-      minify: {
-        files: {
-          'frontend/dist/basestyle/css/<%= pkg.name %>.min.css': ['frontend/dist/basestyle/css/<%= pkg.name %>.css']
-        }
-      }
-    },
-
     /**
      * Uglify: https://github.com/gruntjs/grunt-contrib-uglify
      * 
@@ -144,33 +84,6 @@ module.exports = function(grunt) {
      * Copy: https://github.com/gruntjs/grunt-contrib-copy
      */
     copy: {
-      main: {
-        files: [
-          /* Vendor Packages */
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/bower_components/font-awesome/fonts/*'],
-            dest: 'frontend/dist/basestyle/fonts/',
-            filter: 'isFile'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/bower_components/cf-icons/src/fonts/*'],
-            dest: 'frontend/dist/basestyle/fonts/',
-            filter: 'isFile'
-          },
-          /* Source images that were manually downloaded to the src/img folder */
-          {
-            expand: true,
-            flatten: true,
-            src: ['frontend/src/img/*'],
-            dest: 'frontend/dist/basestyle/img/',
-            filter: 'isFile'
-          }
-        ]
-      },
       django: {
         files: [
           /* Copy the front/dist folder into the Django application's static assets folder */
@@ -201,11 +114,11 @@ module.exports = function(grunt) {
     },
 
     /**
-     * watch javascript and less files for changes, when they change run the build command
+     * watch javascript files for changes, when they change run the build command
     */
     watch: {
       scripts: {
-        files: ['frontend/src/**/*.js','frontend/src/**/*.less'],
+        files: ['frontend/src/**/*.js'],
         tasks: ['build']
       }
     }
@@ -216,9 +129,6 @@ module.exports = function(grunt) {
   /**
    * The above tasks are loaded here (in the same order).
    */
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -231,8 +141,7 @@ module.exports = function(grunt) {
   /**
    * The 'default' task will run whenever `grunt` is run without specifying a task
    */
-  grunt.registerTask('build', ['concat', 'less', 'cssmin', 'uglify', 'copy']);
-  grunt.registerTask('build-less', ['less', 'copy:django']);
+  grunt.registerTask('build', ['uglify', 'copy']);
   grunt.registerTask('default', ['build']);
 
 };
