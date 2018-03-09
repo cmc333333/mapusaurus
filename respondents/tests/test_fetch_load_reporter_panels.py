@@ -17,14 +17,14 @@ def test_handle_no_args(monkeypatch):
     with freeze_time('2018-01-01'):
         call_command('fetch_load_reporter_panels')
 
-    assert fetch_call.call_count == 5
+    assert fetch_call.call_count == 6
     called_urls = [call[0][0] for call in fetch_call.call_args_list]
-    for year in range(2013, 2018):
+    for year in range(2012, 2018):
         assert any(str(year) in url for url in called_urls)
 
     from_line_calls = fetch_load_reporter_panels.ReporterRow.from_line\
         .call_args_list
-    assert from_line_calls == [call('line1'), call('line2')] * 5
+    assert from_line_calls == [call('line1'), call('line2')] * 6
 
 
 def test_handle_specific_args(monkeypatch):

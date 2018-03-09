@@ -35,7 +35,7 @@ def test_fetch_flags_default(monkeypatch):
     assert len(args[1]) == 56   # States and territories
     assert us.states.lookup('IL') in args[1]
     assert us.states.lookup('Guam') in args[1]
-    assert set(args[2]) == set(range(2013, 2017))
+    assert set(args[2]) == set(range(2012, 2017))
 
 
 def test_fetch_passes_shapefile(monkeypatch):

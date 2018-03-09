@@ -16,13 +16,13 @@ def test_handle_no_args(monkeypatch):
     with freeze_time('2018-01-01'):
         call_command('fetch_load_hmda')
 
-    assert fetch_call.call_count == 5
+    assert fetch_call.call_count == 6
     called_urls = [call[0][0] for call in fetch_call.call_args_list]
-    for year in range(2013, 2018):
+    for year in range(2012, 2018):
         assert any(str(year) in url for url in called_urls)
 
-    assert fetch_load_hmda.load_from_csv.call_count == 5
-    assert fetch_load_hmda.save_batches.call_count == 5
+    assert fetch_load_hmda.load_from_csv.call_count == 6
+    assert fetch_load_hmda.save_batches.call_count == 6
     replace = fetch_load_hmda.save_batches.call_args[0][2]
     assert not replace
 
