@@ -5,7 +5,7 @@ RUN apt-get update &&\
     apt-get autoremove -y &&\
     rm -rf /var/lib/apt/lists/* &&\
     rm -rf /var/cache/apt/*
-RUN pip install pipenv && pipenv --update
+RUN pip install certifi pipenv && pipenv --update
 COPY ["Pipfile", "Pipfile.lock", "/app/"]
 WORKDIR /app
 RUN pipenv install
