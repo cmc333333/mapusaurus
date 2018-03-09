@@ -50,10 +50,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         this_year = date.today().year
-        year_choices = list(range(2013, this_year))
+        year_choices = list(range(2012, this_year))
         parser.add_argument('--year', type=int, nargs='*',
                             default=year_choices, choices=year_choices,
-                            help="Years to download. Defaults to >= 2013")
+                            help="Years to download. Defaults to >= 2012")
 
         shape_choices = ('TRACT', 'COUNTY', 'CBSA', 'METDIV')
         parser.add_argument('--shape', nargs='*', default=shape_choices,

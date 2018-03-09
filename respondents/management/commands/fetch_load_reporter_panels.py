@@ -16,10 +16,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         this_year = date.today().year
-        choices = list(range(2013, this_year))
+        choices = list(range(2012, this_year))
         parser.add_argument('--year', type=int, nargs='*', default=choices,
                             choices=choices,
-                            help="Years to download. Defaults to >=2013")
+                            help="Years to download. Defaults to >=2012")
 
     def handle(self, *args, **options):
         for year in options['year']:
