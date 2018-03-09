@@ -13,6 +13,7 @@ RUN pipenv install
 COPY ["api", "/app/api"]
 COPY ["basestyle", "/app/basestyle"]
 COPY ["censusdata", "/app/censusdata"]
+COPY ["frontend", "/app/frontend"]
 COPY ["geo", "/app/geo"]
 COPY ["hmda", "/app/hmda"]
 COPY ["mapping", "/app/mapping"]
