@@ -68,7 +68,7 @@ class Institution(models.Model):
     """ An institution's (aka respondent) details. These can change per year.
     """
 
-    year = models.SmallIntegerField()
+    year = models.SmallIntegerField(db_index=True)
     respondent_id = models.CharField(max_length=10)
     agency = models.ForeignKey('Agency')
     institution_id = models.CharField(max_length=15, primary_key=True)
