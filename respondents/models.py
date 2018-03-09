@@ -22,7 +22,7 @@ class ZipcodeCityStateYear(models.Model):
 
     @property
     def unique_name(self):
-        return '%s, %s %s %s' % (self.city, self.state, self.zip_code, self.year)
+        return f"{self.city}, {self.state} {self.zip_code} {self.year}"
 
     def __unicode__(self):
         return self.unique_name
@@ -68,7 +68,7 @@ class Institution(models.Model):
     """ An institution's (aka respondent) details. These can change per year.
     """
 
-    year = models.SmallIntegerField()
+    year = models.SmallIntegerField(db_index=True)
     respondent_id = models.CharField(max_length=10)
     agency = models.ForeignKey('Agency')
     institution_id = models.CharField(max_length=15, primary_key=True)
@@ -84,7 +84,9 @@ class Institution(models.Model):
         blank=True,
         max_length=10,
         null=True,
-        help_text='From Reporter Panel. Id on the National Information Center repository')
+        help_text=('From Reporter Panel. Id on the National Information '
+                   'Center repository'),
+    )
     parent = models.ForeignKey(
         'self',
         blank=True,
@@ -109,25 +111,28 @@ class Institution(models.Model):
         formatted += str(self.agency_id) + self.respondent_id + ")"
         return formatted
 
-    """ Returns a list of related institutions for the selected institution.  
-    Allows to exclude selected institution/lender and order by institution's assets
-    """ 
     def get_lender_hierarchy(self, exclude, order, year):
+        """Returns a list of related institutions for the selected
+        institution. Allows to exclude selected institution/lender and order
+        by institution's assets """
         lender_hierarchy = self.lenderhierarchy_set.first()
         if lender_hierarchy:
             org_id = lender_hierarchy.organization_id
-            hierarchy_list = LenderHierarchy.objects.filter(organization_id=org_id).select_related('institution').filter(institution__year=year)
+            hierarchy_list = LenderHierarchy.objects\
+                .select_related('institution')\
+                .filter(organization_id=org_id, institution__year=year)
             if exclude:
                 hierarchy_list = hierarchy_list.exclude(institution=self)
             if order:
-                hierarchy_list = hierarchy_list.order_by('-institution__assets')
+                hierarchy_list = hierarchy_list.order_by(
+                    '-institution__assets')
             return hierarchy_list
-        return [] 
+        return []
 
-    """ Returns a list of peers for a lender+metro combination based on fha_bucket and lar count. 
-    Allows to exclude selected institution/lender and order by institution's assets
-    """ 
     def get_peer_list(self, metro, exclude, order_by):
+        """ Returns a list of peers for a lender+metro combination based on
+        fha_bucket and lar count. Allows to exclude selected
+        institution/lender and order by institution's assets """
         loan_stats = self.lendingstats_set.filter(geo_id=metro.geoid).first()
         if loan_stats:
             half_raw = Decimal(loan_stats.lar_count) / 2
@@ -148,9 +153,11 @@ class Institution(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class LenderHierarchy(models.Model):
     institution = models.ForeignKey('Institution', to_field='institution_id')
     organization_id = models.IntegerField()
+
 
 class Branch(models.Model):
     year = models.SmallIntegerField()
