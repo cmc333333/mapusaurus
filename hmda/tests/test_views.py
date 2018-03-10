@@ -103,7 +103,7 @@ class ViewsTest(TestCase):
         metro = Geo.objects.filter(geoid="201310000").first()
         peer_list = institution.get_peer_list(metro, False, False)
         self.assertEqual(len(peer_list), 1)
-        self.assertEqual(peer_list[0].institution_id, "201311000000001")
+        self.assertEqual(peer_list[0].pk, "201311000000001")
         
         """Case: Institution has peers in selected metro"""
         institution = Institution.objects.filter(
@@ -114,9 +114,9 @@ class ViewsTest(TestCase):
         peer_list_exclude = institution.get_peer_list(metro, True, False)
         self.assertEqual(len(peer_list_exclude), 2)
         peer_list_order = institution.get_peer_list(metro, False, True)
-        self.assertEqual(peer_list_order[0].institution_id, "201391000000001")
+        self.assertEqual(peer_list_order[0].pk, "201391000000001")
         peer_list_order_exclude = institution.get_peer_list(metro, True, True)
-        self.assertEqual(peer_list_order_exclude[0].institution_id, "201391000000002")
+        self.assertEqual(peer_list_order_exclude[0].pk, "201391000000002")
         self.assertEqual(len(peer_list_exclude), 2) 
 
     def test_loan_originations_http_user_errors(self):

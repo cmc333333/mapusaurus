@@ -34,7 +34,7 @@ def loan_originations(request):
         elif peers == 'true' and metro:
             metro_selected = Geo.objects.filter(geo_type=Geo.METRO_TYPE, geoid=metro).first()
             peer_list = institution_selected.get_peer_list(metro_selected, True, False)
-            if len(peer_list) > 0:
+            if peer_list.exists():
                 query = query.filter(institution__in=peer_list)
             else:
                 query = query.filter(institution=institution_selected)

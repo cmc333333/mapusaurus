@@ -138,17 +138,19 @@ class Institution(models.Model):
             half_raw = Decimal(loan_stats.lar_count) / 2
             percent_50 = half_raw.quantize(1, rounding=ROUND_HALF_UP)
             percent_200 = loan_stats.lar_count * 2.0
-            peer_list = LendingStats.objects.filter(
+            peer_stats = LendingStats.objects.filter(
                 geo_id=metro.geoid,
                 fha_bucket=loan_stats.fha_bucket,
                 lar_count__range=(percent_50, percent_200)
             ).select_related('institution')
             if exclude:
-                peer_list = peer_list.exclude(institution=self)
+                peer_stats = peer_stats.exclude(institution=self)
+            peer_list = type(self).objects.filter(
+                pk__in=peer_stats.values_list('institution_id', flat=True))
             if order_by:
-                peer_list = peer_list.order_by('-institution__assets')
+                peer_list = peer_list.order_by('-assets')
             return peer_list
-        return []
+        return type(self).objects.none()
 
     def __unicode__(self):
         return self.name
