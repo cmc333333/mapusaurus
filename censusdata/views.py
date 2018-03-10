@@ -75,12 +75,12 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
             THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
                 'lma': lma_sum, 
-                'lma_pct': lma_pct, 
+                'lma_pct': float(lma_pct),
                 'mma': mma_sum,
-                'mma_pct': mma_pct,
+                'mma_pct': float(mma_pct),
                 'hma': hma_sum,
-                'hma_pct': hma_pct,
-                'maj_pct': maj_pct,
+                'hma_pct': float(hma_pct),
+                'maj_pct': float(maj_pct),
                 'lar_total': target_lar_total
         })
     else:
@@ -106,12 +106,12 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
             THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
                 'peer_lma': peer_lma_sum, 
-                'peer_lma_pct': peer_lma_pct, 
+                'peer_lma_pct': float(peer_lma_pct),
                 'peer_mma': peer_mma_sum,
-                'peer_mma_pct': peer_mma_pct,
+                'peer_mma_pct': float(peer_mma_pct),
                 'peer_hma': peer_hma_sum,
-                'peer_hma_pct': peer_hma_pct,
-                'peer_maj_pct': peer_maj_pct,
+                'peer_hma_pct': float(peer_hma_pct),
+                'peer_maj_pct': float(peer_maj_pct),
                 'peer_lar_total': peer_lar_total
         })
     else:
@@ -129,13 +129,13 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
     odds_hma = odds_ratio(hma_pct, peer_hma_pct)
     odds_maj = odds_ratio(mma_pct+hma_pct, peer_mma_pct+peer_hma_pct)
     stats.update({
-        'odds_lma':odds_lma,
-        'odds_mma':odds_mma,
-        'odds_hma':odds_hma,
-        'odds_maj':odds_maj
+        'odds_lma': odds_lma,
+        'odds_mma': odds_mma,
+        'odds_hma': odds_hma,
+        'odds_maj': odds_maj,
     })
     return stats
-    
+
 
 def odds_ratio(target_pct, peer_pct):
     """
@@ -157,7 +157,7 @@ def odds_ratio(target_pct, peer_pct):
             /
             (Decimal(peer_pct) / Decimal(1 - peer_pct))
         )
-    return odds_ratio.quantize(THREE_PLACES, rounding=ROUND_HALF_UP)
+    return float(odds_ratio.quantize(THREE_PLACES, rounding=ROUND_HALF_UP))
 
 def minority_aggregation_as_json(request):
     """

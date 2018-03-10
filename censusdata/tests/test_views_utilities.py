@@ -1,8 +1,6 @@
 """
 tests of the helper functions for assembling tables for map page
 """
-from decimal import Decimal
-
 from django.http import HttpRequest
 from django.test import TestCase
 
@@ -64,7 +62,7 @@ class ViewsUtilitiesTests(TestCase):
         """
         self.assertEqual(odds_ratio(1, 1), 1)
         self.assertEqual(odds_ratio(2, 5), 0)
-        self.assertEqual(odds_ratio(0.2, 0.3), Decimal('0.583'))
+        self.assertEqual(odds_ratio(0.2, 0.3), 0.583)
         self.assertEqual(odds_ratio(0.5, 0.5), 1)
         self.assertIsNone(odds_ratio(1, 0))
         self.assertIsNone(odds_ratio(0, 0))

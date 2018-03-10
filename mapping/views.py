@@ -56,7 +56,7 @@ def make_download_url(lender, metro):
         if type(lender) is QuerySet:
             for item in lender:
                 query = '(agency_code=%s AND respondent_id="%s" AND year=%s)'
-                where += query % (item.institution.agency_id, item.institution.respondent_id, item.institution.year)
+                where += query % (item.agency_id, item.respondent_id, item.year)
                 count += 1
                 if(count < len(lender)):
                     where += "OR"
