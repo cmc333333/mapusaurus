@@ -87,19 +87,19 @@
     &,
     &:link,
     &:visited {
-        background-color: @pacific;
-        color: @white;
+        background-color: @color-action;
+        color: @color-white;
     }
 
     &:hover,
     &.hover {
-        background-color: @pacific-80;
+        background-color: @color-action-hover;
     }
 
     &:focus,
     &.focus {
-        background-color: @pacific-80;
-        outline: 1px dotted @pacific;
+        background-color: @color-action-hover;
+        outline: 1px dotted @color-action;
         // outline-offset is not supported everywhere but it adds a nice touch
         // in browsers where it is.
         outline-offset: 1px;
@@ -107,7 +107,7 @@
 
     &:active,
     &.active {
-        background-color: @navy-80;
+        background-color: @color-action-hover;
     }
 
     button&::-moz-focus-inner,
@@ -172,24 +172,24 @@
     &,
     &:link,
     &:visited {
-        background-color: @gray;
-        color: @white;
+        background-color: @color-secondary;
+        color: @color-white;
     }
 
     &:hover,
     &.hover {
-        background-color: @gray-80;
+        background-color: @color-secondary-hover;
     }
 
     &:focus,
     &.focus {
-        background-color: @gray-80;
-        outline-color: @gray;
+        background-color: @color-secondary-hover;
+        outline-color: @color-secondary;;
     }
 
     &:active,
     &.active {
-        background-color: @darkgray;
+        background-color: @color-secondary-hover;
     }
 
 }
@@ -231,15 +231,15 @@
     &.focus,
     &:active,
     &.active {
-        background-color: @gray-20;
-        color: @gray;
+        background-color: @color-disabled;
+        color: @color-disabled-text;
         cursor: default; // Fallback for IE/Opera
         cursor: not-allowed;
     }
 
     &:focus,
     &.focus {
-        outline-color: @gray;
+        outline-color: @color-disabled-text;
     }
 
 }
@@ -288,24 +288,24 @@
 
 .btn_icon__left {
     padding: 0 unit( 10.5px / @btn-font-size, em) 0 0;
-    border-right: 1px solid @white; // Fallback
+    border-right: 1px solid @color-white; // Fallback
     border-right: 1px solid rgba(255, 255, 255, 0.4);
     margin: 0 unit( 7px / @btn-font-size, em) 0 0;
 
     .btn__disabled & {
-        border-right-color: @gray-50;
+        border-right-color: @color-white;
     }
 }
 
 .btn_icon__right {
     padding: 0 0 0 unit( 10.5px / @btn-font-size, em);
     border-right: 0;
-    border-left: 1px solid @white; // Fallback
+    border-left: 1px solid @color-white; // Fallback
     border-left: 1px solid rgba(255, 255, 255, 0.4);
     margin: 0 0 0 unit( 7px / @btn-font-size, em);
 
     .btn__disabled & {
-        border-left-color: @gray-50;
+        border-left-color: @color-white;
     }
 }
 

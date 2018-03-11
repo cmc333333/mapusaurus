@@ -58,7 +58,7 @@
         }
 
         input[disabled] {
-          color: @gray-20;
+          color: @color-disabled;
         }
 
         input[type="text"] {
@@ -73,18 +73,18 @@
         }
 
         .example-hint {
-            color: @gray-50;
+            color: @color-black;
             font-style: italic;
             margin-top: 6px;
         }
 
         .tt-suggestion {
             text-transform: capitalize;
-            border-left: 1px solid @gray-50;
-            border-right: 1px solid @gray-50;
-            border-bottom: 1px solid @gray-50;
+            border-left: 1px solid @color-black;
+            border-right: 1px solid @color-black;
+            border-bottom: 1px solid @color-black;
             padding: 0 4px;
-            background-color: @gray-5;
+            background-color: @color-white;
             width: 24em; /* same width as search input */
         }
 
@@ -101,10 +101,10 @@
 
 }
 
-/* Search input form (gray bar at top of page ) */
+/* Search input form (bar at top of page ) */
 
 .search-results-form {
-    background-color: @gray-10;
+    background-color: @color-white;
     padding: 8px 16px;
     white-space: nowrap;
     text-align: center;
@@ -127,13 +127,13 @@
     }
 
     input[disabled] {
-      color: @gray-20;
+      color: @color-disabled;
     }
 
     .search-results-form__text-input {
         min-width: 20em;
         padding: 4px 8px;
-        border: 1px solid @gray;
+        border: 1px solid @color-black;
         margin-top: 0;
         box-sizing: border-box;
     }
@@ -142,7 +142,7 @@
         padding: 7px 12px;
         //margin: -4px 0 0 -4px; //negative top margin is only needed for alignment when input label is shown
         margin-left: -4px;
-        background-color: @gray;
+        background-color: @color-action;
     }
 
     /*
@@ -163,18 +163,18 @@
     }
 
     .example-hint {
-        color: @gray-50;
+        color: @color-black;
         font-style: italic;
         margin-top: 6px;
     }
 
     .tt-suggestion {
         text-transform: capitalize;
-        border-left: 1px solid @gray-50;
-        border-right: 1px solid @gray-50;
-        border-bottom: 1px solid @gray-50;
+        border-left: 1px solid @color-black;
+        border-right: 1px solid @color-black;
+        border-bottom: 1px solid @color-black;
         padding: 0 4px;
-        background-color: @gray-5;
+        background-color: @color-white;
         width: 24em; /* same width as search input */
     }
 
@@ -209,7 +209,7 @@
             .grid_column(12);
 
             .disabled {
-                color: @gray-50;
+                color: @color-disabled-text;
             }
 
             .divider {
@@ -218,7 +218,7 @@
 
             a,
             a:visited {
-                color: @pacific;
+                color: @color-action
             }
 
         }
@@ -240,22 +240,22 @@
     .search-result-record {
 
         &:hover {
-            background-color: @gray-10;
+            background-color: @color-divider;
         }
         margin: 8px 0;
         padding: 12px;
 
         h4 {
             .webfont-regular();
-            color: @pacific;
+            color: @color-action;
             font-size: (@base-font-size-px + 6);
             margin-bottom: 4px;
             z-index: 100;
 
             a,
             a:visited {
-                color: @pacific;
-                border-bottom: 1px dotted @pacific;
+                color: @color-action;
+                border-bottom: 1px dotted @color-action;
             }
         }
         
@@ -268,7 +268,7 @@
 
         .search-result-record__hq {
             
-            color: @gray;
+            color: @color-black;
             font-size: (@base-font-size-px + 2);
             display: inline-block;
 
@@ -283,7 +283,7 @@
             font-size: (@base-font-size-px - 2);
             border-bottom: none; // over-ride default
             &:visited {
-                color: @pacific;
+                color: @color-action;
             }
         }
 
@@ -295,7 +295,7 @@
             //display: inline-block;
             .webfont-regular();
             font-size: (@base-font-size-px - 4);
-            color: @gray;
+            color: @color-black;
             text-transform: uppercase;
             margin-bottom: 4px;
 
@@ -356,15 +356,15 @@
 
 
 .circlelabel {
-    width:30px;
-    height:30px;
-    border-radius:30px;
-    display:inline-block;
-    font-size:13px;
-    color:#fff;
-    line-height:30px;
-    text-align:center;
-    background:@darkgray;
+    width: 30px;
+    height: 30px;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 13px;
+    color: #fff;
+    line-height: 30px;
+    text-align: center;
+    background: @color-black;
 }
 
 

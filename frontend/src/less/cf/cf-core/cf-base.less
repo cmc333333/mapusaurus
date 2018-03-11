@@ -127,7 +127,7 @@
 */
 
 body {
-    color: @black;
+    color: @color-black;
     font-family: Georgia, "Times New Roman", serif;
     font-size: 100%;
     line-height: @base-line-height;
@@ -303,21 +303,21 @@ figure {
 a {
     border-width: 0;
     border-style: dotted;
-    border-color: @pacific;
-    color: @pacific;
+    border-color: @color-action;
+    color: @color-action;
     text-decoration: none;
 
     &:visited,
     &.visited {
-        border-color: @teal;
-        color: @teal;
+        border-color: @color-action;
+        color: @color-action;
     }
 
     &:hover,
     &.hover {
         border-style: solid;
-        border-color: @pacific-50;
-        color: @pacific-50;
+        border-color: @color-action-hover;
+        color: @color-action-hover;
     }
 
     &:focus,
@@ -329,8 +329,8 @@ a {
     &:active,
     &.active {
         border-style: solid;
-        border-color: @navy;
-        color: @navy;
+        border-color: @color-action;
+        color: @color-action;
     }
 }
 
@@ -509,15 +509,15 @@ table {
 th,
 td {
     padding: unit(12px / @base-font-size-px, em) unit(15px / @base-font-size-px, em);
-    background: @gray-5;
+    background: @color-white;
 
     thead & {
-        color: @white;
-        background: @darkgray;
+        color: @color-white;
+        background: @color-black;
     }
 
     tbody > tr:nth-child(odd) > & {
-        background: @gray-10;
+        background: @color-divider;
     }
 
     .compact-table & {
@@ -679,8 +679,8 @@ select[multiple] {
     padding: unit(6 / @base-font-size-px, em);
     font-family: Arial, sans-serif;
     font-size: unit(@font-size / @base-font-size-px, em);
-    background: @white;
-    border: 1px solid @gray;
+    background: @color-white;
+    border: 1px solid @color-black;
     border-radius: 0;
     vertical-align: top;
     -webkit-appearance: none;
@@ -711,20 +711,20 @@ textarea:focus,
 textarea.focus,
 select[multiple]:focus,
 select[multiple].focus {
-    border: 1px solid @pacific;
-    outline: 1px solid @pacific;
+    border: 1px solid @color-action;
+    outline: 1px solid @color-action;
     outline-offset: 0;
     box-shadow: none;
 }
 
 ::-webkit-input-placeholder {
-   color: @gray;
+   color: @color-black;
 }
 ::-moz-placeholder {
-   color: @gray;
+   color: @color-black;
 }
 :-ms-input-placeholder {
-   color: @gray;
+   color: @color-black;
 }
 
 
