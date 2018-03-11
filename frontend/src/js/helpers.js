@@ -29,10 +29,9 @@
     function setMapHeight() {
         /* Set the map div to the height of the browser window minus the header. */
         var viewportHeight = $(window).height();
-        var warningBannerHeight = $('#warning-banner').outerHeight();
         var headerHeight = $('#header').outerHeight();
         var mapHeaderHeight = $('#map-header').outerHeight();
-        var combinedHeadersHeight = warningBannerHeight + headerHeight + mapHeaderHeight;
+        var combinedHeadersHeight = headerHeight + mapHeaderHeight;
         var mapHeight = viewportHeight - combinedHeadersHeight;
         $('#map-aside').css('height', mapHeight);
         $('#map-container').css('height', mapHeight);

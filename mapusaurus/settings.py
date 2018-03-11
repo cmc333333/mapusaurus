@@ -98,6 +98,7 @@ TEMPLATES = [{
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
+            'mapusaurus.context_processors.inject_app_title',
         ],
         'loaders': [
             'django.template.loaders.filesystem.Loader',
@@ -123,3 +124,5 @@ LOGGING = {
         },
     },
 }
+
+APP_TITLE = 'Redlining Risk Assessment Mapper'

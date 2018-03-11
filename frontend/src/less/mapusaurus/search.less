@@ -29,9 +29,6 @@
 }
 
 .search-home {
-    //display: table; 
-    //margin: 0 auto 320px auto;
-
     margin-bottom: 320px;
     .search-field {
         input[type="text"] {
@@ -61,7 +58,7 @@
         }
 
         input[disabled] {
-          color: @gray-20;
+          color: @color-disabled;
         }
 
         input[type="text"] {
@@ -76,18 +73,18 @@
         }
 
         .example-hint {
-            color: @gray-50;
+            color: @color-black;
             font-style: italic;
             margin-top: 6px;
         }
 
         .tt-suggestion {
             text-transform: capitalize;
-            border-left: 1px solid @gray-50;
-            border-right: 1px solid @gray-50;
-            border-bottom: 1px solid @gray-50;
+            border-left: 1px solid @color-black;
+            border-right: 1px solid @color-black;
+            border-bottom: 1px solid @color-black;
             padding: 0 4px;
-            background-color: @gray-5;
+            background-color: @color-white;
             width: 24em; /* same width as search input */
         }
 
@@ -104,17 +101,12 @@
 
 }
 
-/* Search input form (gray bar at top of page ) */
+/* Search input form (bar at top of page ) */
 
 .search-results-form {
-    background-color: @gray-10;
+    background-color: @color-white;
     padding: 8px 16px;
     white-space: nowrap;
-
-/*
-    .grid_column(6);
-    .grid_push(3);
-*/
     text-align: center;
     
     .search-results-form__label {
@@ -131,27 +123,17 @@
     }
 
     label {
-        
         display: inline;
-        //font-size: 16px;
-        //line-height: 16px; // height of text input field = 18px text + 8px padding + 2px border.
-        //margin: 0;
-        
-        //padding-top: 6px;
-        
-        //min-width: 5em; // labels need width to vertically align with a form
-        
-        //vertical-align: middle;
     }
 
     input[disabled] {
-      color: @gray-20;
+      color: @color-disabled;
     }
 
     .search-results-form__text-input {
         min-width: 20em;
         padding: 4px 8px;
-        border: 1px solid @gray;
+        border: 1px solid @color-black;
         margin-top: 0;
         box-sizing: border-box;
     }
@@ -160,7 +142,7 @@
         padding: 7px 12px;
         //margin: -4px 0 0 -4px; //negative top margin is only needed for alignment when input label is shown
         margin-left: -4px;
-        background-color: @gray;
+        background-color: @color-action;
     }
 
     /*
@@ -181,18 +163,18 @@
     }
 
     .example-hint {
-        color: @gray-50;
+        color: @color-black;
         font-style: italic;
         margin-top: 6px;
     }
 
     .tt-suggestion {
         text-transform: capitalize;
-        border-left: 1px solid @gray-50;
-        border-right: 1px solid @gray-50;
-        border-bottom: 1px solid @gray-50;
+        border-left: 1px solid @color-black;
+        border-right: 1px solid @color-black;
+        border-bottom: 1px solid @color-black;
         padding: 0 4px;
-        background-color: @gray-5;
+        background-color: @color-white;
         width: 24em; /* same width as search input */
     }
 
@@ -227,7 +209,7 @@
             .grid_column(12);
 
             .disabled {
-                color: @gray-50;
+                color: @color-disabled-text;
             }
 
             .divider {
@@ -236,7 +218,7 @@
 
             a,
             a:visited {
-                color: @pacific;
+                color: @color-action
             }
 
         }
@@ -258,50 +240,22 @@
     .search-result-record {
 
         &:hover {
-            background-color: @gray-10;
+            background-color: @color-divider;
         }
         margin: 8px 0;
-
-        // The H4 is outside of the expandable in the HTML, but looks like it is inside the expandable 
-        /*
-        margin: -24px 0 8px 0;
-        .search-result-record__title {
-            position: relative;
-            top: 38px;
-            right: -12px
-        }
-        */
-
-        .expandable {
-            margin-bottom: 0; /* over-rides default */
-        }
-
-        .expandable_header,
-        .expandable_content {
-            padding: 12px;
-        }
-
-        .expandable__expanded {
-            .expandable_header {
-                background-color: @gray-10;
-            }
-        }
-
-        .expandable_content {
-            background-color: @gray-5;
-        }
+        padding: 12px;
 
         h4 {
             .webfont-regular();
-            color: @pacific;
+            color: @color-action;
             font-size: (@base-font-size-px + 6);
             margin-bottom: 4px;
             z-index: 100;
 
             a,
             a:visited {
-                color: @pacific;
-                border-bottom: 1px dotted @pacific;
+                color: @color-action;
+                border-bottom: 1px dotted @color-action;
             }
         }
         
@@ -314,7 +268,7 @@
 
         .search-result-record__hq {
             
-            color: @gray;
+            color: @color-black;
             font-size: (@base-font-size-px + 2);
             display: inline-block;
 
@@ -329,7 +283,7 @@
             font-size: (@base-font-size-px - 2);
             border-bottom: none; // over-ride default
             &:visited {
-                color: @pacific;
+                color: @color-action;
             }
         }
 
@@ -341,7 +295,7 @@
             //display: inline-block;
             .webfont-regular();
             font-size: (@base-font-size-px - 4);
-            color: @gray;
+            color: @color-black;
             text-transform: uppercase;
             margin-bottom: 4px;
 
@@ -402,15 +356,15 @@
 
 
 .circlelabel {
-    width:30px;
-    height:30px;
-    border-radius:30px;
-    display:inline-block;
-    font-size:13px;
-    color:#fff;
-    line-height:30px;
-    text-align:center;
-    background:@darkgray;
+    width: 30px;
+    height: 30px;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 13px;
+    color: #fff;
+    line-height: 30px;
+    text-align: center;
+    background: @color-black;
 }
 
 

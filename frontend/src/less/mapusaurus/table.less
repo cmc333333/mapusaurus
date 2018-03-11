@@ -9,20 +9,6 @@
     display: none;
 }
 
-.chart-toggle {
-    cursor: pointer;
-}
-
-.chart-toggle:hover{
-    background: @gray-20;
-}
-.chart-toggle.active-layer{
-  background: @green-tint;
-}
-.chart-toggle.active-layer:hover{
-    background: @green-midtone;
-}
-
 #map-aside {
     overflow:scroll;
 }
@@ -50,7 +36,7 @@
         border-bottom: 1px solid @border-strong;
         
         th {
-            color: @gray;
+            color: @color-black;
             background: @background-gray;
       
           	.color-coded {
@@ -118,11 +104,11 @@
             }
 
             &.tablesorter-headerAsc .cf-icon-down {
-                color: @gray-20;
+                color: @color-disabled;
             }
 
             &.tablesorter-headerDesc .cf-icon-up {
-                color: @gray-20;
+                color: @color-disabled;
             }
         }
     }
@@ -223,7 +209,7 @@
             }
 
             &.peer-row {
-                color: @gray;
+                color: @color-black;
                 border-bottom: 1px solid @border-strong;
 
                 & td {
@@ -252,10 +238,10 @@
                     text-align: right;
                 }
                 &.odds-warning {
-                    background-color: @redorange-50;
+                    background-color: lighten(@color-error, 50%, 'relative');
                 }
                 &.odds-caution {
-                    background-color: @redorange-20;
+                    background-color: lighten(@color-warning, 50%, 'relative');
                 }
             }
         }
@@ -298,13 +284,13 @@
     float: right;
     padding-right: 3px;
     padding-top: 3px;  
-    color: @pacific;
+    color: @color-action;
 }
 
 #downloadTable {
     float: right;
     font-size: 1.3em;
-    color: @pacific;
+    color: @color-action;
 }
 
 #tableLoadImage {

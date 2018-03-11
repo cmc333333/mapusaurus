@@ -14,33 +14,6 @@ $(document).ready(function () {
         $( "script.row-template" ).html()
     );
     
-    // Create/destroy table when chart toggle is clicked.
-    $('.chart-toggle').click(function (e) {
-        var $target = $(e.target).closest('.chart-toggle'),
-            id = $target.attr('id');
-        
-        $('.chart-toggle').removeClass('active-layer');
-        $target.addClass('active-layer');
-
-        if (currentChart) {
-            destroyData();
-        }
-
-        if (currentChart != id) {
-
-            createTable(id === 'chart-toggle__peer-table');
-            $('#table-container').show();
-
-            currentChart = id;
-            toggleDataContainer(true);
-
-        } else {
-            currentChart = null;
-            toggleDataContainer(false);
-            $('.chart-toggle').removeClass('active-layer');
-        }        
-    });
-
 });
 
 /**
@@ -112,7 +85,6 @@ function createTable(showPeers) {
         $('#closeTable').on('click', function(){
             toggleDataContainer(false);
             currentChart = 'undefined';  
-            $('.chart-toggle').removeClass('active-layer');
         });
         generateTooltips('#table-container', [0,-1]);
     });

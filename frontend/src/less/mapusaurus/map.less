@@ -13,8 +13,6 @@ select {
   .grid_wrapper( 100% );
   max-width: 100%; // over-ride cg-grid default
   padding: 0; // over-ride cg-grid default
-  //margin-bottom: -99999px; // trick from: https://blog.credera.com/technology-insights/full-height-column-layout-with-bootstrap/
-  //padding-bottom: 99999px;
 }
 
 /* Mobile first means all content boxes are full width */
@@ -30,7 +28,7 @@ select {
 
 .map-header,
 .map-aside-header {
-  background-color: @gray-10;
+  background-color: @color-white;
 }
 
 .map-header {
@@ -47,7 +45,7 @@ select {
 }
 
 .map-divider {
-  border-bottom: 1px solid @gray-50;
+  border-bottom: 1px solid @color-divider;
   padding: 10px;
 
   h6 {
@@ -66,13 +64,13 @@ select {
 
   .tab-title{
     .webfont-demi();
-    color: @gray-80;
+    color: @color-black;
     margin: 0px;
   }
   
   .tab-main{
     .webfont-demi();
-    color: @black;
+    color: @color-black;
     text-transform: none;
     font-size: .875em;
     letter-spacing: 0;
@@ -82,7 +80,7 @@ select {
     .webfont-demi();
     font-size: 0.75em;
     margin: 0px;
-    color: @black;
+    color: @color-black;
     letter-spacing: 0;
   }
   
@@ -91,19 +89,19 @@ select {
     margin: 0px;
     text-transform: none;
     font-size: 0.75em;
-    color: @gray-80;
+    color: @color-black;
     margin-bottom: .1em;
     letter-spacing: 0;
   }
   
   .inst-id{
-    color: @black;
+    color: @color-black;
     .webfont-demi();
   }
 
 }
 .map-divider-minor {
-  border-bottom: 1px solid @gray-50;
+  border-bottom: 1px solid @color-divider;
   padding-left: 10px;
   padding-top: 5px;
   padding-bottom: 5px;
@@ -114,7 +112,7 @@ select {
     margin-left: 20px;
     display:inline-block;
     text-transform: none;
-    color: @gray;
+    color: @color-black;
     .webfont-demi();
     letter-spacing: 0px;
   }
@@ -132,28 +130,20 @@ select {
   }
 }
 .map-divider-minor.option:hover{
-    background: @gray-20;
+    background: @tint-primary;
 }
 .map-divider-minor.option.active-layer{
-  background: @green-tint;
+  background: @tint-primary;
   .sub-header-name {
-    color: @black;
+    color: @color-black;
   }
 }
 .map-divider-minor.option.active-layer:hover{
-    background: @green-midtone;
-}
-
-.chart-toggle h6 {
-  text-transform: none;
-  letter-spacing: 0;
+    background: @brand-primary;
 }
 
 #layerOptions .option i {
-  color: @gray-50;
-}
-#layerOptions .option.active-layer i {
-  color: @darkgray;
+  color: @color-black;
 }
 
 .header-group {
@@ -161,25 +151,19 @@ select {
 
 }
 
-.lighter {
-  background-color: @gray-5;
-}
-.darker {
-  background-color: @gray-10;
-}
 .darker-still {
-  background-color: @gray-20;
+  background-color: @color-divider;
 }
 
 .green-highlight {
-  background-color: @green-tint;
+  background-color: @tint-primary;
   .sub-header-name {
-    color: @black;
+    color: @color-black;
   }
 }
 
 .divided {
-  border-bottom: 1px solid @gray-50; 
+  border-bottom: 1px solid @color-divider;
 }
 
 .symbol-key-img {
@@ -193,12 +177,11 @@ select {
     color: #fff;
     width: 200px;
     font-size: .85em;
-    background-color: @darkgray;
-    // border-radius: 10px;
+    background-color: @color-black;
     position: relative;
     a {
       color: #fff;
-      border-bottom: 1px dotted @gray-20;
+      border-bottom: 1px dotted @color-black;
     }
     a:hover {
       color: #fff;
@@ -215,7 +198,7 @@ select {
 }
 
 .red-highlight i{
-  color: @redorange;
+  color: @color-error;
 }
 
 /* Media Queries
@@ -236,10 +219,9 @@ select {
 
   .map-aside,
   .map-aside-header {
-    //.grid_column(2);
     float: left;
     width: 260px;
-    border-right: 2px solid @gray-50;
+    border-right: 1px solid @color-black;
     box-sizing: border-box;
   }
 
@@ -250,17 +232,12 @@ select {
     box-sizing: border-box;
   }
 
-  .map-main {
-      //border-left: 2px solid @gray-50;
-  }
-
   .map-header {
-      //border-left: 2px solid @gray-50;
-      border-bottom: 1px solid @gray-50;
+      border-bottom: 1px solid @color-black;
   }
 
   .map-aside-header {
-      border-bottom: 1px solid @gray-50;
+      border-bottom: 1px solid @color-black;
   }
 
   .map-header__wrapper {
@@ -277,7 +254,7 @@ select {
   width: 100%;
   padding: 5px;
   background-color: #fff;
-  border: 1px solid @black;
+  border: 1px solid @color-black;
 }
 .minority-label{
   width: 65px;
@@ -293,7 +270,7 @@ select {
   margin: 0;
   padding: 0;
   background-color: #f4f4ec;
-  border: 1px solid @gray-50;
+  border: 1px solid @color-black;
 }
 
 .pct-minority-chart{
@@ -321,8 +298,8 @@ select {
 }
 
 .bubble-header{
-  border-bottom: 1px solid @gray-20;
-  color: @gray-80;
+  border-bottom: 1px solid @color-divider;
+  color: @color-black;
   font-weight: bold;
 }
 .bubble-label{
@@ -334,14 +311,14 @@ select {
   font-size: .8em;
   text-transform: uppercase;
   font-weight: bold;
-  color: @gray-50;
+  color: @color-black;
   display: block;
 }
 
 .circle-hover-data {
   font-size: 1.25em;
   font-weight: bold;
-  color: @black;
+  color: @color-black;
   display: block;
 }
 
@@ -357,8 +334,6 @@ select {
 }
 
 .map-aside {
-
-  background-color: @gray-5;
 
   h3 {
     font-size: .875em;
@@ -396,8 +371,8 @@ select {
 .map-aside__export,
 .map-aside__download,
 .map-aside__msa-search {
-  background-color: @gray-10;
-  border-bottom: 1px solid @gray-50;
+  background-color: @color-white;
+  border-bottom: 1px solid @color-black;
 }
 
 .map-aside__msa-search {
@@ -410,7 +385,7 @@ select {
     font-size: 14px;
     width: 200px;
     box-sizing: border-box;
-    border: 1px solid @gray-50;
+    border: 1px solid @color-black;
     margin-bottom: 1px; // move type-ahead down so it does not overlap the bottom border
   }
 
@@ -420,21 +395,16 @@ select {
   }
 
   .btn__disabled {
-    border: 1px solid @gray-50;
-  }
-
-  .tt-dropdown-menu {
-
+    border: 1px solid @color-black;
   }
 
   .tt-suggestion {
-
       text-transform: capitalize;
-      border-left: 1px solid @gray-50;
-      border-right: 1px solid @gray-50;
-      border-bottom: 1px solid @gray-50;
+      border-left: 1px solid @color-black;
+      border-right: 1px solid @color-black;
+      border-bottom: 1px solid @color-black;
       padding: 0 4px;
-      background-color: @gray-10;
+      background-color: @color-white;
       box-sizing: border-box; 
       width: 200px;
   }
@@ -477,8 +447,8 @@ select {
   }
 
   .tt-suggestion.tt-cursor {
-    color: @white;
-    background-color: @pacific;
+    color: @color-white;
+    background-color: @color-action;
 
   }
 
@@ -521,7 +491,7 @@ select {
 }
 
 .action-taken-label {
-  color: @gray-80;
+  color: @color-black;
   font-weight: bold;
 }
 
@@ -588,9 +558,9 @@ select {
 .show-hide-control {
   text-align: right;
   cursor: pointer;
-  color: @pacific;
-  background-color: @gray-20;
-  border: 1px solid @black;
+  color: @color-action;
+  background-color: @color-divider;
+  border: 1px solid @color-black;
   padding: 5px;
 }
 
@@ -605,7 +575,6 @@ select {
 
 // MAP ASIDE
 .tabs {
-  @gray-active: #d0d0ce;
   ul {
       .clearfix();
       list-style-type: none;
@@ -621,7 +590,7 @@ select {
           a {
               // font
 
-              color: @gray;
+              color: @color-black;
               font-size: 18px;
               line-height: 25px; // 34 minus 4px top and bottom padding minus 1 px bottom border
 
@@ -630,12 +599,11 @@ select {
 
               padding: 4px 16px;
 
-              // over-ride bottom borders from CFPB global styles.css 
-              border-bottom: 1px solid @gray-50;
-              border-right: 1px solid @gray-50;
+              border-bottom: 1px solid @color-black;
+              border-right: 1px solid @color-black;
 
               //tab color
-              background-color: @gray-10;
+              background-color: @color-white;
 
               // position
               position: relative; 
@@ -643,24 +611,22 @@ select {
               top: 0;
 
               &.active {
-                  background-color: @gray-active;
-                  color: @gray;
+                  background-color: @tint-primary;
+                  color: @color-black;
 
                   &:hover {
-                      background-color: @gray-20;
-                      //border: none;
+                      background-color: @brand-primary;
                   }    
               }
 
               &:hover {
-                  background-color: @gray-20;
+                  background-color: @tint-primary;
                   
               }
 
               &:hover,
               &:focus {
-                  /* over-ride bottom borders from CFPB global styles.css */
-                  border-bottom: 1px solid @gray-50;
+                  border-bottom: 1px solid @color-black;
               }
           } //a
       } //li
@@ -692,7 +658,7 @@ select {
 
     #key {
       padding: 5px;
-      border: 1px solid @black;
+      border: 1px solid @color-black;
     }
 
 }
