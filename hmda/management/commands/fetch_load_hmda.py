@@ -5,7 +5,8 @@ from io import TextIOWrapper
 import requests
 from django.core.management.base import BaseCommand
 
-from hmda.management.commands.load_hmda import filter_by_fks, load_from_csv
+from hmda.management.commands.load_hmda import (filter_by_fks, load_from_csv,
+                                                update_num_loans)
 from hmda.models import HMDARecord
 from respondents.management.utils import fetch_and_unzip_file, save_batches
 
@@ -36,3 +37,4 @@ class Command(BaseCommand):
                                  filter_by_fks, batch_size=1000)
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
+        update_num_loans()

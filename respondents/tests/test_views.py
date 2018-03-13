@@ -3,7 +3,6 @@ from model_mommy import mommy
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
-from hmda.models import HMDARecord
 from respondents.models import Agency, Institution, ZipcodeCityStateYear
 
 
@@ -55,7 +54,7 @@ def test_select_metro(client):
     Institution.objects.create(
         year=1234, respondent_id='9879879870', agency=Agency.objects.get(pk=9),
         tax_id='1111111111', name='Institution', mailing_address='mail',
-        zip_code=zipcode)
+        zip_code=zipcode, num_loans=1)
 
     results = client.get(reverse(
         'respondents:select_metro',
@@ -66,8 +65,7 @@ def test_select_metro(client):
 
 @pytest.mark.usefixtures('data_setup')
 def test_search_empty(client):
-    a10 = mommy.make(Institution, name='AAAAA', year=2010)
-    mommy.make(HMDARecord, institution_id=a10.institution_id)
+    mommy.make(Institution, name='AAAAA', year=2010, num_loans=1)
 
     result = client.get(
         reverse('respondents:search_results'), {'format': 'json'}
@@ -80,18 +78,15 @@ def test_search_empty(client):
 
 @pytest.mark.django_db
 def test_search_requires_hmda(client):
-    a10 = mommy.make(Institution, name='AAAAA', year=2010)
-    mommy.make(Institution, name='AAAAA AAAAA', year=2010)
-    mommy.make(HMDARecord, institution_id=a10.institution_id)
+    mommy.make(Institution, name='AAAAA', year=2010, num_loans=1)
+    mommy.make(Institution, name='AAAAA AAAAA', year=2010, num_loans=0)
     assert len(fetch_institutions(client, 'aaaaa', year='2010')) == 1
 
 
 @pytest.mark.django_db
 def test_search_name(client):
-    bank1 = mommy.make(Institution, name='Some Bank', year=2013)
-    mommy.make(HMDARecord, institution_id=bank1.institution_id)
-    bank2 = mommy.make(Institution, name='Bank & Loan', year=2013)
-    mommy.make(HMDARecord, institution_id=bank2.institution_id)
+    mommy.make(Institution, name='Some Bank', year=2013, num_loans=1)
+    mommy.make(Institution, name='Bank & Loan', year=2013, num_loans=1)
 
     assert len(fetch_institutions(client, 'Bank', year='2013')) == 2
     assert len(fetch_institutions(client, 'Loan', year='2013')) == 1
@@ -99,8 +94,7 @@ def test_search_name(client):
 
 @pytest.mark.django_db
 def test_search_trigram(client):
-    bank = mommy.make(Institution, name='This is a bank', year=2013)
-    mommy.make(HMDARecord, institution_id=bank.institution_id)
+    mommy.make(Institution, name='This is a bank', year=2013, num_loans=1)
     assert len(fetch_institutions(client, 'that bank', year='2013')) == 1
     assert fetch_institutions(client, 'xxxx', year='2013') == []
 
@@ -108,14 +102,8 @@ def test_search_trigram(client):
 @pytest.mark.usefixtures('load_agencies')
 def test_search_id(client):
     bank = mommy.make(
-        Institution,
-        agency_id=3,
-        institution_id='201331234543210',
-        name='Some Bank',
-        respondent_id='123454321',
-        year=2013,
-    )
-    mommy.make(HMDARecord, institution_id=bank.institution_id)
+        Institution, agency_id=3, institution_id='201331234543210',
+        name='Some Bank', respondent_id='123454321', year=2013, num_loans=1)
 
     assert fetch_institutions(client, bank.respondent_id, year='2013') == []
 
@@ -130,11 +118,9 @@ def test_search_id(client):
 
 @pytest.mark.django_db
 def test_search_sort(client):
-    bank1 = mommy.make(Institution, name='aaa', assets=1111, year=2013)
-    mommy.make(HMDARecord, institution_id=bank1.institution_id)
-    mommy.make(HMDARecord, institution_id=bank1.institution_id)
-    bank2 = mommy.make(Institution, name='aaa bbb', assets=2222, year=2013)
-    mommy.make(HMDARecord, institution_id=bank2.institution_id)
+    mommy.make(Institution, name='aaa', assets=1111, year=2013, num_loans=2)
+    mommy.make(Institution, name='aaa bbb', assets=2222, year=2013,
+               num_loans=1)
 
     results = fetch_institutions(client, 'aaa', year='2013')
     assert [r['name'] for r in results] == ['aaa', 'aaa bbb']
@@ -155,9 +141,7 @@ def test_search_sort(client):
 
 @pytest.mark.django_db
 def test_search_pagination(client):
-    for _ in range(10):
-        bank = mommy.make(Institution, name='ccc', year=2013)
-        mommy.make(HMDARecord, institution_id=bank.institution_id)
+    mommy.make(Institution, name='ccc', year=2013, num_loans=1, _quantity=10)
     # page number should default to 1
     results = fetch_search(client, 'ccc', num_results='2', year='2013')
     assert results['page_num'] == 1
@@ -175,9 +159,7 @@ def test_search_pagination(client):
 
 @pytest.mark.usefixtures('load_agencies')
 def test_search_num_results(client):
-    for _ in range(30):
-        bank = mommy.make(Institution, name='ddd', year=2013)
-        mommy.make(HMDARecord, institution_id=bank.institution_id)
+    mommy.make(Institution, name='ddd', year=2013, num_loans=1, _quantity=30)
     results = fetch_search(client, 'ddd', year='2013')
     # number of results should default to 25
     assert results['num_results'] == 25

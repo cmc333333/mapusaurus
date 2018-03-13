@@ -4,7 +4,6 @@ import json
 from django.conf import settings
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q
-from django.db.models.expressions import RawSQL
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
@@ -111,11 +110,6 @@ def search_results(request):
 
     query = Institution.objects\
         .order_by('-assets')\
-        .annotate(num_loans=RawSQL("""
-            SELECT count(*) FROM hmda_hmdarecord
-            WHERE hmda_hmdarecord.institution_id
-                  = respondents_institution.institution_id
-        """, tuple()))\
         .filter(num_loans__gt=0, year=year)
 
     if lender_id:

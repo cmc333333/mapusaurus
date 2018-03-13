@@ -13,6 +13,7 @@ def test_handle_no_args(monkeypatch):
     fetch_call = fetch_load_hmda.fetch_and_unzip_file
     monkeypatch.setattr(fetch_load_hmda, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'save_batches', Mock())
+    monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
     with freeze_time('2018-01-01'):
         call_command('fetch_load_hmda')
 
@@ -25,6 +26,7 @@ def test_handle_no_args(monkeypatch):
     assert fetch_load_hmda.save_batches.call_count == 6
     replace = fetch_load_hmda.save_batches.call_args[0][2]
     assert not replace
+    assert fetch_load_hmda.update_num_loans.call_count == 1
 
 
 def test_handle_specific_args(monkeypatch):
@@ -32,6 +34,7 @@ def test_handle_specific_args(monkeypatch):
     fetch_call = fetch_load_hmda.fetch_and_unzip_file
     monkeypatch.setattr(fetch_load_hmda, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'save_batches', Mock())
+    monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
     call_command(
         'fetch_load_hmda',
         '--year', '2014', '2017',
@@ -57,6 +60,7 @@ def test_handle_specific_args(monkeypatch):
 def test_handle_404(monkeypatch, exception):
     monkeypatch.setattr(fetch_load_hmda, 'fetch_and_unzip_file', MagicMock())
     monkeypatch.setattr(fetch_load_hmda, 'logger', Mock())
+    monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
     fetch_call = fetch_load_hmda.fetch_and_unzip_file
     fetch_call.return_value.__enter__.side_effect = exception
     call_command('fetch_load_hmda', '--year', '2013', '2015')
