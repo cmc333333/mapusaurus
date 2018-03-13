@@ -1,11 +1,9 @@
 import re
-import math
 import json
 
 from django.conf import settings
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import OuterRef, Q
-from django.db.models.expressions import RawSQL
+from django.db.models import Q
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
@@ -13,7 +11,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from hmda.models import HMDARecord, Year
+from hmda.models import Year
 from respondents.models import Institution, Branch
 
 
@@ -45,7 +43,7 @@ def respondent(request, agency_id, respondent, year):
 
 def search_home(request):
     """Search for an institution"""
-    years = Year.objects.values().order_by('-hmda_year');
+    years = Year.objects.values().order_by('-hmda_year')
     return render(request, 'respondents/search_home.html', {
         'contact_us_email': settings.CONTACT_US_EMAIL,
         'years': years
@@ -91,6 +89,7 @@ RESP_RE = re.compile(r"^(?P<respondent>[0-9-]{10})$")
 LENDER_REGEXES = [PREFIX_RE, PAREN_RE]
 SORT_WHITELIST = ('assets', '-assets', 'num_loans', '-num_loans')
 
+
 @api_view(['GET'])
 def search_results(request):
     query_str = escape(request.GET.get('q', '')).strip()
@@ -103,18 +102,14 @@ def search_results(request):
     for regex in LENDER_REGEXES:
         match = regex.match(query_str)
         if match:
-            lender_id = year + match.group('agency') + match.group('respondent')
+            lender_id = (
+                year + match.group('agency') + match.group('respondent'))
     resp_only_match = RESP_RE.match(query_str)
     if resp_only_match:
         respondent_id = resp_only_match.group('respondent')
 
     query = Institution.objects\
         .order_by('-assets')\
-        .annotate(num_loans=RawSQL("""
-            SELECT count(*) FROM hmda_hmdarecord
-            WHERE hmda_hmdarecord.institution_id
-                  = respondents_institution.institution_id
-        """, tuple()))\
         .filter(num_loans__gt=0, year=year)
 
     if lender_id:
@@ -134,7 +129,6 @@ def search_results(request):
         sort = current_sort = request.GET['sort']
     else:
         sort = current_sort = ''
-
 
     # number of results per page
     try:
@@ -196,8 +190,10 @@ def search_results(request):
          'year': year},
         template_name='respondents/search_results.html')
 
+
 def branch_locations_as_json(request):
     return json.loads(branch_locations(request))
+
 
 def branch_locations(request):
     """This endpoint returns geocoded branch locations"""
@@ -207,14 +203,19 @@ def branch_locations(request):
     southWestLat = escape(request.GET.get('swLat'))
     southWestLon = escape(request.GET.get('swLon'))
     try:
-        maxlat, minlon, minlat, maxlon = float(northEastLat), float(southWestLon), float(southWestLat), float(northEastLon)
+        maxlat = float(northEastLat)
+        minlon = float(southWestLon)
+        minlat = float(southWestLat)
+        maxlon = float(northEastLon)
     except ValueError:
         return HttpResponseBadRequest(
-                "Bad or missing values: northEastLat, northEastLon, southWestLat, southWestLon")
+            "Bad or missing values: northEastLat, northEastLon, "
+            "southWestLat, southWestLon")
     query = Q(lat__gte=minlat, lat__lte=maxlat,
-                      lon__gte=minlon, lon__lte=maxlon)
+              lon__gte=minlon, lon__lte=maxlon)
     branches = Branch.objects.filter(institution_id=lender).filter(query)
     response = '{"crs": {"type": "link", "properties": {"href": '
     response += '"http://spatialreference.org/ref/epsg/4326/", "type": '
     response += '"proj4"}}, "type": "FeatureCollection", "features": [%s]}'
-    return response % ', '.join(branch.branch_as_geojson() for branch in branches)
+    return response % ', '.join(
+        branch.branch_as_geojson() for branch in branches)

@@ -105,6 +105,7 @@ class Institution(models.Model):
         blank=True,
         null=True,
         help_text='The company at the top of the ownership chain.')
+    num_loans = models.PositiveIntegerField(default=0)
 
     def formatted_name(self):
         formatted = defaultfilters.title(self.name) + " ("

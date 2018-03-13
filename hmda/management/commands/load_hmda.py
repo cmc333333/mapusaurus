@@ -4,6 +4,7 @@ import logging
 from typing import BinaryIO, Iterator, List
 
 from django.core.management.base import BaseCommand
+from django.db.models.expressions import RawSQL
 
 from geo import errors
 from geo.models import Geo
@@ -85,6 +86,15 @@ def filter_by_fks(batch: List[HMDARecord]) -> List[HMDARecord]:
             if m.geo_id in geo_ids and m.institution_id in inst_ids]
 
 
+def update_num_loans():
+    Institution.objects.update(num_loans=RawSQL("""
+        SELECT count(*)
+        FROM hmda_hmdarecord
+        WHERE hmda_hmdarecord.institution_id =
+            respondents_institution.institution_id
+    """, tuple()))
+
+
 class Command(BaseCommand):
     help = """ Load HMDA data (for all states)."""
 
@@ -97,3 +107,4 @@ class Command(BaseCommand):
         save_batches(models, HMDARecord, options['replace'], filter_by_fks,
                      batch_size=10000)
         options['file_name'].close()
+        update_num_loans()
