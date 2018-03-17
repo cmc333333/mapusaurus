@@ -96,3 +96,25 @@ class Geo(models.Model):
         self.maxlat = max(lats)
         self.minlon = min(lons)
         self.maxlon = max(lons)
+
+
+class CensusTract(models.Model):
+    geoid = models.CharField(max_length=11, primary_key=True)
+    name = models.CharField(max_length=64)
+
+    state = models.PositiveSmallIntegerField()
+    county = models.PositiveSmallIntegerField()
+    tract = models.PositiveIntegerField()
+
+    geom = models.MultiPolygonField()
+    interior_lat = models.FloatField()
+    interior_lon = models.FloatField()
+
+
+class TractFeature(models.Model):
+    field_name = models.CharField(max_length=64)
+    value_field = models.CharField(max_length=64)
+
+    class Meta:
+        index_together = [('field_name', 'value_field')]
+        unique_together = index_together
