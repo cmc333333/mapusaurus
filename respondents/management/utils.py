@@ -36,17 +36,19 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
 
 
 def save_batches(models: Iterator[T], model_class: Type[T],
-                 replace: bool=False, filter_fn=None, batch_size: int=100):
+                 replace: bool=False, filter_fn=None, batch_size: int=100,
+                 log=True):
     """Save (optionally, replacing) batches of models."""
     count_saved, count_skipped = 0, 0
     for batch_idx, batch in enumerate(batches(models, batch_size)):
         with transaction.atomic():
-            logger.info(
-                'Processing batch %s (%s - %s)',
-                batch_idx + 1,
-                batch_idx * batch_size + 1,
-                batch_idx * batch_size + batch_size,
-            )
+            if log:
+                logger.info(
+                    'Processing batch %s (%s - %s)',
+                    batch_idx + 1,
+                    batch_idx * batch_size + 1,
+                    batch_idx * batch_size + batch_size,
+                )
             if filter_fn:
                 batch = filter_fn(batch)
             pks = {m.pk for m in batch}
@@ -60,7 +62,8 @@ def save_batches(models: Iterator[T], model_class: Type[T],
                 count_skipped += original_batch_size - len(batch)
             model_class.objects.bulk_create(batch)
         count_saved += len(batch)
-    logger.info(
-        '%s new %s, %s skipped',
-        count_saved, model_class._meta.verbose_name_plural, count_skipped,
-    )
+    if log:
+        logger.info(
+            '%s new %s, %s skipped',
+            count_saved, model_class._meta.verbose_name_plural, count_skipped,
+        )
