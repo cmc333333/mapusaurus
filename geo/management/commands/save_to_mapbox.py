@@ -1,11 +1,11 @@
 import json
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, Set
 
 from django.core.management.base import BaseCommand
 from mapbox import Datasets
 from tqdm import tqdm
 
-from geo.models import CensusTract, TractFeature
+from geo.models import CensusTract, TractProperty
 
 DATASET_NAME = 'censustracts'
 
@@ -21,32 +21,27 @@ def get_or_create_dataset_id(datasets: Datasets) -> str:
     return response['id']
 
 
-def tracts() -> Iterator[CensusTract]:
-    """All census tracts, joined with feature data and wrapped in a tqdm
+def tracts(relations: Set[str]) -> Iterator[CensusTract]:
+    """All census tracts, joined with property data and wrapped in a tqdm
     progress bar."""
     queryset = CensusTract.objects.all()
-    feature_fields = set(
-        TractFeature.objects.values_list('field_name', flat=True))
 
-    if feature_fields:
-        queryset = queryset.select_related(*feature_fields)
+    if relations:
+        queryset = queryset.select_related(*relations)
     return tqdm(queryset.iterator(), total=queryset.count())
 
 
-def to_geojson(tract: CensusTract, feature_pairs: List[Tuple[str, str]]) \
-               -> Dict[str, str]:
-    """Convert a CensusTract into GeoJSON, including requested features."""
+def to_geojson(tract: CensusTract, properties: Set[str]) -> Dict[str, str]:
+    """Convert a CensusTract into GeoJSON, including requested properties."""
     geojson = {
         'id': tract.pk,
         'geometry': json.loads(tract.geom.simplify().geojson),
         'properties': {},
         'type': 'Feature',
     }
-    for field_name, value_field in feature_pairs:
-        if hasattr(tract, field_name):
-            related = getattr(tract, field_name)
-            geojson['properties'][f"{field_name}__{value_field}"] = \
-                getattr(related, value_field)
+    for relation in properties:
+        if hasattr(tract, relation):
+            geojson['properties'][relation] = getattr(tract, relation).value
     return geojson
 
 
@@ -59,9 +54,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         datasets = Datasets(access_token=options['access_token'])
         dataset_id = get_or_create_dataset_id(datasets)
-        feature_pairs = TractFeature.objects.values_list(
-            'field_name', 'value_field')
+        relations = set(
+            TractProperty.objects.values_list('relation_field', flat=True))
 
-        for tract in tracts():
-            geojson = to_geojson(tract, feature_pairs)
+        for tract in tracts(relations):
+            geojson = to_geojson(tract, relations)
             datasets.update_feature(dataset_id, tract.pk, geojson)

@@ -111,10 +111,7 @@ class CensusTract(models.Model):
     interior_lon = models.FloatField()
 
 
-class TractFeature(models.Model):
-    field_name = models.CharField(max_length=64)
-    value_field = models.CharField(max_length=64)
-
-    class Meta:
-        index_together = [('field_name', 'value_field')]
-        unique_together = index_together
+class TractProperty(models.Model):
+    relation_field = models.CharField(max_length=64, primary_key=True)
+    category = models.CharField(max_length=64)
+    name = models.CharField(max_length=64)
