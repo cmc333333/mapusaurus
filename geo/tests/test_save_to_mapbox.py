@@ -4,7 +4,7 @@ import pytest
 from model_mommy import mommy
 
 from geo.management.commands import save_to_mapbox
-from geo.models import TractFeature
+from geo.models import TractProperty
 
 
 def test_get_or_create_dataset_id_get():
@@ -30,14 +30,15 @@ def test_get_or_create_dataset_id_create():
 @pytest.mark.django_db
 def test_tracts(monkeypatch):
     monkeypatch.setattr(save_to_mapbox, 'CensusTract', Mock())
-    mommy.make(TractFeature, field_name='aaa', _quantity=3)
-    mommy.make(TractFeature, field_name='bbb', _quantity=4)
+    mommy.make(TractProperty, relation_field='aaa')
+    mommy.make(TractProperty, relation_field='bbb')
+    mommy.make(TractProperty, relation_field='ccc')
     all_fn = save_to_mapbox.CensusTract.objects.all.return_value
     select_related_fn = all_fn.select_related
     select_related_fn.return_value.iterator.return_value = []
     select_related_fn.return_value.count.return_value = 0
 
-    save_to_mapbox.tracts()
+    save_to_mapbox.tracts({'aaa', 'bbb'})
 
     assert set(select_related_fn.call_args[0]) == {'aaa', 'bbb'}
 
@@ -45,21 +46,15 @@ def test_tracts(monkeypatch):
 def test_to_geojson():
     tract = Mock(spec=['aaa', 'bbb', 'geom', 'pk'])
     tract.geom.simplify.return_value.geojson = '{"a": 3}'
-    tract.aaa.abc = 'v1'
-    tract.aaa.bcd = 2
-    tract.bbb.cde = False
+    tract.aaa.value = 'v1'
+    tract.bbb.value = 2
     tract.pk = 'some-id'
 
-    fields = [('aaa', 'abc'), ('aaa', 'bcd'), ('bbb', 'cde'), ('ccc', 'efg')]
-    result = save_to_mapbox.to_geojson(tract, fields)
+    result = save_to_mapbox.to_geojson(tract, {'aaa', 'bbb', 'ccc'})
 
     assert result == {
         'id': 'some-id',
         'geometry': {'a': 3},
-        'properties': {
-            'aaa__abc': 'v1',
-            'aaa__bcd': 2,
-            'bbb__cde': False,
-        },
+        'properties': {'aaa': 'v1', 'bbb': 2},
         'type': 'Feature',
     }
