@@ -123,7 +123,7 @@ http://www.ffiec.gov/hmda/hmdaflat.htm
 ```
 To do this, run
 ```
-    python manage.py fetchload_hmda --year 2013
+    python manage.py fetch_load_hmda --year 2013
 ```
 
 You will most likely want to pre-calculate the median number of loans for a
@@ -137,6 +137,16 @@ Finally, we need to populate a listing of every (HMDA, census, geo) year.
 
 ```
     python manage.py load_years 2013 2010 2013
+```
+
+## Layers
+
+Mapusaurus's layers are configured within the database. To use a default set,
+we'll need to import them:
+
+```
+    python manage.py migrate mapping
+    python manage.py loaddata default_layers
 ```
 
 ## Styles
