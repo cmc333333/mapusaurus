@@ -15,45 +15,32 @@
                     <option value="originations-1" data-scale="{{ scaled_median_loans }}">Originations</option>
                 </select>
             </div>
-            <div id="demographics" class="map-divider-minor darker-still">
-                <h6 class="main-header-name" >Demographics <span class="tooltipsy" title="For complete details on demographic data and how designations are determined please <a href='/map/faq/'>view our Data / FAQ page.</a>"><i class="cf-icon cf-icon-information-round"></i></span></h6>
-            </div> 
-            <div id="layerOptions">  
-                <div id="inv_non_hisp_white_only_perc" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Percent Minority</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="plurality" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Minority Plurality</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="non_hisp_black_only_perc" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Percent Black / African-American</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="non_hisp_asian_only_perc" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Percent Asian</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="hispanic_perc" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Percent Hispanic</h6><i class="cf-icon cf-icon-right"></i>
-                </div>                                     
-                <div id="non_hisp_white_only_perc" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Percent White</h6><i class="cf-icon cf-icon-right"></i>
-                </div>  
-                <div id="marketCriteria" class="map-divider-minor darker-still">
-                    <h6 class="main-header-name" >Market Criteria <span class="tooltipsy" title="For complete details on market data and how designations are determined please <a href='/map/faq/'>view our Data / FAQ page.</a>"><i class="cf-icon cf-icon-information-round"></i></span></h6>
-                </div>     
-                <div id="median_family_income" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Median Family Income</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="owner_occupancy" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Owner Occupancy</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="median_value" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Median Home Value</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-                <div id="median_year" class="map-divider-minor option">
-                    <h6 class="sub-header-name">Median Year Built</h6><i class="cf-icon cf-icon-right"></i>
-                </div> 
-            </div>                                                    
-
+            {% for category in layer_categories %}
+              <div
+                id="{{category.name|slugify}}"
+                class="map-divider-minor darker-still"
+              >
+                <h6 class="main-header-name">{{category.name}}
+                  {% if category.description %}
+                    <span
+                      class="tooltipsy"
+                      title='{{category.description}}'><i
+                      class="cf-icon cf-icon-information-round"
+                    ></i></span>
+                  {% endif %}
+                </h6>
+              </div>
+              <div id="layerOptions">
+                {% for layer in category.layers %}
+                  <div
+                    id="layer_{{layer.short_name}}"
+                    class="map-divider-minor option"
+                    >
+                      <h6 class="sub-header-name">{{layer.name}}</h6><i class="cf-icon cf-icon-right"></i>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
     </div><!-- /.tabpanel -->    
     {% if lender %}
         <div id="map-aside__lender-details" class="map-aside__lender-details">

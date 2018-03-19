@@ -211,79 +211,13 @@
 
     // Adjudicate the variables associated with selected app layers across the application (names, paths, etc)
     function getLayerType( layer ){
-        var type, keyPath, displayName;
-
-        switch( layer ){
-            case 'inv_non_hisp_white_only_perc':
-                layer = layers.PctMinority;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_pct-minority.png';
-                displayName = 'Percentage Minority';
-                break;
-            case 'hispanic_perc':
-                layer = layers.PctHispanic;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_pct-hisp.png';
-                displayName = 'Percentage Hispanic';
-                break;
-            case 'non_hisp_black_only_perc':
-                layer = layers.PctBlack;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_pct-black.png';
-                displayName = 'Percentage Black / African American';
-                break;
-            case 'non_hisp_asian_only_perc':
-                layer = layers.PctAsian;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_pct-asian.png';
-                displayName = 'Percentage Asian';
-                break;
-            case 'non_hisp_white_only_perc':
-                layer = layers.PctWhite;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_pct-white.png';
-                displayName = 'Percentage White';                
-                break;              
-            case 'plurality':
-                layer = layers.Plurality;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_min-plurality.png';
-                displayName = 'Minority Plurality';
-                break;
-            case 'owner_occupancy':
-                layer = layers.OwnerOccupancy;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_own-occupancy.png';
-                displayName = 'Owner Occupancy Rate';                
-                break;                
-            case 'median_family_income':
-                layer = layers.MedianIncome;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_med-fam-income.png';
-                displayName = 'Median Family Income by Census Tract';                
-                break;   
-            case 'median_value':
-                layer = layers.MedianValue;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_med-hse-val.png';
-                displayName = 'Median Value of O-O Housing';                
-                break;  
-            case 'median_year':
-                layer = layers.MedianYearBuilt;
-                type = 'seq';
-                keyPath = '/static/basestyle/img/key_medyr-hse-built.png';
-                displayName = 'Median Year Structure Built';                
-                break;                                               
-            default:
-                layer = layers.PctMinority;
-                type = 'seq';
-                keyPath = false;
-                displayName = 'Percentage Minority';
-                break;
-        }
-
-        return { 'type': type, 'layer': layer, 'keyPath': keyPath, 'displayName': displayName };
-
+      var layerName = layer.substr('layer_'.length);
+      return {
+        displayName: layerAttrs[layerName].name,
+        keyPath: '/static/basestyle/img/key_' + layerName + '.png',
+        layer: layers[layerName],
+        type: 'seq',
+      };
     }
 
     // Gets non-hash URL parameters

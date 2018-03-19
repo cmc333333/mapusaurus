@@ -155,27 +155,52 @@
         map.options.minZoom = 7;
         map.options.inertia = false;
 
-        // Initialize all of our layers
+        var selectedYear = {{ lender.year }};
+        var commonConfig = { errorTileUrl: '/static/basestyle/img/0.png' };
         var layers = {
-            MBBase: L.tileLayer('https://{s}.tiles.mapbox.com/v4/cfpb.k55b27gd/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken),
-            Base: L.mapbox.tileLayer('cfpb.a760eab8', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            Water: L.mapbox.tileLayer('cfpb.FL_WATER_all_US', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            Boundaries: L.mapbox.tileLayer('cfpb.4da32f68', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            CountyLabels: L.mapbox.tileLayer('cfpb.becdd200', {errorTileUrl: '/static/basestyle/img/0.png'}),            
-            MSALabels: L.mapbox.tileLayer('cfpb.5de9fd0f', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            PctMinority: L.mapbox.tileLayer('cfpb.b831eeca', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            PctHispanic: L.mapbox.tileLayer('cfpb.b5842925', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            PctBlack: L.mapbox.tileLayer('cfpb.58886e54', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            PctAsian: L.mapbox.tileLayer('cfpb.371a62d9', {errorTileUrl: '  /static/basestyle/img/0.png'}),
-            PctWhite: L.mapbox.tileLayer('cfpb.6c9e98c4', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            Plurality: L.mapbox.tileLayer('cfpb.FL_TRACT_minor_plurality_US', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            MedianIncome: L.mapbox.tileLayer('cfpb.d08a14ab', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            OwnerOccupancy: L.mapbox.tileLayer('cfpb.6b1a095b', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            MedianValue: L.mapbox.tileLayer('cfpb.FL_TRACT_med-hse-val_US', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            MedianYearBuilt: L.mapbox.tileLayer('cfpb.FL_TRACT_med-yr-blt_US', {errorTileUrl: '/static/basestyle/img/0.png'}),
-            Centroids: L.layerGroup([]),
-            Branches: L.layerGroup([])
+          MBBase: L.tileLayer('https://{s}.tiles.mapbox.com/v4/cfpb.k55b27gd/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken),
+          Base: L.mapbox.tileLayer('cfpb.a760eab8', commonConfig),
+          Water: L.mapbox.tileLayer('cfpb.FL_WATER_all_US', commonConfig),
+          Centroids: L.layerGroup([]),
+          Branches: L.layerGroup([]),
         };
+        if (selectedYear <= 2013) {
+          layers.Boundaries = L.mapbox.tileLayer('cfpb.4da32f68', commonConfig);
+          layers.CountyLabels = L.mapbox.tileLayer('cfpb.becdd200', commonConfig);
+          layers.MSALabels = L.mapbox.tileLayer('cfpb.5de9fd0f', commonConfig);
+        } else {
+          layers.Boundaries = L.mapbox.tileLayer('cfpb.4a612b0a', commonConfig);
+          layers.CountyLabels = L.mapbox.tileLayer('cfpb.5cc6733d', commonConfig);
+          layers.MSALabels = L.mapbox.tileLayer('cfpb.434952df', commonConfig);
+        }
+
+        // This array allows us to remove them from the map when a new one is selected (later)
+        var minorityLayers = [];
+
+        var layerAttrs = {{ layer_attrs|safe }};
+        $.each(layerAttrs, function(key, layer) {
+          switch (layer.layer_type) {
+            case 'v4': {
+              layers[key] = L.tileLayer(
+                'https://{s}.tiles.mapbox.com/v4/'
+                + layer.style_name + '/{z}/{x}/{y}.png?access_token='
+                + L.mapbox.accessToken);
+              break;
+            }
+            case 'short_name': {
+              layers[key] = L.mapbox.tileLayer(layer.style_name, commonConfig);
+              break;
+            }
+            case 'api_style': {
+              layers[key] = L.tileLayer(
+                'https://api.mapbox.com/styles/v1/'
+                + layer.style_name + '/tiles/{z}/{x}/{y}?access_token='
+                + L.mapbox.accessToken, commonConfig);
+              break;
+            }
+          }
+          minorityLayers.push(layers[key]);
+        });
 
         // Baselayers are created here and show up in our layer selector on the screen as radio buttons
         var baseLayers = {
@@ -196,15 +221,11 @@
         var miniLayer = new L.mapbox.TileLayer('cfpb.k55b27gd', {minZoom: 0, maxZoom: 13 });
         var miniMap = new L.Control.MiniMap(miniLayer).addTo(map);
 
-        // This array allows us to remove them from the map when a new one is selected (later)
-        var minorityLayers = [layers.PctMinority, layers.PctHispanic, layers.PctBlack, layers.PctAsian, layers.PctWhite, layers.Plurality, layers.MedianIncome, layers.OwnerOccupancy, layers.MedianValue, layers.MedianYearBuilt];
-
         // Add all our primary default layers to the map up front
         layers.Base.addTo(map);
         layers.Water.addTo(map);
         layers.Boundaries.addTo(map);
         layers.CountyLabels.addTo(map);
-        layers.PctMinority.addTo(map);
 
         // Create a layer for our circles
         layers.Centroids.addTo(map);
@@ -218,7 +239,6 @@
         
         // Make sure water and boundaries are above everything else
         layers.Water.bringToFront();
-        layers.PctMinority.bringToFront();
         layers.Boundaries.bringToFront();
         layers.CountyLabels.bringToFront();
 
