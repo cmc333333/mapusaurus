@@ -1,14 +1,37 @@
+import json
 from urllib.parse import urlencode
+from typing import Dict
 
 from django.core.exceptions import SuspiciousOperation
+from django.db.models.query import Prefetch, QuerySet
+from django.forms.models import model_to_dict
 from django.shortcuts import render
-from django.db.models.query import QuerySet
 
 from geo.models import Geo
 from hmda.models import LendingStats, Year
 from hmda.management.commands.calculate_loan_stats import (
     calculate_median_loans)
+from mapping.models import Category, Layer
 from respondents.models import Institution
+
+
+def add_layer_attrs(context: Dict[str, any], year: int) -> None:
+    """Layers are loaded from the database. This function retrieves them and
+    adds them to the template context."""
+    layer_qs = Layer.objects.filter(active_years__contains=year)
+    categories = Category.objects\
+        .filter(pk__in=layer_qs.values_list('category_id', flat=True))\
+        .prefetch_related(Prefetch('layer_set', queryset=layer_qs))
+    context['layer_categories'] = []
+    context['layer_attrs'] = {}
+    for category in categories:
+        as_dict = model_to_dict(category)
+        as_dict['layers'] = list(category.layer_set.all().values())
+        for layer in as_dict['layers']:
+            del layer['active_years']   # Ranges aren't easily JSON-able
+            context['layer_attrs'][layer['short_name']] = layer
+        context['layer_categories'].append(as_dict)
+    context['layer_attrs'] = json.dumps(context['layer_attrs'])
 
 
 def map(request, template):
@@ -51,7 +74,11 @@ def map(request, template):
             context['scaled_median_loans'] = 50000 / context['median_loans']
         else:
             context['scaled_median_loans'] = 0
+
+    add_layer_attrs(context, year_selected)
+
     return render(request, template, context)
+
 
 def make_download_url(lender, metro):
     """Create a link to CFPB's HMDA explorer, either linking to all of this

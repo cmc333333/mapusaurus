@@ -1,12 +1,16 @@
+import json
 from urllib.parse import unquote
 
+import pytest
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from mock import Mock, patch
+from model_mommy import mommy
 
 from hmda.models import Year
 from geo.models import Geo
-from mapping.views import lookup_median, make_download_url
+from mapping.models import Category, Layer
+from mapping.views import add_layer_attrs, lookup_median, make_download_url
 from respondents.models import Institution
 
 
@@ -16,11 +20,13 @@ class ViewTest(TestCase):
     def setUp(self):
         self.respondent = Institution.objects.get(institution_id="1970922-333")
         self.metro = Geo.objects.create(
-            geoid='12121', cbsa='12345', geo_type=Geo.METRO_TYPE, name='MetMetMet',
+            geoid='12121', cbsa='12345', geo_type=Geo.METRO_TYPE,
+            name='MetMetMet',
             geom="MULTIPOLYGON (((0 0, 0 1, 1 1, 0 0)))", minlat=0.11,
             minlon=0.22, maxlat=1.33, maxlon=1.44, centlat=45.4545,
             centlon=67.6767, year='2012')
-        self.year = Year.objects.create(hmda_year=2012, census_year=2010, geo_year=2011)
+        self.year = Year.objects.create(hmda_year=2012, census_year=2010,
+                                        geo_year=2011)
 
     def tearDown(self):
         self.metro.delete()
@@ -52,7 +58,11 @@ class ViewTest(TestCase):
         self.assertContains(resp, 'year')
 
     def test_make_download_url(self):
-        self.assertEqual("https://api.consumerfinance.gov/data/hmda/slice/hmda_lar.csv?%24where=&%24limit=0", make_download_url(None, None))
+        self.assertEqual(
+            "https://api.consumerfinance.gov/data/hmda/slice/hmda_lar.csv?"
+            "%24where=&%24limit=0",
+            make_download_url(None, None),
+        )
         url = make_download_url(self.respondent, None)
         self.assertTrue('22-333' in url)
         self.assertTrue('1' in url)
@@ -71,10 +81,12 @@ class ViewTest(TestCase):
             geom="MULTIPOLYGON (((0 0, 0 1, 1 1, 0 0)))", minlat=0.11,
             minlon=0.22, maxlat=1.33, maxlon=1.44, centlat=45.4545,
             centlon=67.6767, cbsa='12345', metdiv='78787', year='2012')
-        
+
         url = make_download_url(self.respondent, self.metro)
         self.assertFalse('12121' in url)
-        self.assertTrue('msamd+IN+("78787","98989")' in unquote(url) or 'msamd+IN+("98989","78787")' in unquote(url))
+        self.assertTrue(
+            'msamd+IN+("78787","98989")' in unquote(url)
+            or 'msamd+IN+("98989","78787")' in unquote(url))
 
         div1.delete()
         div2.delete()
@@ -97,3 +109,36 @@ class ViewTest(TestCase):
         LendingStats.objects.filter.return_value.first.return_value = None
         lookup_median(self.respondent, self.metro)
         self.assertEqual(calc.call_args[0], (lender_str, self.metro))
+
+
+@pytest.mark.django_db
+def test_add_layer_attrs():
+    fruit = mommy.make(Category, name='Fruit', weight=0)
+    veggie = mommy.make(Category, name='Veggie', weight=1)
+    grain = mommy.make(Category, name='Grain', weight=2)
+    mommy.make(Layer, category=fruit, name='Apple', weight=0,
+               active_years=(2000, None), short_name='apple')
+    mommy.make(Layer, category=fruit, name='Orange', weight=1,
+               active_years=(2008, 2012), short_name='orange')
+    mommy.make(Layer, category=fruit, name='Grape', weight=2,
+               active_years=(2014, None), short_name='grape')
+    mommy.make(Layer, category=veggie, name='Carrot', weight=0,
+               active_years=(2001, 2003), short_name='carrot')
+    mommy.make(Layer, category=veggie, name='Potato', weight=1,
+               active_years=(2000, None), short_name='potato')
+    mommy.make(Layer, category=grain, name='Bread', weight=0,
+               active_years=(2012, None), short_name='bread')
+
+    context = {}
+    add_layer_attrs(context, 2010)
+
+    assert [c['name'] for c in context['layer_categories']] == [
+        'Fruit', 'Veggie']  # Grain is missing as it has no relevant layers
+    assert [l['name'] for l in context['layer_categories'][0]['layers']] == [
+        'Apple', 'Orange']  # Grape is missing as it begins too late
+    assert [l['name'] for l in context['layer_categories'][1]['layers']] == [
+        'Potato']   # Carrot is missing it ends too early
+
+    layer_attrs = json.loads(context['layer_attrs'])
+    assert set(layer_attrs.keys()) == {'apple', 'orange', 'potato'}
+    assert layer_attrs['apple']['name'] == 'Apple'
