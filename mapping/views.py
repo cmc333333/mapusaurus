@@ -1,11 +1,13 @@
 from urllib.parse import urlencode
 
+from django.core.exceptions import SuspiciousOperation
 from django.shortcuts import render
 from django.db.models.query import QuerySet
 
 from geo.models import Geo
 from hmda.models import LendingStats, Year
-from hmda.management.commands.calculate_loan_stats import (calculate_median_loans)
+from hmda.management.commands.calculate_loan_stats import (
+    calculate_median_loans)
 from respondents.models import Institution
 
 
@@ -14,27 +16,33 @@ def map(request, template):
     template"""
     lender_selected = request.GET.get('lender', '')
     metro_selected = request.GET.get('metro')
-    year_selected = int(request.GET.get('year',str(Year.objects.latest().hmda_year)))
+    year_selected = request.GET.get('year',
+                                    str(Year.objects.latest().hmda_year))
+    if not year_selected.isdigit():
+        raise SuspiciousOperation('year must be an integer')
+    year_selected = int(year_selected)
     context = {}
     lender = Institution.objects\
         .filter(institution_id=lender_selected)\
         .select_related('agency', 'zip_code')\
         .prefetch_related('lenderhierarchy_set')\
         .first()
-    metro = Geo.objects.filter(geo_type=Geo.METRO_TYPE,geoid=metro_selected).first()
-    
+    metro = Geo.objects.filter(
+        geo_type=Geo.METRO_TYPE, geoid=metro_selected).first()
+
     if lender:
         context['lender'] = lender
         hierarchy_list = lender.get_lender_hierarchy(True, True, year_selected)
-        context['institution_hierarchy'] = hierarchy_list 
+        context['institution_hierarchy'] = hierarchy_list
     if metro:
         context['metro'] = metro
     context['year'] = year_selected
     if lender and metro:
-        peer_list = lender.get_peer_list(metro, True, True) 
+        peer_list = lender.get_peer_list(metro, True, True)
         context['institution_peers'] = peer_list
         context['download_url'] = make_download_url(lender, metro)
-        context['hierarchy_download_url'] = make_download_url(hierarchy_list, metro)
+        context['hierarchy_download_url'] = make_download_url(
+            hierarchy_list, metro)
         context['peer_download_url'] = make_download_url(peer_list, metro)
         context['median_loans'] = lookup_median(lender, metro) or 0
         if context['median_loans']:
@@ -56,17 +64,21 @@ def make_download_url(lender, metro):
         if type(lender) is QuerySet:
             for item in lender:
                 query = '(agency_code=%s AND respondent_id="%s" AND year=%s)'
-                where += query % (item.agency_id, item.respondent_id, item.year)
+                where += query % (item.agency_id, item.respondent_id,
+                                  item.year)
                 count += 1
                 if(count < len(lender)):
                     where += "OR"
         else:
             query = '(agency_code=%s AND respondent_id="%s" AND as_of_year=%s)'
-            where += query % (lender.agency_id, lender.respondent_id, lender.year)
+            where += query % (lender.agency_id, lender.respondent_id,
+                              lender.year)
     if metro:
         divisions = [div.metdiv for div in
                      Geo.objects.filter(
-                         geo_type=Geo.METDIV_TYPE, cbsa=metro.cbsa, year=metro.year
+                         geo_type=Geo.METDIV_TYPE,
+                         cbsa=metro.cbsa,
+                         year=metro.year,
                      ).order_by('cbsa')]
         if divisions:
             where += ' AND msamd IN ("' + '","'.join(divisions) + '")'
@@ -79,6 +91,7 @@ def make_download_url(lender, metro):
     })
     base_url = 'https://api.consumerfinance.gov/data/hmda/slice/'
     return base_url + 'hmda_lar.csv?' + query
+
 
 def lookup_median(lender, metro):
     """Look up median. If not present, calculate it."""
