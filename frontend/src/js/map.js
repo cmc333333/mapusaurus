@@ -146,7 +146,7 @@ $(document).ready(function(){
         layerUpdate( cat );
         $( catId ).addClass('active-layer');
     } else {
-        assignCat('inv_non_hisp_white_only_perc');
+        assignCat('layer_pct_minority');
         layerUpdate( cat );
         $( catId ).addClass('active-layer');
     }
