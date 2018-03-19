@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ "${DEBUG^^}" == "TRUE" ]; then
   python manage.py runserver 0.0.0.0:"$PORT"
