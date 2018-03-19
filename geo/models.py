@@ -113,5 +113,3 @@ class CensusTract(models.Model):
 
 class TractProperty(models.Model):
     relation_field = models.CharField(max_length=64, primary_key=True)
-    category = models.CharField(max_length=64)
-    name = models.CharField(max_length=64)
