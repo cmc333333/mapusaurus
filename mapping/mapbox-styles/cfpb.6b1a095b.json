@@ -1,0 +1,34 @@
+{
+  "version": 8,
+  "name": "Owner Occupancy (Pre 2014)",
+  "center": [
+    -74.54013870474918,
+    40.87039763732258
+  ],
+  "zoom": 8,
+  "bearing": 0,
+  "pitch": 0,
+  "sources": {
+    "mapbox://cfpb.6b1a095b": {
+      "url": "mapbox://cfpb.6b1a095b",
+      "type": "raster",
+      "tileSize": 256
+    }
+  },
+  "glyphs": "mapbox://fonts/cfpb/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "layout": {
+        "visibility": "visible"
+      },
+      "type": "raster",
+      "source": "mapbox://cfpb.6b1a095b",
+      "id": "Data"
+    }
+  ],
+  "created": "2016-02-12T00:16:41.541Z",
+  "modified": "2016-02-12T00:16:41.541Z",
+  "owner": "cfpb",
+  "visibility": "private",
+  "draft": false
+}
