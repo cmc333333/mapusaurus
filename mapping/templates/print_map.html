@@ -158,8 +158,6 @@
         var selectedYear = {{ lender.year }};
         var commonConfig = { errorTileUrl: '/static/basestyle/img/0.png' };
         var layers = {
-          MBBase: L.tileLayer('https://{s}.tiles.mapbox.com/v4/cfpb.k55b27gd/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken),
-          Base: L.mapbox.tileLayer('cfpb.a760eab8', commonConfig),
           Water: L.mapbox.tileLayer('cfpb.FL_WATER_all_US', commonConfig),
           Centroids: L.layerGroup([]),
           Branches: L.layerGroup([]),
@@ -174,11 +172,16 @@
           layers.MSALabels = L.mapbox.tileLayer('cfpb.434952df', commonConfig);
         }
 
-        // This array allows us to remove them from the map when a new one is selected (later)
+        // This array allows us to remove them from the map when a new one is
+        // selected (later)
         var minorityLayers = [];
 
-        var layerAttrs = {{ layer_attrs|safe }};
-        $.each(layerAttrs, function(key, layer) {
+        // Baselayers are created here and show up in our layer selector on
+        // the screen as radio buttons
+        var baseLayers = {};
+
+        function addLayer(idx, layer) {
+          var key = layer.short_name;
           switch (layer.layer_type) {
             case 'v4': {
               layers[key] = L.tileLayer(
@@ -199,14 +202,19 @@
               break;
             }
           }
-          minorityLayers.push(layers[key]);
-        });
+          if (layer.interaction === 'metrics') {
+            minorityLayers.push(layers[key]);
+          } else if (layer.interaction === 'base') {
+            baseLayers[layer.name] = layers[key];
+          }
+        }
 
-        // Baselayers are created here and show up in our layer selector on the screen as radio buttons
-        var baseLayers = {
-            'Mapbox Base': layers.MBBase,
-            'Contiguous US': layers.Base
-        };
+        var layerAttrs = {{ layer_attrs|safe }};
+        $.each(layerAttrs, addLayer);
+
+        var baseLayerAttrs = {{ base_layer_attrs|safe }};
+        $.each(baseLayerAttrs, addLayer);
+        var defaultBaseLayer = layers[baseLayerAttrs[0].short_name];
 
         // Overlay layers show up as checkboxes and can be enabled at the same time using the layer selector
         var overlays = {
@@ -222,7 +230,7 @@
         var miniMap = new L.Control.MiniMap(miniLayer).addTo(map);
 
         // Add all our primary default layers to the map up front
-        layers.Base.addTo(map);
+        defaultBaseLayer.addTo(map);
         layers.Water.addTo(map);
         layers.Boundaries.addTo(map);
         layers.CountyLabels.addTo(map);

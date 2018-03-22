@@ -128,6 +128,10 @@ def test_add_layer_attrs():
                active_years=(2000, None), short_name='potato')
     mommy.make(Layer, category=grain, name='Bread', weight=0,
                active_years=(2012, None), short_name='bread')
+    mommy.make(Layer, name='Background One', weight=0, interaction='base',
+               active_years=(2000, None), short_name='bg1')
+    mommy.make(Layer, name='Background Two', weight=1, interaction='base',
+               active_years=(2000, None), short_name='bg2')
 
     context = {}
     add_layer_attrs(context, 2010)
@@ -142,3 +146,6 @@ def test_add_layer_attrs():
     layer_attrs = json.loads(context['layer_attrs'])
     assert set(layer_attrs.keys()) == {'apple', 'orange', 'potato'}
     assert layer_attrs['apple']['name'] == 'Apple'
+
+    assert [l['name'] for l in json.loads(context['base_layer_attrs'])] == [
+        'Background One', 'Background Two']
