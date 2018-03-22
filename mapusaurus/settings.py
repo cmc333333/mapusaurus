@@ -126,3 +126,7 @@ LOGGING = {
 }
 
 APP_TITLE = 'Redlining Risk Assessment Mapper'
+MAPBOX_TOKEN = os.environ.get(
+    'MAPBOX_TOKEN',
+    'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
+)

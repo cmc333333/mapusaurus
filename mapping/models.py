@@ -12,8 +12,8 @@ class Category(models.Model):
 
 
 class Layer(models.Model):
-    short_name = models.CharField(max_length=32)
-    category = models.ForeignKey(Category)
+    short_name = models.SlugField(max_length=32)
+    category = models.ForeignKey(Category, blank=True, null=True)
     name = models.CharField(max_length=64)
     weight = models.SmallIntegerField()
     layer_type = models.CharField(max_length=16, choices=(
@@ -23,6 +23,10 @@ class Layer(models.Model):
     ))
     style_name = models.CharField(max_length=64)
     active_years = IntegerRangeField()
+    interaction = models.CharField(max_length=16, default='metrics', choices=(
+        ('base', 'Base'),
+        ('metrics', 'Metrics'),
+    ))
 
     class Meta:
         ordering = ['weight']

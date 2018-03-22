@@ -16,6 +16,7 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-["localhost", "0.0.0.0", "127.0.0.1"]}
       DATABASE_URL: postgis://postgres@database/postgres
       DEBUG: ${DEBUG:-true}
+      MAPBOX_TOKEN: ${MAPBOX_TOKEN:-pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw}
       PIPENV_SHELL_FANCY: "true"
       PIPENV_VENV_IN_PROJECT: "true"
       USING_SSL: "False"

@@ -33,6 +33,11 @@ def add_layer_attrs(context: Dict[str, any], year: int) -> None:
         context['layer_categories'].append(as_dict)
     context['layer_attrs'] = json.dumps(context['layer_attrs'])
 
+    base_layers = list(Layer.objects.filter(interaction='base').values())
+    for layer in base_layers:
+        del layer['active_years']   # Skip these ranges, too
+    context['base_layer_attrs'] = json.dumps(base_layers)
+
 
 def map(request, template):
     """Display the map. If lender info is present, provide it to the
