@@ -11,7 +11,7 @@
 
 {% block head_scripts %}
     <script type="text/javascript" src="{% static 'mapping/js/map-vendor.min.js' %}"></script>
-    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.standalone.js'></script>
+    <script type="text/javascript" src="{% static 'basestyle/js/mapbox.standalone.js' %}"></script>
     <script type="text/javascript" src="{% static 'mapping/js/map.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'mapping/js/map-layout.min.js' %}"></script>
 {% endblock %}
@@ -109,6 +109,7 @@
     
     <script>
 
+        window.avgPerThousandHouseholds = {{avg_per_thousand_households|default:1}};
 
         /* 
           ---- MAPBOX / LEAFLET CODE ----

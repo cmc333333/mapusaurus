@@ -149,13 +149,11 @@
 
     //Scales statistical data to the appropriate level
     function hmdaStat(tractData) {
-        var $selected = $('#action-taken-selector option:selected'),
-            fieldName = $selected.val(),
-            scale = $selected.data('scale'),
-            area = scale * tractData['volume'];
+        var mediumCircleSize = 50000;
+        var area = mediumCircleSize * tractData['per_thousand_households'] / window.avgPerThousandHouseholds;
         //  As Pi is just a constant scalar, we can ignore it in this
         //  calculation: a = pi*r*r   or r = sqrt(a/pi)
-            return Math.sqrt(area);
+        return Math.sqrt(area) || 0;
     }
 
     // Helper that ensures when a new layer is selected, all others are hidden and primaries stay up front
