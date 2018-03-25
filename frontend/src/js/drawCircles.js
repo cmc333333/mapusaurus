@@ -32,7 +32,7 @@
 
         //  We will use the tractid when redrawing
         circle.tractid = geo.tractid || '';
-        circle.volume = geo.volume;
+        circle.perThousandHouseholds = geo.per_thousand_households;
         circle.type = "tract-circle";
         circle.keyCircle = 0;
 

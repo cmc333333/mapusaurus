@@ -76,12 +76,6 @@ def map(request, template):
         context['avg_per_thousand_households'] = \
             avg_per_thousand_households(lender, metro)
         context['median_loans'] = lookup_median(lender, metro) or 0
-        if context['median_loans']:
-            # 50000 is an arbitrary constant; should be altered if we want to
-            # change how big the median circle size is
-            context['scaled_median_loans'] = 50000 / context['median_loans']
-        else:
-            context['scaled_median_loans'] = 0
 
     add_layer_attrs(context, year_selected)
 
