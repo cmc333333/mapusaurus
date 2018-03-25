@@ -7,10 +7,12 @@ from django.test import TestCase
 from mock import Mock, patch
 from model_mommy import mommy
 
-from hmda.models import Year
+from censusdata.models import Census2010Households
 from geo.models import Geo
+from hmda.models import HMDARecord, Year
 from mapping.models import Category, Layer
-from mapping.views import add_layer_attrs, lookup_median, make_download_url
+from mapping.views import (add_layer_attrs, avg_per_thousand_households,
+                           lookup_median, make_download_url)
 from respondents.models import Institution
 
 
@@ -149,3 +151,36 @@ def test_add_layer_attrs():
 
     assert [l['name'] for l in json.loads(context['base_layer_attrs'])] == [
         'Background One', 'Background Two']
+
+
+@pytest.mark.django_db
+def test_avg_per_thousand_households():
+    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='12345', year=2010)
+    in_metro1 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
+                           year=2010)
+    in_metro2 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
+                           year=2010)
+    in_metro_wrong_year = mommy.make(Geo, geo_type=Geo.TRACT_TYPE,
+                                     cbsa=metro.cbsa, year=2011)
+    out_of_metro = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa='notit',
+                              year=2010)
+    mommy.make(Census2010Households, total=1000, geoid=in_metro1)
+    mommy.make(Census2010Households, total=3000, geoid=in_metro2)
+    mommy.make(Census2010Households, total=5000, geoid=in_metro_wrong_year)
+    mommy.make(Census2010Households, total=7000, geoid=out_of_metro)
+
+    lender1, lender2 = mommy.make(Institution, _quantity=2)
+    mommy.make(HMDARecord, geo=in_metro1, institution=lender1, _quantity=11)
+    mommy.make(HMDARecord, geo=in_metro1, institution=lender2, _quantity=13)
+    mommy.make(HMDARecord, geo=in_metro2, institution=lender1, _quantity=17)
+    mommy.make(HMDARecord, geo=in_metro2, institution=lender2, _quantity=19)
+    mommy.make(HMDARecord, geo=out_of_metro, institution=lender1, _quantity=23)
+    mommy.make(HMDARecord, geo=out_of_metro, institution=lender2, _quantity=29)
+    mommy.make(HMDARecord, geo=in_metro_wrong_year, institution=lender1,
+               _quantity=31)
+    mommy.make(HMDARecord, geo=in_metro_wrong_year, institution=lender2,
+               _quantity=37)
+
+    assert avg_per_thousand_households(lender1, metro) == (
+        1000 * (11 + 17) / (1000 + 3000)
+    )

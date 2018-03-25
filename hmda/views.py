@@ -64,7 +64,7 @@ def loan_originations_as_json(request):
     if records:
         for row in records:
             tract_id = row['geo__state']+row['geo__county']+row['geo__tract']
-            data[row['geo_id']] = {
+            row_as_dict = {
                 'geoid': row['geo_id'],
                 'tractid': tract_id,
                 'volume': row['volume'],
@@ -72,7 +72,15 @@ def loan_originations_as_json(request):
                 'centlat': row['geo__centlat'],
                 'centlon': row['geo__centlon'],
             }
+            if row_as_dict['num_households']:
+                row_as_dict['per_thousand_households'] = \
+                    1000 * row_as_dict['volume'] \
+                    / row_as_dict['num_households']
+            else:
+                row_as_dict['per_thousand_households'] = 0
+            data[row['geo_id']] = row_as_dict
     return data
+
 
 def loan_originations_http(request):
     json_data = loan_originations_as_json(request)

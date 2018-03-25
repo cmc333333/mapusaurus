@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from typing import Dict
 
 from django.core.exceptions import SuspiciousOperation
+from django.db import connection
 from django.db.models.query import Prefetch, QuerySet
 from django.forms.models import model_to_dict
 from django.shortcuts import render
@@ -72,6 +73,8 @@ def map(request, template):
         context['hierarchy_download_url'] = make_download_url(
             hierarchy_list, metro)
         context['peer_download_url'] = make_download_url(peer_list, metro)
+        context['avg_per_thousand_households'] = \
+            avg_per_thousand_households(lender, metro)
         context['median_loans'] = lookup_median(lender, metro) or 0
         if context['median_loans']:
             # 50000 is an arbitrary constant; should be altered if we want to
@@ -135,3 +138,33 @@ def lookup_median(lender, metro):
             if stat:
                 return stat.lar_median
         return calculate_median_loans(lender_str, metro)
+
+
+def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
+    num_households_query = """
+        SELECT sum(total)
+        FROM censusdata_census2010households
+        INNER JOIN geo_geo
+        ON censusdata_census2010households.geoid_id = geo_geo.geoid
+        WHERE geo_geo.geo_type = %s
+        AND geo_geo.cbsa = %s
+        AND geo_geo.year = %s
+    """
+    num_loans_query = """
+        SELECT count(*)
+        FROM hmda_hmdarecord
+        INNER JOIN geo_geo
+        ON hmda_hmdarecord.geo_id = geo_geo.geoid
+        WHERE institution_id = %s
+        AND geo_geo.geo_type = %s
+        AND geo_geo.cbsa = %s
+        AND geo_geo.year = %s
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(num_households_query,
+                       (Geo.TRACT_TYPE, metro.cbsa, metro.year))
+        num_households = cursor.fetchone()[0]
+        cursor.execute(num_loans_query,
+                       (lender.pk, Geo.TRACT_TYPE, metro.cbsa, metro.year))
+        num_loans = cursor.fetchone()[0]
+    return num_loans * 1000 / num_households
