@@ -4,7 +4,6 @@ from urllib.parse import unquote
 import pytest
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from mock import Mock, patch
 from model_mommy import mommy
 
 from censusdata.models import Census2010Households
@@ -12,7 +11,7 @@ from geo.models import Geo
 from hmda.models import HMDARecord, Year
 from mapping.models import Category, Layer
 from mapping.views import (add_layer_attrs, avg_per_thousand_households,
-                           lookup_median, make_download_url)
+                           make_download_url)
 from respondents.models import Institution
 
 
@@ -92,25 +91,6 @@ class ViewTest(TestCase):
 
         div1.delete()
         div2.delete()
-
-    @patch('mapping.views.LendingStats')
-    @patch('mapping.views.calculate_median_loans')
-    def test_lookup_median(self, calc, LendingStats):
-        lender_str = self.respondent.institution_id
-        # No lender
-        self.assertEqual(None, lookup_median(None, None))
-        # All of the US
-        lookup_median(self.respondent, None)
-        self.assertEqual(calc.call_args[0], (lender_str, None))
-        # Entry in the db
-        mock_obj = Mock()
-        mock_obj.lar_median = 9898
-        LendingStats.objects.filter.return_value.first.return_value = mock_obj
-        self.assertEqual(9898, lookup_median(self.respondent, self.metro))
-        # No entry in db
-        LendingStats.objects.filter.return_value.first.return_value = None
-        lookup_median(self.respondent, self.metro)
-        self.assertEqual(calc.call_args[0], (lender_str, self.metro))
 
 
 @pytest.mark.django_db

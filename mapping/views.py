@@ -9,9 +9,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import render
 
 from geo.models import Geo
-from hmda.models import LendingStats, Year
-from hmda.management.commands.calculate_loan_stats import (
-    calculate_median_loans)
+from hmda.models import Year
 from mapping.models import Category, Layer
 from respondents.models import Institution
 
@@ -75,7 +73,6 @@ def map(request, template):
         context['peer_download_url'] = make_download_url(peer_list, metro)
         context['avg_per_thousand_households'] = \
             avg_per_thousand_households(lender, metro)
-        context['median_loans'] = lookup_median(lender, metro) or 0
 
     add_layer_attrs(context, year_selected)
 
@@ -120,18 +117,6 @@ def make_download_url(lender, metro):
     })
     base_url = 'https://api.consumerfinance.gov/data/hmda/slice/'
     return base_url + 'hmda_lar.csv?' + query
-
-
-def lookup_median(lender, metro):
-    """Look up median. If not present, calculate it."""
-    if lender:
-        lender_str = lender.institution_id
-        if metro:
-            stat = LendingStats.objects.filter(
-                institution_id=lender_str, geo_id=metro.geoid).first()
-            if stat:
-                return stat.lar_median
-        return calculate_median_loans(lender_str, metro)
 
 
 def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
