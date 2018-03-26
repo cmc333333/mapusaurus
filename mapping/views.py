@@ -120,6 +120,9 @@ def make_download_url(lender, metro):
 
 
 def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
+    """As a simple method of normalizing our circle size across different
+    lenders, we'll calculate an average number of loans/thousand households
+    across all the tracts a lender has made loans to."""
     num_households_query = """
         SELECT sum(total)
         FROM censusdata_census2010households
@@ -128,6 +131,10 @@ def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
         WHERE geo_geo.geo_type = %s
         AND geo_geo.cbsa = %s
         AND geo_geo.year = %s
+        AND censusdata_census2010households.geoid_id IN (
+            SELECT hmda_hmdarecord.geo_id FROM hmda_hmdarecord
+            WHERE institution_id = %s
+        )
     """
     num_loans_query = """
         SELECT count(*)
@@ -141,7 +148,7 @@ def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
     """
     with connection.cursor() as cursor:
         cursor.execute(num_households_query,
-                       (Geo.TRACT_TYPE, metro.cbsa, metro.year))
+                       (Geo.TRACT_TYPE, metro.cbsa, metro.year, lender.pk))
         num_households = cursor.fetchone()[0]
         cursor.execute(num_loans_query,
                        (lender.pk, Geo.TRACT_TYPE, metro.cbsa, metro.year))
