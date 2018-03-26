@@ -140,6 +140,8 @@ def test_avg_per_thousand_households():
                            year=2010)
     in_metro2 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
                            year=2010)
+    in_metro_no_loans = mommy.make(Geo, geo_type=Geo.TRACT_TYPE,
+                                   cbsa=metro.cbsa, year=2010)
     in_metro_wrong_year = mommy.make(Geo, geo_type=Geo.TRACT_TYPE,
                                      cbsa=metro.cbsa, year=2011)
     out_of_metro = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa='notit',
@@ -148,6 +150,7 @@ def test_avg_per_thousand_households():
     mommy.make(Census2010Households, total=3000, geoid=in_metro2)
     mommy.make(Census2010Households, total=5000, geoid=in_metro_wrong_year)
     mommy.make(Census2010Households, total=7000, geoid=out_of_metro)
+    mommy.make(Census2010Households, total=11000, geoid=in_metro_no_loans)
 
     lender1, lender2 = mommy.make(Institution, _quantity=2)
     mommy.make(HMDARecord, geo=in_metro1, institution=lender1, _quantity=11)
