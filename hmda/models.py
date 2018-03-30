@@ -67,7 +67,8 @@ ETHNICITY_CHOICES = (
 )
 
 RACE_CHOICES = (
-    (1, 'American Indian or Alaska Native  2 -- Asian'),
+    (1, 'American Indian or Alaska Native'),
+    (2, 'Asian'),
     (3, 'Black or African American'),
     (4, 'Native Hawaiian or Other Pacific Islander '),
     (5, 'White'),
@@ -133,11 +134,49 @@ APPLICATION_DATE_INDICATOR_CHOICES = (
 )
 
 
+class HMDARecordQuerySet(models.QuerySet):
+    def white(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='5')
+
+    def black(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='3')
+
+    def hispanic(self):
+        return self.filter(applicant_ethnicity='1')
+
+    def native_american(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='1')
+
+    def asian(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='2')
+
+    def hopi(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='4')
+
+    def minority(self):
+        return self.filter(
+            models.Q(applicant_ethnicity='1')
+            | models.Q(applicant_ethnicity='2',
+                       applicant_race_1__in=('1', '2', '3', '4'))
+        )
+
+    def no_demographic_data(self):
+        return self.filter(
+            models.Q(applicant_ethnicity__in=('3', '4'))
+            | models.Q(applicant_ethnicity='2',
+                       applicant_race_1__in=('6', '7'))
+        )
+
+    def female(self):
+        return self.filter(applicant_sex=2)
+
+
 class HMDARecord(models.Model):
     """
        HMDA Loan Application Register Format
        https://www.ffiec.gov/hmdarawdata/FORMATS/2013HMDALARRecordFormat.pdf
     """
+    objects = HMDARecordQuerySet.as_manager()
     # compound key: institution_id + sequence_number
     hmda_record_id = models.CharField(max_length=22, primary_key=True)
     as_of_year = models.PositiveIntegerField(

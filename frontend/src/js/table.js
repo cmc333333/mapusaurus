@@ -1,23 +1,15 @@
-var theadTemplate,
-    rowTemplate,
-    tableData,
-    currentChart,
-    msaData;
+var reportTemplate,
+    currentChart;
 
 $(document).ready(function () {
     // Set up underscore table templates.
     _.templateSettings.variable = "data";
-    theadTemplate = _.template(
-        $( "script.thead-template" ).html()
-    );
-    rowTemplate =  _.template(
-        $( "script.row-template" ).html()
-    );
+    reportTemplate = _.template($('script.report-template').html());
     
    // Create/destroy table when chart toggle is clicked.
    $('.chart-toggle').click(function (e) {
        var $target = $(e.target).closest('.chart-toggle'),
-           id = $target.attr('id');
+           id = $target.attr('id') || '';
 
        $('.chart-toggle').removeClass('active-layer');
        $target.addClass('active-layer');
@@ -27,13 +19,11 @@ $(document).ready(function () {
        }
 
        if (currentChart != id) {
-
-           createTable(id === 'chart-toggle__peer-table');
+           createTable(id.substr('chart-toggle__'.length));
            $('#table-container').show();
 
            currentChart = id;
            toggleDataContainer(true);
-
        } else {
            currentChart = null;
            toggleDataContainer(false);
@@ -53,33 +43,18 @@ $(document).ready(function () {
  * 
  * 
  */
-function getTableData() {
-    var params = {};
-    var endpoint = '/api/tables/';
-
-    // Set the lender parameter based on the current URL param
-    if ( urlParam('lender') ){
-        params['lender'] = urlParam('lender');
-    } else {
-        console.log(' Lender parameter is required.');
-        return false;
-    }
-
-    // Set the metro parameter based on the current URL param
-    if ( urlParam('metro') ){
-        params.metro = urlParam('metro');
-    } else {
-        console.log("No metro area provided");
-    }
-    
-    return $.ajax({
-        url: '/api/tables/', 
-        data: params, 
-        traditional: true,
-        success: console.log('get API All Data request successful')
-    }).fail( function( status ){
-        console.log( 'no data was available at' + endpoint + '. status: ' + status );
-    });
+function getTableData(reportName) {
+  return $.ajax({
+    url: '/reports/' + reportName + '/',
+    data: {
+      lender: urlParam('lender') || '',
+      metro: (urlParam('metro') || '').substr(4), // we prefix with the year
+      year: urlParam('year') || '',
+    },
+    traditional: true,
+  }).fail(function(response) {
+    console.log('Error retrieving data', response.status, response.responseText);
+  });
 }
 
 /**
@@ -90,31 +65,25 @@ function getTableData() {
  * preps table data, builds & activates table, and
  * appends table to DOM.
  *
- * @params {boolean} showPeers indicates whether peer value
- * rows should be shown in table
+ * @params {string} reportName defines which report should be loaded
  * 
  * 
  */
 
-function createTable(showPeers) {
-    msaData || (msaData = getTableData()); 
-    msaData.done(function (res) {
-        if (!tableData) {
-          tableData = res;
-          prepTableData(tableData);
-        }
-        var $tbl = buildTable(tableData, showPeers);
-        activateTable($tbl);
-        $('#tableLoadImage').hide();
-        $tbl.appendTo($('#table-container')).show();
+function createTable(reportName) {
+  getTableData(reportName).done(function (res) {
+    var $tbl = buildTable(res);
+    activateTable($tbl);
+    $('#tableLoadImage').hide();
+    $tbl.appendTo($('#table-container')).show();
 
-        $('#closeTable').on('click', function(){
-            toggleDataContainer(false);
-            currentChart = 'undefined';  
-            $('.chart-toggle').removeClass('active-layer');
-        });
-        generateTooltips('#table-container', [0,-1]);
+    $('#closeTable').on('click', function(){
+        toggleDataContainer(false);
+        currentChart = 'undefined';  
+        $('.chart-toggle').removeClass('active-layer');
     });
+    generateTooltips('#table-container', [0,-1]);
+  });
 }
 
 /**
@@ -216,136 +185,22 @@ function getPeerData(data) {
  * @description Builds a table.
  *
  * @params {obj} tableData data to use in table
- * @params {boolean} showPeers whether to show peer rows in table
  * @return {obj} jquery table object
  * 
  */
-function buildTable(tableData, showPeers) {
-    // create table element
-    var $tbl = $('<table>', {
-        class: 'summary-data-table ' + (showPeers ? 'peer-table' : 'basic-table')
+function buildTable(tableData) {
+  _.each(tableData.data, function(row) {
+    _.each(tableData.fields, function(fieldName) {
+      var value = row[fieldName];
+      if (_.isNumber(value)) {
+        row[fieldName] = row[fieldName].toLocaleString();
+      }
     });
-    
-    // add thead
-    var thead = buildTableHead(showPeers);
-    $tbl.append(thead);
-    
-    // add contents
-    var contents = buildTableContents(tableData, showPeers);
-    $tbl.append(contents);
-    
-    return $tbl;
+  });
+
+  return $(reportTemplate({ fieldNames: tableData.fields, rows: tableData.data }));
 }
 
-/**
- * @name buildTableHead
- *
- * @description Builds thead using theadTemplate.
- *
- * @params {boolean} showPeers whether to show peer rows in table
- * @return {str} theadTemplate content string
- * 
- */
-function buildTableHead(showPeers) {
-  return theadTemplate({showPeers: showPeers});              
-}
-
-/**
- * @name buildTableContents
- *
- * @description Build contents for table. 
- * Generates one tbody containing row(s) for the MSA data. 
- * The MSA tbody needs to be separate so the MSA rows 
- * won't be sorted with the counties.
- *
- * Also generates a tbody containing rows for all the counties.
- *
- * @params {obj} tableData data for table
- * @params {boolean} showPeers whether to show peer rows in table
- * @return {array} array of tbodies for table 
- * 
- */
-function buildTableContents(tableData, showPeers) {
-    var tbodies = [];
-    
-    var msaRows = buildTableRows(tableData.msa, 'MSA', showPeers);
-    var $msaBody = $('<tbody>', {class: 'tablesorter-infoOnly'});
-    $msaBody.append(msaRows);
-    tbodies.push($msaBody);
-    
-    var $countyBody = $('<tbody>');
-    _.each(tableData.counties, function (county) {
-        var countyRows = buildTableRows(county, 'County', showPeers);
-        $countyBody.append(countyRows);
-    });
-    tbodies.push($countyBody);
-    
-    return tbodies;
-}
-
-
-/**
- * @name buildTableRows
- *
- * @description Build table row(s) for a county or for MSA. 
- * Generates one row for the target institution. If showPeers
- * is true, also generates a row for the peer data.
- *
- * @params {obj} tableData data for table
- * @params {str} rowType either MSA or County
- * @params {boolean} showPeers whether to show peer rows in table
- * @return {array} array of html row strings for this MSA or County 
- * 
- */
-function buildTableRows(data, rowType, showPeers) {
-  var rows = [buildRow(data, rowType, showPeers)];
-  
-  if (showPeers) {
-     rows.push(buildRow(data.peerData, rowType, showPeers));
-  }
-  
-  return rows;
-}
-
-// returns an html string for one table row
-
-/**
- * @name buildRow
- *
- * @description Builds a single table row. 
- * Generates classes for row based on row type:
- * peer or target institution, and MSA or County.
- *
- * @params {obj} tableData data for table
- * @params {str} rowType either MSA or County
- * @params {boolean} showPeers whether to show peer rows in table
- * @return {str} html string for one table row
- * 
- */
-function buildRow(data, rowType, showPeers) {
-  var className, 
-      templateData;
-  
-  // add row & institution type information to template data
-  templateData = _.extend({
-      rowType: rowType,
-      showPeers: showPeers
-  }, data);
-  
-  // set classes based on row type
-  templateData.className = rowType.toLowerCase() + '-row ';
-
-  if (data.isPeer) {
-      // peer rows are sorted with the preceding target institution
-      // row, so they need the 'tablesorter-childRow' class.
-      templateData.className += ' peer-row tablesorter-childRow';
-  } else {
-      templateData.className += ' target-row';
-  }
-  
-  // generate table row 
-  return rowTemplate(templateData);
-}
 
 /**
  * @name activateTable

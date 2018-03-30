@@ -19,6 +19,7 @@ services:
       MAPBOX_TOKEN: ${MAPBOX_TOKEN:-pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw}
       PIPENV_SHELL_FANCY: "true"
       PIPENV_VENV_IN_PROJECT: "true"
+      PYTHONUNBUFFERED: "1"
       USING_SSL: "False"
     command: .docker/wait_for_db_then pipenv run .docker/start_server.sh
     ports:
