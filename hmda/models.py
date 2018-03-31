@@ -67,7 +67,8 @@ ETHNICITY_CHOICES = (
 )
 
 RACE_CHOICES = (
-    (1, 'American Indian or Alaska Native  2 -- Asian'),
+    (1, 'American Indian or Alaska Native'),
+    (2, 'Asian'),
     (3, 'Black or African American'),
     (4, 'Native Hawaiian or Other Pacific Islander '),
     (5, 'White'),
