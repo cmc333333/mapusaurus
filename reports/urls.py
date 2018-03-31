@@ -1,13 +1,8 @@
 from django.conf.urls import url
 
-from reports.views.actions import approvals, denials
-from reports.views.applicants import applications, originations
-from reports.views.demographics import demographics
+from reports.report_list import report_list
+from reports.views.as_xls import as_xls
 
 urlpatterns = [
-    url(r'^applications/$', applications),
-    url(r'^approvals/$', approvals),
-    url(r'^demographics/$', demographics),
-    url(r'^denials/$', denials),
-    url(r'^originations/$', originations),
+    url(rf'^{report.slug}/$', report.fn) for report in report_list
 ]

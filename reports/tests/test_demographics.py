@@ -9,20 +9,23 @@ from geo.models import Geo
 @pytest.mark.django_db
 def test_valid_metro(client):
     tract = mommy.make(Geo, geo_type=Geo.TRACT_TYPE)
-    result = client.get(f'/reports/demographics/?year=2000&metro={tract.pk}')
+    result = client.get('/reports/population-demographics/'
+                        f'?year=2000&metro={tract.pk}')
     assert result.status_code == 400
-    result = client.get(f'/reports/demographics/?year=2000&metro=12345')
+    result = client.get('/reports/population-demographics/'
+                        f'?year=2000&metro=12345')
     assert result.status_code == 400
-    result = client.get(f'/reports/demographics/?year=2000')
+    result = client.get(f'/reports/population-demographics/?year=2000')
     assert result.status_code == 400
 
 
 @pytest.mark.django_db
 def test_valid_year(client):
     metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE)
-    result = client.get(f'/reports/demographics/?metro={metro.pk}')
+    result = client.get(f'/reports/population-demographics/?metro={metro.pk}')
     assert result.status_code == 400
-    result = client.get(f'/reports/demographics/?metro={metro.pk}&year=abcd')
+    result = client.get('/reports/population-demographics/'
+                        f'?metro={metro.pk}&year=abcd')
     assert result.status_code == 400
 
 
@@ -52,7 +55,8 @@ def test_spotcheck_data(client):
     mommy.make(Census2010Sex, female=8, geoid=tract2)
     mommy.make(Census2010Sex, female=9, geoid=other)
 
-    result = client.get(f'/reports/demographics/?year=1990&metro={metro.pk}')
+    result = client.get('/reports/population-demographics/'
+                        f'?year=1990&metro={metro.pk}')
 
     assert len(result.data['fields']) == 3
     assert [row['Population Demographics'] for row in result.data['data']] ==\
