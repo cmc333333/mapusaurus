@@ -33,6 +33,7 @@ INSTALLED_APPS = (
     'censusdata',
     'hmda',
     'api',
+    'reports',
 )
 
 MIDDLEWARE = (
