@@ -1,3 +1,5 @@
+from typing import Iterator, Tuple
+
 from django.db import models
 
 AGENCY_CHOICES = (
@@ -134,11 +136,56 @@ APPLICATION_DATE_INDICATOR_CHOICES = (
 )
 
 
+class HMDARecordQuerySet(models.QuerySet):
+    def white(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='5')
+
+    def black(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='3')
+
+    def hispanic(self):
+        return self.filter(applicant_ethnicity='1')
+
+    def native_american(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='1')
+
+    def asian(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='2')
+
+    def hopi(self):
+        return self.filter(applicant_ethnicity='2', applicant_race_1='4')
+
+    def minority(self):
+        return self.exclude(applicant_ethnicity='2', applicant_race_1='5')
+
+    def no_demographic_data(self):
+        return self.filter(
+            models.Q(applicant_ethnicity__in=('3', '4'))
+            | models.Q(applicant_ethnicity='2',
+                       applicant_race_1__in=('6', '7'))
+        )
+
+    def female(self):
+        return self.filter(applicant_sex=2)
+
+    def demographics(self) -> Iterator[Tuple[str, 'HMDARecordQuerySet']]:
+        yield 'White', self.white()
+        yield 'Black', self.black()
+        yield 'Hispanic/Latino', self.hispanic()
+        yield 'Native American', self.native_american()
+        yield 'Asian', self.asian()
+        yield 'HOPI', self.hopi()
+        yield 'Minority', self.minority()
+        yield 'No Demographic Data', self.no_demographic_data()
+        yield 'Female', self.female()
+
+
 class HMDARecord(models.Model):
     """
        HMDA Loan Application Register Format
        https://www.ffiec.gov/hmdarawdata/FORMATS/2013HMDALARRecordFormat.pdf
     """
+    objects = HMDARecordQuerySet.as_manager()
     # compound key: institution_id + sequence_number
     hmda_record_id = models.CharField(max_length=22, primary_key=True)
     as_of_year = models.PositiveIntegerField(
