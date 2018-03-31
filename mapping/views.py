@@ -11,6 +11,7 @@ from django.shortcuts import render
 from geo.models import Geo
 from hmda.models import Year
 from mapping.models import Category, Layer
+from reports.report_list import report_list
 from respondents.models import Institution
 
 
@@ -57,6 +58,7 @@ def map(request, template):
     metro = Geo.objects.filter(
         geo_type=Geo.METRO_TYPE, geoid=metro_selected).first()
 
+    context['report_list'] = report_list
     if lender:
         context['lender'] = lender
         hierarchy_list = lender.get_lender_hierarchy(True, True, year_selected)

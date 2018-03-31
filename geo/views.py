@@ -6,13 +6,14 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework import serializers
 from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from geo.models import Geo
 from geo.utils import check_bounds
 
+
 def geo_as_json(geos):
     return json.loads(format_geo_to_geojson(geos))
+
 
 def format_geo_to_geojson(geos):
     # We already have the json strings per model pre-computed, so just place
@@ -21,6 +22,7 @@ def format_geo_to_geojson(geos):
     response += '"http://spatialreference.org/ref/epsg/4326/", "type": '
     response += '"proj4"}}, "type": "FeatureCollection", "features": [%s]}'
     return response % ', '.join(geo.tract_centroids_as_geojson() for geo in geos)
+
 
 def get_censustract_geos(request):
     northEastLat = request.GET.get('neLat')
@@ -48,6 +50,7 @@ def get_censustract_geos(request):
         geos = msa.get_censustract_geos_by_msa()
     return geos
 
+
 def get_geos_by_bounds_and_type(maxlat, minlon, minlat, maxlon, year, metro=False):
     """handles requests for tract-level ids or MSA ids"""
     if metro == False:
@@ -65,6 +68,7 @@ def get_geos_by_bounds_and_type(maxlat, minlon, minlat, maxlon, year, metro=Fals
     geos = Geo.objects.filter(geo_type=geoTypeId, year=year).filter(geom__intersects=poly)
     return geos
 
+
 class GeoSerializer(serializers.ModelSerializer):
     """Used in RESTful endpoints to serialize Geo objects; used in search"""
     class Meta:
@@ -73,7 +77,6 @@ class GeoSerializer(serializers.ModelSerializer):
 
 
 @api_view(['GET'])
-@renderer_classes((JSONRenderer, ))     # until we need HTML
 def search(request):
     query_str = request.GET.get('q', '').strip()
     year= request.GET.get('year', '').strip()
