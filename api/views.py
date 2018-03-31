@@ -2,13 +2,14 @@ import json
 import csv
 
 from django.http import HttpResponse, HttpResponseNotFound
-from geo.views import (
-    geo_as_json, get_geos_by_bounds_and_type, get_censustract_geos)
+
 from censusdata.views import (
     race_summary_as_json, minority_aggregation_as_json)
+from geo.utils import check_bounds
+from geo.views import (
+    geo_as_json, get_geos_by_bounds_and_type, get_censustract_geos)
 from hmda.views import loan_originations_as_json
 from respondents.views import branch_locations_as_json
-from geo.utils import check_bounds
 
 
 def all(request):

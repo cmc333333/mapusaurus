@@ -8,7 +8,8 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
 from rest_framework import serializers
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from rest_framework.response import Response
 
 from hmda.models import Year
@@ -91,6 +92,7 @@ SORT_WHITELIST = ('assets', '-assets', 'num_loans', '-num_loans')
 
 
 @api_view(['GET'])
+@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
 def search_results(request):
     query_str = escape(request.GET.get('q', '')).strip()
     year = escape(request.GET.get('year', '')).strip()

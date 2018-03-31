@@ -85,7 +85,6 @@ STATICFILES_DIRS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.TemplateHTMLRenderer',
         'rest_framework.renderers.JSONRenderer',
     ],
 }
