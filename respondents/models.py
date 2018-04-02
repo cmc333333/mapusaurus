@@ -128,7 +128,7 @@ class Institution(models.Model):
                 hierarchy_list = hierarchy_list.order_by(
                     '-institution__assets')
             return hierarchy_list
-        return []
+        return LenderHierarchy.objects.none()
 
     def get_peer_list(self, metro, exclude, order_by):
         """ Returns a list of peers for a lender+metro combination based on
