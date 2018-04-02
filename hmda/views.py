@@ -17,7 +17,7 @@ def loan_originations(request):
     lender_hierarchy = request.GET.get('lh')
     peers = request.GET.get('peers')
     year = request.GET.get('year')
-    census_tracts = get_censustract_geos(request)
+    census_tracts = TractFilters(request.GET, request=request).qs
 
     query = HMDARecord.objects.all()
     if institution_id:
@@ -42,7 +42,7 @@ def loan_originations(request):
         else:
             query = query.filter(institution=institution_selected)
 
-    if len(census_tracts) > 0:
+    if census_tracts.exists():
         query = query.filter(geo__in=census_tracts)
 
     if action_taken_param:

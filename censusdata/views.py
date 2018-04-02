@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 
 from .models import Census2010RaceStats,Census2010Households
-from geo.views import get_censustract_geos
+from geo.views import TractFilters
 from geo.models import Geo
 from hmda.views import loan_originations_as_json
 from respondents.models import Institution
@@ -211,11 +211,10 @@ def minority_aggregation_as_json(request):
 
 def race_summary(request):
     """Race summary statistics"""
-    geos = get_censustract_geos(request)
-    if len(geos) > 0:
-        query = Census2010RaceStats.objects.filter(geoid__in=geos)
-    else:
-        query = Census2010RaceStats.objects.all()
+    geos = TractFilters(request.GET, request=request).qs
+    query = Census2010RaceStats.objects.all()
+    if geos.exists():
+        query = query.filter(geoid__in=geos)
     return query
 
 def race_summary_as_json(request_dict):
@@ -246,7 +245,7 @@ def race_summary_csv(request):
     year = request.GET.get('year')
     if institution_id and metro: 
         lar_data = loan_originations_as_json(request)
-        tracts_in_msa = get_censustract_geos(request)
+        tracts_in_msa = TractFilters(request.GET, request=request).qs
         queryset = Census2010RaceStats.objects.filter(geoid__in=tracts_in_msa)
         file_name = 'HMDA-Census-Tract_Year%s_Lender%s_MSA%s.csv' % (year, institution_id, metro)
         response = HttpResponse(content_type='text/csv')
