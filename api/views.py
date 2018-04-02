@@ -6,8 +6,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 from censusdata.views import (
     race_summary_as_json, minority_aggregation_as_json)
 from geo.utils import check_bounds
-from geo.views import (
-    geo_as_json, get_geos_by_bounds_and_type, get_censustract_geos)
+from geo.views import get_geos_by_bounds_and_type
 from hmda.views import loan_originations_as_json
 from respondents.views import branch_locations_as_json
 
@@ -112,19 +111,6 @@ def census(request):
     tracts"""
     return HttpResponse(
         json.dumps(race_summary_as_json(request)),
-        content_type='application/json',
-    )
-
-
-def tractCentroids(request):
-    """This endpoint returns census tract centroids used to determine circle
-    position on map"""
-    geos = get_censustract_geos(request)
-    if geos is None:
-        return HttpResponseNotFound("Missing one of lat/lon bounds or metro")
-    tracts_geo_json = geo_as_json(geos)
-    return HttpResponse(
-        json.dumps(tracts_geo_json),
         content_type='application/json',
     )
 
