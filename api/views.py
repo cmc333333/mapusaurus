@@ -79,25 +79,6 @@ def tables_csv(request):
     return response
 
 
-def msas(request):
-    """return a list of MSA ids visible by bounding coordinates"""
-    try:
-        northEastLat = request.GET.get('neLat')
-        northEastLon = request.GET.get('neLon')
-        southWestLat = request.GET.get('swLat')
-        southWestLon = request.GET.get('swLon')
-        year = request.GET.get('year')
-        maxlat, minlon, minlat, maxlon = check_bounds(
-            northEastLat, northEastLon, southWestLat, southWestLon)
-        msas = get_geos_by_bounds_and_type(
-            maxlat, minlon, minlat, maxlon, year, metro=True)
-        msa_list = [metro.geoid for metro in msas]
-        return HttpResponse(
-            json.dumps(msa_list), content_type='application/json')
-    except:     # noqa - unsure what exceptions might be raised
-        return HttpResponseNotFound("Invalid lat/lon bounding coordinates")
-
-
 def hmda(request):
     """This endpoint returns hmda data using params from the request"""
     return HttpResponse(

@@ -9,6 +9,5 @@ urlpatterns = [
     url(r'^census/', views.census, name='census'),
     url(r'^tables/', views.tables, name='tables'),
     url(r'^tables_csv/', views.tables_csv, name='tables_csv'),
-    url(r'^msas/', views.msas, name='msas'),
     url(r'^branchLocations/', views.branch_locations, name='branchLocations'),
 ]

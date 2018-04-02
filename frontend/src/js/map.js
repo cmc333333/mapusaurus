@@ -211,9 +211,6 @@ $(document).ready(function(){
 
 });
 
-// Global variable to store the MSAMD codes for those MSAs on the map
-var msaArray = [];
-
 // Global object with methods to perform when the map moves.
 var moveEndAction = {};
 // Store the last action so we can check if it's different and reload data if required.
@@ -224,24 +221,6 @@ moveEndAction.selected = function(){
     } else { 
         initCalls(geoQueryType);
         oldEndAction = 'selected';   
-    }
-};
-// For All MSAs to be displayed, check to see what has already been loaded. If data present, skip load
-// otherwise continue to load all MSAs with the appropriate params.
-moveEndAction.all_msa = function(){
-    var oldMsaArray = msaArray.slice(0);
-    if( oldEndAction === 'all_msa'){
-        $.when( getMsasInBounds() ).done(function(data){
-            var intersect = _.difference(data, oldMsaArray);
-            if (intersect.length > 0 ){ // If the intersection is not the same, init
-                initCalls(geoQueryType);
-            } else if (intersect.length === 0){
-                console.log('No call required - MSAs are the same');
-            }
-        });
-    } else {
-        initCalls(geoQueryType);
-        oldEndAction = 'all_msa';
     }
 };
 
@@ -258,19 +237,13 @@ function initCalls(geoQueryType){
     if( gt === 'selected'){
         // run init with no bounds and no geo_type
         blockStuff();
-        $.when( getTractData(action, false, false) ).done( function(data1){
+        $.when(getTractData(action, false)).done( function(data1){
             init(data1);
-        });
-    } else if ( gt === 'all_msa'){
-        // run init with bounds and geo_type = msa
-        blockStuff();
-        $.when( getTractData(action, getBoundParams(), 'msa') ).done( function(data1){
-            init(data1);  
         });
     } else if ( gt === 'all'){
         // run init with bounds and geo_type = false
         blockStuff();
-        $.when( getTractData(action, getBoundParams(), false )).done( function(data1){
+        $.when(getTractData(action, getBoundParams())).done( function(data1){
             init(data1);
         });
     }
@@ -293,11 +266,6 @@ function init(data1){
     
     // Update the key with the correct circle size
     buildKeyCircles();
-
-    // Get list of MSAs and assign it to the global var
-    $.when( getMsasInBounds() ).done(function(data){
-        msaArray = data;
-    });
 
     // Unblock the user interface (remove gradient)
     $.unblockUI();
