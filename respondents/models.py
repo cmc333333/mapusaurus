@@ -153,7 +153,7 @@ class Institution(models.Model):
             return peer_list
         return type(self).objects.none()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
