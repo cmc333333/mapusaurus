@@ -57,6 +57,12 @@ def map(request, template):
         .first()
     metro = Geo.objects.filter(
         geo_type=Geo.METRO_TYPE, geoid=metro_selected).first()
+    # default to Chicago
+    context['map_center'] = {'centlat': 40, 'centlon': -74.50}
+    if metro:
+        context['geography_names'] = metro.name
+        context['map_center'] = {'centlat': metro.centlat,
+                                 'centlon': metro.centlon}
 
     context['report_list'] = report_list
     if lender:
