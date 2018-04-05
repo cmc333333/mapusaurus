@@ -52,16 +52,27 @@ class GeoSerializer(serializers.ModelSerializer):
         fields = ('geoid', 'geo_type', 'name', 'centlat', 'centlon', 'year')
 
 
+class SearchFilters(django_filters.FilterSet):
+    q = django_filters.CharFilter(method='filter_to_search_term')
+
+    class Meta:
+        model = Geo
+        fields = ('state', 'year')
+
+    def filter_to_search_term(self, queryset, name, value):
+        return queryset\
+            .annotate(similarity=TrigramSimilarity('name', value))\
+            .filter(similarity__gte=0.01)\
+            .order_by('-similarity')
+
+
 @api_view(['GET'])
-def search(request):
-    query_str = request.GET.get('q', '').strip()
-    year = request.GET.get('year', '').strip()
-    query = Geo.objects\
-        .filter(geo_type=Geo.METRO_TYPE, year=year)\
-        .annotate(similarity=TrigramSimilarity('name', query_str))\
-        .filter(similarity__gte=0.01)\
-        .order_by('-similarity')
-    query = query[:25]
-    results = GeoSerializer(query, many=True).data
+def search(request, geo_type):
+    queryset = SearchFilters(
+        request.GET,
+        queryset=Geo.objects.filter(geo_type=geo_type),
+        request=request
+    ).qs
+    results = GeoSerializer(queryset[:25], many=True).data
 
     return Response({'geos': results})

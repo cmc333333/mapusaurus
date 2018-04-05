@@ -1,3 +1,5 @@
+{% load geo_search %}
+
 <div id="map-aside-header__tabpanels" class="tabpanels">
     <div id="map-aside__msa-analysis" class="map-aside__msa-analysis">
         <div class="map-divider"><h6 class="tab-title">Analysis Themes</h6></div>
@@ -167,16 +169,7 @@
     <div id="map-aside__msa-search" class="map-aside__msa-search">
         <div class="map-divider"><h6 class="tab-title">MSA Search</h6></div>
         <div style="padding:10px">
-            <form action="{% url 'map' %}" method="GET">
-                
-                    <label for="geoid">Search and select a city:</label>
-                    <input type="text" id="geoid">
-                    <input type="hidden" name="lender" value="{{year}}{{ lender.agency_id }}{{ lender.respondent_id }}">
-                    <input type="hidden" id="year" name="year" value="{{year}}">
-                    <input type="hidden" id="msa-field" name="metro">
-                    <button type="submit" id="metro-search__submit" class="btn btn__disabled" disabled>Go to MSA</button>
-                
-            </form>            
+            {% geo_search lender.pk year %}
         </div>
 
     </div><!-- /.tabpanel -->

@@ -13,7 +13,7 @@ def test_search_name(client):
     call_command('loaddata', 'many_tracts', 'test_counties')
     mommy.make(Geo, geo_type=Geo.METRO_TYPE, name='Chicago', year=2013)
     result = client.get(
-        reverse('geo:search'),
+        reverse('geo:metro-search'),
         {'format': 'json', 'q': 'cago', 'year': '2013'},
     ).json()
     assert len(result['geos']) == 1
