@@ -39,3 +39,26 @@ def test_filter_to_metro():
 
     with pytest.raises(Http404):
         views.TractFilters({'metro': 'something-else', 'year': '2010'}).qs
+
+
+@pytest.mark.django_db
+def test_filter_to_county():
+    first = mommy.make(
+        Geo, geo_type=Geo.COUNTY_TYPE, state='11', county='111', year=2010)
+    second = mommy.make(
+        Geo, geo_type=Geo.COUNTY_TYPE, state='22', county='222', year=2010)
+    mommy.make(Geo, geo_type=Geo.COUNTY_TYPE, state='33', county='333',
+               year=2010)
+    mommy.make(Geo, geo_type=Geo.TRACT_TYPE, state='11', county='111',
+               year=2010, _quantity=1)
+    mommy.make(Geo, geo_type=Geo.TRACT_TYPE, state='22', county='222',
+               year=2010, _quantity=3)
+    mommy.make(Geo, geo_type=Geo.TRACT_TYPE, state='33', county='333',
+               year=2010, _quantity=5)
+
+    result = views.TractFilters({'county': second.pk, 'year': '2010'}).qs
+    assert result.count() == 3
+
+    result = views.TractFilters({'county': f"{first.pk},{second.pk}",
+                                 'year': '2010'}).qs
+    assert result.count() == 4

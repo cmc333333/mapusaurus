@@ -43,6 +43,7 @@ class Geo(models.Model):
                           ("geo_type", "maxlat", "maxlon", "year"),
                           ("geo_type", "centlat", "centlon", "year"),
                           ("geo_type", "cbsa", "year"),
+                          ("geo_type", "state", "county", "year"),
                           ("state", "year")]
 
     def update_from_geom(self):

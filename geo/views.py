@@ -1,6 +1,9 @@
+from urllib.parse import unquote
+
 import django_filters
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.decorators import api_view
@@ -24,6 +27,7 @@ class BoundarySerializer(serializers.Serializer):
 
 class TractFilters(django_filters.FilterSet):
     metro = django_filters.CharFilter(method='filter_to_metro')
+    county = django_filters.CharFilter(method='filter_to_county')
 
     class Meta:
         model = Geo
@@ -32,6 +36,16 @@ class TractFilters(django_filters.FilterSet):
     def filter_to_metro(self, queryset, name, value):
         msa = get_object_or_404(Geo, geo_type=Geo.METRO_TYPE, geoid=value)
         return queryset.filter(cbsa=msa.cbsa, year=msa.year)
+
+    def filter_to_county(self, queryset, name, value):
+        geoids = unquote(value).split(',')
+        counties = Geo.objects.filter(geo_type=Geo.COUNTY_TYPE,
+                                      geoid__in=geoids)
+        filter_clause = Q()
+        for county in counties:
+            filter_clause = filter_clause \
+                | Q(state=county.state, county=county.county, year=county.year)
+        return queryset.filter(filter_clause)
 
     @property
     def qs(self):
