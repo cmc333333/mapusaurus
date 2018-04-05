@@ -1,5 +1,3 @@
-from urllib.parse import unquote
-
 import django_filters
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.search import TrigramSimilarity
@@ -38,9 +36,8 @@ class TractFilters(django_filters.FilterSet):
         return queryset.filter(cbsa=msa.cbsa, year=msa.year)
 
     def filter_to_county(self, queryset, name, value):
-        geoids = unquote(value).split(',')
         counties = Geo.objects.filter(geo_type=Geo.COUNTY_TYPE,
-                                      geoid__in=geoids)
+                                      geoid__in=value.split(','))
         filter_clause = Q()
         for county in counties:
             filter_clause = filter_clause \

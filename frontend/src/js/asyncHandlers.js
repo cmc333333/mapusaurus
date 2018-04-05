@@ -27,6 +27,8 @@
             params.swLon = bounds.swLon;
         } else if (urlParam('metro')){
             params.metro = urlParam('metro');
+        } else if (urlParam('county')){
+            params.county = urlParam('county');
         } else {
             console.log("No metro or bounds provided");
         }

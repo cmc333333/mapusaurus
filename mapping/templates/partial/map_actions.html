@@ -97,7 +97,7 @@
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
+            {% elif metro %}
                 <div id="lender-peers" class="map-divider-minor">
                     <input type="checkbox" disabled=true /><h6 class="sub-header-name" style="display:inline-block">No Peers Available <span class="tooltipsy peer-component" title="Peers are institutions that have between 50% and 200% of {{lender.name}} LAR count, and and a similar percentage of overall FHA Applications in {{geography_names}}"><i class="cf-icon cf-icon-information-round"></i></span></h6>
                 </div>  
@@ -110,7 +110,7 @@
         <h6 class="tab-title">
           Reports
           <a
-            href="{% url 'reports:as_xls' %}?lender={{request.GET.lender}}&year={{request.GET.year}}&metro={{request.GET.metro}}"
+            href="{% url 'reports:as_xls' %}?lender={{request.GET.lender}}&year={{request.GET.year}}&county={{request.GET.county}}&metro={{request.GET.metro}}"
             target="_blank"
           ><span id="downloadTable" class="table-action cf-icon cf-icon-download"></span></a>
         </h6>

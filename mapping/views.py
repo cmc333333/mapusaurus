@@ -1,6 +1,6 @@
 import json
 from urllib.parse import urlencode
-from typing import Dict
+from typing import Any, Dict
 
 from django.core.exceptions import SuspiciousOperation
 from django.db import connection
@@ -39,6 +39,21 @@ def add_layer_attrs(context: Dict[str, any], year: int) -> None:
     context['base_layer_attrs'] = json.dumps(base_layers)
 
 
+def add_county_attrs(context: Dict[str, Any], county: str):
+    """Inject geography_names and calculate a center point for one or more
+    counties."""
+    counties = Geo.objects\
+        .filter(geo_type=Geo.COUNTY_TYPE, geoid__in=county.split(','))\
+        .order_by('name')
+    context['geography_names'] = ', '.join(geo.name for geo in counties)
+    county_count = counties.count()
+    if county_count:
+        context['map_center'] = {
+            'centlat': sum(geo.centlat for geo in counties) / county_count,
+            'centlon': sum(geo.centlon for geo in counties) / county_count,
+        }
+
+
 def map(request, template):
     """Display the map. If lender info is present, provide it to the
     template"""
@@ -63,6 +78,8 @@ def map(request, template):
         context['geography_names'] = metro.name
         context['map_center'] = {'centlat': metro.centlat,
                                  'centlon': metro.centlon}
+    elif 'county' in request.GET:
+        add_county_attrs(context, request.GET['county'])
 
     context['report_list'] = report_list
     if lender:
