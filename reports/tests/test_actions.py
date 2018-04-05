@@ -8,7 +8,7 @@ from respondents.models import Institution
 
 @pytest.mark.django_db
 def test_spotcheck_data(client):
-    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='1111')
+    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='1111', year=2000)
     tract = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
                        year=2000)
     lender = mommy.make(Institution, year=2000)

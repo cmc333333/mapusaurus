@@ -16,7 +16,7 @@ def test_valid_lender():
 
 @pytest.mark.django_db
 def test_spotcheck_data(client):
-    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='1111')
+    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='1111', year=1999)
     tract1, tract2 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
                                 year=1999, _quantity=2)
     lender1, lender2 = mommy.make(Institution, year=1999, _quantity=2)

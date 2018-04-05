@@ -11,27 +11,15 @@ def test_valid_metro(client):
     tract = mommy.make(Geo, geo_type=Geo.TRACT_TYPE)
     result = client.get('/reports/population-demographics/'
                         f'?year=2000&metro={tract.pk}')
-    assert result.status_code == 400
+    assert result.status_code == 404
     result = client.get('/reports/population-demographics/'
                         f'?year=2000&metro=12345')
-    assert result.status_code == 400
-    result = client.get(f'/reports/population-demographics/?year=2000')
-    assert result.status_code == 400
-
-
-@pytest.mark.django_db
-def test_valid_year(client):
-    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE)
-    result = client.get(f'/reports/population-demographics/?metro={metro.pk}')
-    assert result.status_code == 400
-    result = client.get('/reports/population-demographics/'
-                        f'?metro={metro.pk}&year=abcd')
-    assert result.status_code == 400
+    assert result.status_code == 404
 
 
 @pytest.mark.django_db
 def test_spotcheck_data(client):
-    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='12345')
+    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='12345', year=1990)
     tract1, tract2 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,
                                 year=1990, _quantity=2)
     other = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, year=1990)
