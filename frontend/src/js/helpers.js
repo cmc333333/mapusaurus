@@ -220,7 +220,7 @@
 
     // Gets non-hash URL parameters
     function urlParam(field) {
-        var url = window.location.search.replace('?', ''),
+        var url = decodeURIComponent(window.location.search.substr(1)),
             keyValueStrs = url.split('&'),
             pairs = _.map(keyValueStrs, function(keyValueStr) {
                 return keyValueStr.split('=');
