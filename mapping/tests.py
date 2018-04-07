@@ -10,8 +10,8 @@ from censusdata.models import Census2010Households
 from geo.models import Geo
 from hmda.models import HMDARecord, Year
 from mapping.models import Category, Layer
-from mapping.views import (add_layer_attrs, avg_per_thousand_households,
-                           make_download_url)
+from mapping.views import (add_county_attrs, add_layer_attrs,
+                           avg_per_thousand_households, make_download_url)
 from respondents.models import Institution
 
 
@@ -167,3 +167,30 @@ def test_avg_per_thousand_households():
     assert avg_per_thousand_households(lender1, metro) == (
         1000 * (11 + 17) / (1000 + 3000)
     )
+
+
+@pytest.mark.django_db
+def test_add_county_context_one():
+    county = mommy.make(Geo, geo_type=Geo.COUNTY_TYPE, name='Somewhere',
+                        centlat=1, centlon=2)
+    mommy.make(Geo, geo_type=Geo.COUNTY_TYPE)
+    context = {}
+    add_county_attrs(context, county.pk)
+
+    assert context['geography_names'] == 'Somewhere'
+    assert context['map_center'] == {'centlat': 1, 'centlon': 2}
+
+
+@pytest.mark.django_db
+def test_add_county_context_multiple():
+    county1 = mommy.make(Geo, geo_type=Geo.COUNTY_TYPE, name='Somewhere',
+                         centlat=1, centlon=2)
+    county2 = mommy.make(Geo, geo_type=Geo.COUNTY_TYPE, name='Else',
+                         centlat=3, centlon=4)
+    mommy.make(Geo, geo_type=Geo.COUNTY_TYPE)
+    context = {}
+    add_county_attrs(context, f'{county1.pk},{county2.pk}')
+
+    assert context['geography_names'] == 'Else, Somewhere'
+    assert context['map_center'] == {
+        'centlat': (1 + 3) / 2, 'centlon': (2 + 4) / 2}

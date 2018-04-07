@@ -11,71 +11,26 @@
     dataStore = {};
     dataStore.tracts = {};
     
-    // Get the census tracts that are in bounds for the current map view. Return a promise.
-    function getTractsInBounds(bounds, geoType){
-
-        $('#bubbles_loading').show();
-
-        // Create the appropriate URL path to return values
-        var endpoint = '/api/tractCentroids/', 
-            params = { year: selectedYear };
-
-        if( bounds && typeof bounds === 'object' ){
-            params.neLat = bounds.neLat;
-            params.neLon = bounds.neLon;
-            params.swLat = bounds.swLat;
-            params.swLon = bounds.swLon;
-        }
-
-        if( geoType ){
-            params.geoType = geoType;
-        }
-
-        if ( urlParam('metro') ){
-            params.metro = urlParam('metro');
-        } else {
-            console.log("No metro area provided");
-        }
-
-        // Set the lender parameter based on the current URL param
-        if ( urlParam('lender') ){
-            params['lender'] = urlParam('lender');
-        } else {
-            console.log(' Lender parameter is required.');
-            return false;
-        }
-
-        return $.ajax({
-            url: endpoint, data: params, traditional: true,
-            success: console.log('tract Get successful')
-        }).fail( function( status ){
-            console.log( 'no data was available at' + endpoint + '. status: ' + status );
-            // Unblock the user interface (remove gradient)
-            $.unblockUI();
-            isUIBlocked = false;
-        });
-
-    }    
-
     // Get minority and LAR data for census Tracts within the bounding box, for a specific criteria (actionTaken)
     // Return a promise.
-    function getTractData( actionTakenVal, bounds, geoType ){
+    function getTractData( actionTakenVal, bounds ){
         $('#bubbles_loading').show();
         var endpoint = '/api/hmda/',
             params = { year: selectedYear,
                         'lh': false,
-                        'peers': false,
-                        'geo_type': geoType };
+                        'peers': false };
 
         if( bounds && typeof bounds === 'object'){
             params.neLat = bounds.neLat;
             params.neLon = bounds.neLon;
             params.swLat = bounds.swLat;
             params.swLon = bounds.swLon;
-        }
-
-        if( geoType ){
-            params.geoType = geoType;
+        } else if (urlParam('metro')){
+            params.metro = urlParam('metro');
+        } else if (urlParam('county')){
+            params.county = urlParam('county');
+        } else {
+            console.log("No metro or bounds provided");
         }
 
         var hash = getHashParams();
@@ -92,12 +47,6 @@
         // Check to see if another year has been requested other than the default
         if ( urlParam('year') ){
             params.year = urlParam('year');
-        }
-
-        if ( urlParam('metro') ){
-            params.metro = urlParam('metro');
-        } else {
-            console.log("No metro area provided");
         }
 
         // Set the lender parameter based on the current URL param
@@ -128,32 +77,6 @@
         });
 
     }
-
-
-    // Get the Metro Areas currently shown on the map (used to check if we need to load new data on move)
-    function getMsasInBounds(){
-        var endpoint = '/api/msas/', 
-            params = { year: selectedYear },
-            bounds = getBoundParams();
-
-        params.neLat = bounds.neLat;
-        params.neLon = bounds.neLon;
-        params.swLat = bounds.swLat;
-        params.swLon = bounds.swLon;
-
-        return $.ajax({
-            url: endpoint, data: params, traditional: true,
-            success: function(data){
-                // console.log("MSA Data for bounds successfully obtained: ", data);
-            }
-        }).fail( function( status ){
-            console.log( 'no MSA data was available at' + endpoint + '. status: ' + status );
-            // Unblock the user interface (remove gradient)
-            $.unblockUI();
-            isUIBlocked = false;
-        });
-    }
-
 
     // Gets Branch Locations in bounds when a user selects "Branch Locations"
     // Returns a promise

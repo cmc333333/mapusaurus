@@ -48,8 +48,9 @@ function getTableData(reportName) {
   return $.ajax({
     url: '/reports/' + reportName + '/',
     data: {
+      county: urlParam('county') || '',
       lender: urlParam('lender') || '',
-      metro: (urlParam('metro') || ''),
+      metro: urlParam('metro') || '',
       year: urlParam('year') || '',
     },
     traditional: true,

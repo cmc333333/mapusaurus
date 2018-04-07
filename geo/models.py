@@ -1,7 +1,4 @@
-import json
-
 from django.contrib.gis.db import models
-from django.shortcuts import get_list_or_404
 
 
 class Geo(models.Model):
@@ -46,44 +43,8 @@ class Geo(models.Model):
                           ("geo_type", "maxlat", "maxlon", "year"),
                           ("geo_type", "centlat", "centlon", "year"),
                           ("geo_type", "cbsa", "year"),
+                          ("geo_type", "state", "county", "year"),
                           ("state", "year")]
-
-    def tract_centroids_as_geojson(self):
-        """Convert this model into a geojson string"""
-        geojson = {'type': 'Feature',
-                   'properties': {
-                       'geoid': self.geoid,
-                       'geoType': self.geo_type,
-                       'state': self.state,
-                       'county': self.county,
-                       'cbsa': self.cbsa,
-                       'centlat': self.centlat,
-                       'centlon': self.centlon}}
-        geojson = json.dumps(geojson)
-        return geojson
-
-    def tract_shape_as_geojson(self):
-        """Convert this model into a geojson string"""
-        geojson = {'type': 'Feature',
-                   'geometry': '$_$',   # placeholder
-                   'properties': {
-                       'geoid': self.geoid,
-                       'geoType': self.geo_type,
-                       'state': self.state,
-                       'county': self.county,
-                       'cbsa': self.cbsa,
-                       'centlat': self.centlat,
-                       'centlon': self.centlon}}
-        geojson = json.dumps(geojson)
-        return geojson.replace(
-            '"$_$"',
-            self.geom.simplify(preserve_topology=True).geojson)
-
-    def get_censustract_geos_by_msa(self):
-        """returns tracts associated with an MSA"""
-        tracts = get_list_or_404(Geo, geo_type=Geo.TRACT_TYPE,
-                                 cbsa=self.cbsa, year=self.year)
-        return tracts
 
     def update_from_geom(self):
         points = [point

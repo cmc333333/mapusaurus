@@ -4,9 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from webargs.djangoparser import parser
 
-from geo.models import Geo
+from geo.views import TractFilters
 from hmda.models import HMDARecord
-from reports.views.demographics import valid_metro
 from respondents.models import Institution
 
 
@@ -19,15 +18,13 @@ def valid_lender(lender: str) -> Institution:
 
 user_args = {
     'lender': webargs.fields.Function(deserialize=valid_lender, required=True),
-    'metro': webargs.fields.Function(deserialize=valid_metro, required=True),
 }
 
 
 def lar_query(request):
     args = parser.parse(user_args, request)
     return HMDARecord.objects.filter(
-        geo__geo_type=Geo.TRACT_TYPE,
-        geo__cbsa=args['metro'].cbsa,
+        geo__in=TractFilters(request.GET, request=request).qs,
         institution=args['lender'],
     )
 

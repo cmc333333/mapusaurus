@@ -1,13 +1,10 @@
 import json
 import csv
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import HttpResponse
 
-from censusdata.views import (
-    race_summary_as_json, minority_aggregation_as_json)
-from geo.utils import check_bounds
-from geo.views import (
-    geo_as_json, get_geos_by_bounds_and_type, get_censustract_geos)
+from censusdata.views import (race_summary_as_json,
+                              minority_aggregation_as_json)
 from hmda.views import loan_originations_as_json
 from respondents.views import branch_locations_as_json
 
@@ -80,25 +77,6 @@ def tables_csv(request):
     return response
 
 
-def msas(request):
-    """return a list of MSA ids visible by bounding coordinates"""
-    try:
-        northEastLat = request.GET.get('neLat')
-        northEastLon = request.GET.get('neLon')
-        southWestLat = request.GET.get('swLat')
-        southWestLon = request.GET.get('swLon')
-        year = request.GET.get('year')
-        maxlat, minlon, minlat, maxlon = check_bounds(
-            northEastLat, northEastLon, southWestLat, southWestLon)
-        msas = get_geos_by_bounds_and_type(
-            maxlat, minlon, minlat, maxlon, year, metro=True)
-        msa_list = [metro.geoid for metro in msas]
-        return HttpResponse(
-            json.dumps(msa_list), content_type='application/json')
-    except:     # noqa - unsure what exceptions might be raised
-        return HttpResponseNotFound("Invalid lat/lon bounding coordinates")
-
-
 def hmda(request):
     """This endpoint returns hmda data using params from the request"""
     return HttpResponse(
@@ -112,19 +90,6 @@ def census(request):
     tracts"""
     return HttpResponse(
         json.dumps(race_summary_as_json(request)),
-        content_type='application/json',
-    )
-
-
-def tractCentroids(request):
-    """This endpoint returns census tract centroids used to determine circle
-    position on map"""
-    geos = get_censustract_geos(request)
-    if geos is None:
-        return HttpResponseNotFound("Missing one of lat/lon bounds or metro")
-    tracts_geo_json = geo_as_json(geos)
-    return HttpResponse(
-        json.dumps(tracts_geo_json),
         content_type='application/json',
     )
 

@@ -1,25 +1,10 @@
 from collections import OrderedDict
 
-import webargs
 from django.db.models import Sum
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from webargs.djangoparser import parser
 
-from geo.models import Geo
-
-
-def valid_metro(metro: str) -> Geo:
-    geo = Geo.objects.filter(pk=metro, geo_type=Geo.METRO_TYPE).first()
-    if not geo:
-        raise webargs.ValidationError('Unknown metro')
-    return geo
-
-
-user_args = {
-    'metro': webargs.fields.Function(deserialize=valid_metro, required=True),
-    'year': webargs.fields.Int(required=True),
-}
+from geo.views import TractFilters
 
 _aggregates = OrderedDict()
 _aggregates['Total Population'] = Sum('census2010race__total_pop')
@@ -41,15 +26,8 @@ _aggregates['Females'] = Sum('census2010sex__female')
 @api_view()
 def demographics(request):
     """Demographic data about a particular metro."""
-    try:
-        args = parser.parse(user_args, request)
-    except webargs.ValidationError as err:
-        return Response(err.messages, status=400)
-
-    query_result = Geo.objects\
-        .filter(geo_type=Geo.TRACT_TYPE, cbsa=args['metro'].cbsa,
-                year=args['year'])\
-        .aggregate(**_aggregates)
+    tracts = TractFilters(request.GET, request=request).qs
+    query_result = tracts.aggregate(**_aggregates)
     total_pop = query_result['Total Population']
 
     rows = []

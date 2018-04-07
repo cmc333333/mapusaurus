@@ -4,8 +4,8 @@
         {% if lender %}
             <span class="peers-of-true hidden">Peers of </span></span><span><strong>{{ lender.name}}</strong> in <strong>{{ year }}</strong></span>
         {% endif %}
-        {% if metro %}
-            | <span class="msa-name">{{ metro.name }}</span>
+        {% if geography_names %}
+            | <span class="msa-name">{{ geography_names }}</span>
         {% endif %}
     </div>
 

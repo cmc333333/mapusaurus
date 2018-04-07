@@ -25,8 +25,12 @@ $(document).ready(function() {
             },
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
+                filter: function(resp) { return resp.institutions; },
+                prepare: function(query, settings) {
+                  settings.url = '/institutions/search/?auto=1&year=' + selectedYear + '&q=' + query;
+                  return settings;
+                },
                 url: '/institutions/search/?auto=1&year=' + selectedYear + '&q=%QUERY',
-                filter: function(resp) { return resp.institutions; }
             }
         });
 

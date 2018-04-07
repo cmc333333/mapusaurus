@@ -26,6 +26,7 @@ INSTALLED_APPS = (
     'django.contrib.postgres',
     'localflavor',
     'rest_framework',
+    'django_filters',
     'basestyle',
     'mapping',
     'respondents',
@@ -85,9 +86,12 @@ STATICFILES_DIRS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-    ],
+    ),
 }
 
 TEMPLATES = [{

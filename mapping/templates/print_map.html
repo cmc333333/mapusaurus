@@ -44,7 +44,7 @@
         </div>
         <div style="display:inline-block; position: relative; text-align: right; float:right;">
              <span class="peers-of-true hidden">Peers of </span><strong>{{ lender.name }}</strong> - {{ lender.agency_id }}{{ lender.respondent_id }}<br/>
-            <b>MSA:</b> {{ metro.name }}<br/>
+            <b>Geography:</b> {{ geography_names }}<br/>
             <b>Layer: </b><span id="minorityValue"></span><br/>
         </div>
         <div id="filterStatus" style="display:inline-block; vertical-align:top; top: 5px;"></div>
@@ -132,13 +132,7 @@
         // Disable tap handler, if present.
         if (map.tap) map.tap.disable();
         
-        // If we have a metro parameter, center the map on this lat / lon
-        {% if metro %}
-            map.setView(["{{metro.centlat}}", "{{metro.centlon}}"], 11);
-        {% else %}
-            // Otherwise, somewhere near Chicago for grins
-            map.setView([40, -74.50], 11);
-        {% endif %}
+        map.setView(["{{map_center.centlat}}", "{{map_center.centlon}}"], 11);
         
         // Using our modified Leaflet-Hash plugin, check to see if we need to move the map somewhere else.
         var hash = new L.Hash(map),

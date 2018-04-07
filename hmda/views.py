@@ -1,65 +1,94 @@
 import json
 
+import django_filters
+import webargs
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.http import HttpResponse
+from webargs.djangoparser import parser as webargs_parser
 
 from geo.models import Geo
-from geo.views import get_censustract_geos
-from hmda.models import HMDARecord
+from geo.views import TractFilters
+from hmda.models import ACTION_TAKEN_CHOICES, HMDARecord
 from respondents.models import Institution
 
 
-def loan_originations(request):
-    institution_id = request.GET.get('lender')
-    metro = request.GET.get('metro')
-    action_taken_param = request.GET.get('action_taken')
-    lender_hierarchy = request.GET.get('lh')
-    peers = request.GET.get('peers')
-    year = request.GET.get('year')
-    census_tracts = get_censustract_geos(request)
+class ChoiceInFilter(django_filters.BaseInFilter,
+                     django_filters.ChoiceFilter):
+    """We're renaming "action_taken__in", so have to explicitly create a
+    combined "In" and "Choice" filter."""
 
-    query = HMDARecord.objects.all()
-    if institution_id:
-        institution_selected = get_object_or_404(
-            Institution, pk=institution_id)
-        if lender_hierarchy == 'true':
-            hierarchy_list = institution_selected.get_lender_hierarchy(
-                False, False, year)
-            if len(hierarchy_list) > 0:
-                query = query.filter(institution__in=hierarchy_list)
-            else:
-                query = query.filter(institution=institution_selected)
-        elif peers == 'true' and metro:
-            metro_selected = Geo.objects.filter(
-                geo_type=Geo.METRO_TYPE, geoid=metro).first()
-            peer_list = institution_selected.get_peer_list(
-                metro_selected, True, False)
-            if peer_list.exists():
-                query = query.filter(institution__in=peer_list)
-            else:
-                query = query.filter(institution=institution_selected)
-        else:
-            query = query.filter(institution=institution_selected)
 
-    if len(census_tracts) > 0:
-        query = query.filter(geo__in=census_tracts)
+class LARFilters(django_filters.FilterSet):
+    action_taken = ChoiceInFilter(choices=ACTION_TAKEN_CHOICES,
+                                  lookup_expr='in')
+    year = django_filters.NumberFilter(name='as_of_year')
 
-    if action_taken_param:
-        action_taken_selected = action_taken_param.split(',')
-        if action_taken_selected:
-            query = query.filter(action_taken__in=action_taken_selected)
+    institution_args = {
+        'lender': webargs.fields.Function(
+            deserialize=lambda pk: get_object_or_404(Institution, pk=pk),
+            missing=None,
+        ),
+        'lh': webargs.fields.Bool(missing=False),
+        'metro': webargs.fields.Function(
+            deserialize=lambda pk: get_object_or_404(
+                Geo, pk=pk, geo_type=Geo.METRO_TYPE),
+            missing=None,
+        ),
+        'peers': webargs.fields.Bool(missing=False),
 
-    # count on geo_id
-    query = query.values(
-        'geo_id', 'geo__census2010households__total', 'geo__centlat',
-        'geo__centlon', 'geo__state', 'geo__county', 'geo__tract'
-    ).annotate(volume=Count('geo_id'))
-    return query
+    }
+
+    class Meta:
+        model = HMDARecord
+        fields = tuple()
+
+    @property
+    def qs(self):
+        queryset = super().qs\
+            .values(    # implicitly group by these fields
+                    'geo_id', 'geo__census2010households__total',
+                    'geo__centlat', 'geo__centlon', 'geo__state',
+                    'geo__county', 'geo__tract')\
+            .annotate(volume=Count('geo_id'))
+        queryset = self.filter_to_tracts(queryset)
+        queryset = self.filter_to_institutions(queryset)
+        return queryset
+
+    def filter_to_tracts(self, queryset):
+        tracts = TractFilters(
+            getattr(self.request, 'GET', {}),
+            request=self.request,
+        ).qs
+        return queryset.filter(geo__in=tracts)
+
+    def filter_to_institutions(self, queryset):
+        if not self.request:
+            return queryset
+
+        try:
+            args = webargs_parser.parse(self.institution_args, self.request)
+        except webargs.ValidationError as err:
+            return queryset
+
+        if args['lender']:
+            institutions = Institution.objects.filter(pk=args['lender'].pk)
+            if args['lh']:
+                hierarchy = args['lender'].get_lender_hierarchy(False, False)
+                if hierarchy.exists():
+                    institutions = hierarchy
+            elif args['peers'] and args['metro']:
+                peer_list = args['lender'].get_peer_list(
+                    args['metro'], True, False)
+                if peer_list.exists():
+                    institutions = peer_list
+            queryset = queryset.filter(institution__in=institutions)
+
+        return queryset
 
 
 def loan_originations_as_json(request):
-    records = loan_originations(request)
+    records = LARFilters(request.GET, request=request).qs
     data = {}
     if records:
         for row in records:
