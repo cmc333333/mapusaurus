@@ -15,15 +15,22 @@ from respondents.models import Institution
 params = {'lender': '201390000451965', 'metro': '49180'}
 request = HttpRequest()
 for param in params:
-    request.GET[param]=params[param]
+    request.GET[param] = params[param]
+
 
 class ViewsUtilitiesTests(TestCase):
-    fixtures = ['agency', 'fake_msa', 'api_tracts', 'test_counties', 'fake_respondents']
+    fixtures = ['agency', 'fake_msa', 'api_tracts', 'test_counties',
+                'fake_respondents']
 
     def test_minority_aggregation_as_json(self):
         """should return a dict of 5 dicts returning minority values"""
         keys = ['counties', 'msa']
-        lender_keys = ['hma_pct', 'lma_pct', 'mma_pct', 'lma', 'mma', 'hma', 'lar_total', 'peer_hma_pct', 'peer_lma_pct', 'peer_mma_pct', 'peer_lma', 'peer_mma', 'peer_hma', 'peer_lar_total', 'odds_lma', 'odds_mma', 'odds_hma']
+        lender_keys = [
+            'hma_pct', 'lma_pct', 'mma_pct', 'lma', 'mma', 'hma', 'lar_total',
+            'peer_hma_pct', 'peer_lma_pct', 'peer_mma_pct', 'peer_lma',
+            'peer_mma', 'peer_hma', 'peer_lar_total', 'odds_lma', 'odds_mma',
+            'odds_hma',
+        ]
         result_dict = minority_aggregation_as_json(request)
         self.assertTrue(isinstance(result_dict, dict))
         for key in keys:
@@ -35,10 +42,12 @@ class ViewsUtilitiesTests(TestCase):
         self.assertIsNone(result_dict['msa']['odds_lma'])
 
     def test_assemble_stats(self):
-        """should calculate and return a dict of lender loan totals by minority area"""
+        """Should calculate and return a dict of lender loan totals by
+        minority area"""
         lar_data = loan_originations_as_json(request)
-        lender = Institution.objects.get(institution_id=request.GET.get('lender'))
-        metro = Geo.objects.get(geo_type=Geo.METRO_TYPE, geoid=request.GET.get('metro'))
+        lender = Institution.objects.get(institution_id=request.GET['lender'])
+        metro = Geo.objects.get(geo_type=Geo.METRO_TYPE,
+                                geoid=request.GET['metro'])
         peer_request = HttpRequest()
         peer_request.GET['lender'] = lender.institution_id
         peer_request.GET['metro'] = metro.geoid
