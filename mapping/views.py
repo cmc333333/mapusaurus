@@ -84,7 +84,7 @@ def map(request, template):
     context['report_list'] = report_list
     if lender:
         context['lender'] = lender
-        hierarchy_list = lender.get_lender_hierarchy(True, True, year_selected)
+        hierarchy_list = lender.get_lender_hierarchy(True, True)
         context['institution_hierarchy'] = hierarchy_list
     if metro:
         context['metro'] = metro

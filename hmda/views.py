@@ -36,7 +36,6 @@ class LARFilters(django_filters.FilterSet):
             missing=None,
         ),
         'peers': webargs.fields.Bool(missing=False),
-        'year': webargs.fields.Int(),
 
     }
 
@@ -75,8 +74,7 @@ class LARFilters(django_filters.FilterSet):
         if args['lender']:
             institutions = Institution.objects.filter(pk=args['lender'].pk)
             if args['lh']:
-                hierarchy = args['lender'].get_lender_hierarchy(
-                    False, False, args['year'])
+                hierarchy = args['lender'].get_lender_hierarchy(False, False)
                 if hierarchy.exists():
                     institutions = hierarchy
             elif args['peers'] and args['metro']:
