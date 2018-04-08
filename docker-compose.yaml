@@ -22,7 +22,18 @@ services:
       PYTHONUNBUFFERED: "1"
       USING_SSL: "False"
     command: .docker/wait_for_db_then pipenv run .docker/start_server.sh
+  proxy:
+    image: nginx:1.13-alpine
+    volumes:
+    - .docker/nginx.conf.tpl:/etc/nginx/nginx.conf.tpl:ro
+    - .docker/start_proxy.sh:/usr/sbin/start_proxy.sh
     ports:
     - 8000:8000
+    depends_on:
+    - app
+    environment:
+      NGINX_HOST: ${NGINX_HOST:-localhost}
+    command: start_proxy.sh
+
 volumes:
   data:
