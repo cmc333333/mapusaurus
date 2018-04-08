@@ -63,11 +63,14 @@
                 </div>
 
             </div>
-            <div id="lender-branches" class="map-divider-minor">
-                <input type="checkbox" id="branchSelect" style="display:inline-block"/><h6 class="sub-header-name" style="display:inline-block">Show Branch Locations <span class="tooltipsy branch-component" title="Locations are only shown for {{lender.name}} and will not include peers or affiliates"><i class="cf-icon cf-icon-information-round"></i></span></h6> 
-            </div>  
 
-            {% if institution_hierarchy.count > 0 %}       
+            {% if lender.branch_set.exists %}
+              <div id="lender-branches" class="map-divider-minor">
+                  <input type="checkbox" id="branchSelect" style="display:inline-block"/><h6 class="sub-header-name" style="display:inline-block">Show Branch Locations <span class="tooltipsy branch-component" title="Locations are only shown for {{lender.name}} and will not include peers or affiliates"><i class="cf-icon cf-icon-information-round"></i></span></h6>
+              </div>
+            {% endif %}
+
+            {% if institution_hierarchy.exists %}
                 <div id="lender-affiliates" class="map-divider-minor">
                     <input type="checkbox" id="superSelect" style="display:inline-block"/><h6 class="sub-header-name" style="display:inline-block">Include Parent/Affiliate LAR</h6>
                 </div>
@@ -79,10 +82,6 @@
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div id="lender-affiliates" class="map-divider-minor">
-                    <input type="checkbox" disabled=true style="display:inline-block"/><h6 class="sub-header-name" style="display:inline-block">No Parents / Affiliates</h6>
-                </div>                
             {% endif %}
 
             {% if institution_peers.count > 0 %}
