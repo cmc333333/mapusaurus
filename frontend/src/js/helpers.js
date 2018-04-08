@@ -212,7 +212,7 @@
       var layerName = layer.substr('layer_'.length);
       return {
         displayName: layerAttrs[layerName].name,
-        keyPath: '/static/basestyle/img/key_' + layerName + '.png',
+        keyPath: '/static/basestyle/img/key_' + layerName + '.svg',
         layer: layers[layerName],
         type: 'seq',
       };
