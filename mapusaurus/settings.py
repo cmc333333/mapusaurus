@@ -25,6 +25,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'django.contrib.postgres',
     'localflavor',
+    'analytical',
     'rest_framework',
     'django_filters',
     'basestyle',
@@ -134,3 +135,6 @@ MAPBOX_TOKEN = os.environ.get(
     'MAPBOX_TOKEN',
     'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
 )
+
+GOOGLE_ANALYTICS_ANONYMIZE_IP = True
+GOOGLE_ANALYTICS_SITE_SPEED = True
