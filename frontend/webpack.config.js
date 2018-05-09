@@ -1,8 +1,19 @@
 const path = require('path');
 
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 const projRoot = path.resolve(__dirname, '..');
+
+function recursiveIssuer(m) {
+  if (m.issuer) {
+    return recursiveIssuer(m.issuer);
+  } else if (m.name) {
+    return m.name;
+  } else {
+    return false;
+  }
+}
 
 module.exports = [
   {
@@ -12,25 +23,39 @@ module.exports = [
       'base': './src/less/base.less',
       'map': './src/less/map.less',
     },
-    output: {
-      filename: '[name].min.css',
-      path: path.resolve(projRoot, 'frontend/out/'),
-    },
     plugins: [
-      new ExtractTextPlugin('[name].min.css'),
+      new MiniCssExtractPlugin({ filename: '[name].min.css' }),
     ],
+    optimization: {
+      minimizer: [
+        new OptimizeCSSAssetsPlugin({}),
+      ],
+      splitChunks: {
+        cacheGroups: {
+          baseStyles: {
+            name: 'baseStyles',
+            test: (m, c, entry = 'base') => m.constructor.name === 'CssModule' && recursiveIssuer(m) === entry,
+            chunks: 'all',
+            enforce: true,
+          },
+          mapStyles: {
+            name: 'mapStyles',
+            test: (m, c, entry = 'map') => m.constructor.name === 'CssModule' && recursiveIssuer(m) === entry,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      },
+    },
     module: {
       rules: [
         {
           test: /\.less$/,
-          use: ExtractTextPlugin.extract({
-            fallback: 'style-loader',
-            use: [
-              { loader: 'css-loader',
-                options: { minimize: true, sourceMap: true } },
-              { loader: 'less-loader', options: { sourceMap: true } },
-            ],
-          }),
+          use: [
+            MiniCssExtractPlugin.loader,
+            'css-loader',
+            'less-loader',
+          ],
         },
         {
           test: /\.(jpe?g|png|gif|svg|eot|ttf|woff2?)$/i,

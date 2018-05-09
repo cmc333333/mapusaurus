@@ -83,7 +83,7 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'out')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'out'),
+    os.path.join(BASE_DIR, 'frontend', 'dist'),
 ]
 
 REST_FRAMEWORK = {

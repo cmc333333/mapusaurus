@@ -4,6 +4,6 @@ set -e
 docker run\
   --rm -it\
   --volume $PWD:/app\
-  --workdir /app/frontend\
-  --entrypoint npm\
+  --workdir /app\
+  --entrypoint node_modules/.bin/webpack\
   node:8 "$@"
