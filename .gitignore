@@ -11,7 +11,6 @@ __pycache__/
 env/
 build/
 develop-eggs/
-dist/
 eggs/
 parts/
 sdist/
@@ -67,7 +66,6 @@ Thumbs.db
 # Front End
 frontend/node_modules
 frontend/bower_components
-frontend/dist
 *.js.map
 
 .venv

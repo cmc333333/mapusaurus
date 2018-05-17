@@ -1,0 +1,22 @@
+{% load analytical staticfiles %}<!DOCTYPE html>
+<html lang="en" style="height: 100%; overflow-y: auto;">
+  <head>
+    {% analytical_head_top %}
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>{{ APP_TITLE }}</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel="stylesheet" href="{% static 'new-map-style.css' %}" />
+    {% analytical_head_bottom %}
+  </head>
+  <body style="height: 100%;">
+    {% analytical_body_top %}
+    <div id="spa" style="height: 100%;">
+    <script type="text/javascript">
+      window['__MAPBOX_TOKEN__'] = '{{ MAPBOX_TOKEN }}';
+      window['__MAPBOX_STYLE__'] = '{{ MAPBOX_STYLE }}';
+    </script>
+    <script type="text/javascript" src="{% static 'new-map.js' %}"></script>
+    {% analytical_body_bottom %}
+  </body>
+</html>
