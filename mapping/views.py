@@ -2,6 +2,7 @@ import json
 from urllib.parse import urlencode
 from typing import Any, Dict
 
+from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.db import connection
 from django.db.models.query import Prefetch, QuerySet
@@ -179,3 +180,11 @@ def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
                        (lender.pk, Geo.TRACT_TYPE, metro.cbsa, metro.year))
         num_loans = cursor.fetchone()[0]
     return num_loans * 1000 / num_households
+
+
+def single_page_app(request):
+    """This page is managed almost exclusively by React"""
+    return render(request, 'new-map.html', {
+        'MAPBOX_TOKEN': settings.MAPBOX_TOKEN,
+        'MAPBOX_STYLE': settings.MAPBOX_STYLE,
+    })

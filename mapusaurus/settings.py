@@ -135,6 +135,10 @@ MAPBOX_TOKEN = os.environ.get(
     'MAPBOX_TOKEN',
     'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
 )
+MAPBOX_STYLE = os.environ.get(
+    'MAPBOX_STYLE',
+    'cmc333333/cji0srvay07792rpi58zl0tvc',
+)
 
 GOOGLE_ANALYTICS_ANONYMIZE_IP = True
 GOOGLE_ANALYTICS_SITE_SPEED = True
