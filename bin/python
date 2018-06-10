@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-docker-compose run --rm app .docker/wait_for_db_then pipenv run python "$@"
+docker-compose run --rm -T app .docker/wait_for_db_then pipenv run python "$@"
