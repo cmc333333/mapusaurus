@@ -7,12 +7,11 @@ export function deserialize(hash: string): Store {
   const parsed = queryString.parse(hash);
   return {
     allLayers: [],
-    lat: parseFloat(parsed.lat) || 41.8,
-    lon: parseFloat(parsed.lon) || -87.6,
-    mapboxKey: window['__MAPBOX_TOKEN__'],
-    mapboxStyle: window['__MAPBOX_STYLE__'],
-    visibleLayers: Set(),
-    zoom: parseInt(parsed.zoom, 10) || 13,
+    lat: parseFloat(parsed.lat),
+    lon: parseFloat(parsed.lon),
+    spaConfig: window['__SPA_CONFIG__'],
+    visibleLayers: Set<string>(),
+    zoom: parseInt(parsed.zoom, 10),
   };
 }
 
