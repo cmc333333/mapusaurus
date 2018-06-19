@@ -2,7 +2,8 @@ import glamorous from 'glamorous';
 import * as React from 'react';
 
 import Map from './Map';
-import Sidebar from './Sidebar';
+import ChoroplethSelection from './sidebar/ChoroplethSelection';
+import FeatureSelection from './sidebar/FeatureSelection';
 
 export default function SPA() {
   return (
@@ -13,10 +14,11 @@ export default function SPA() {
         display="inline-block"
         float="left"
         height="100%"
-        overflowY="scroll"
+        overflowY="auto"
         width="300px"
       >
-        <Sidebar />
+        <ChoroplethSelection />
+        <FeatureSelection />
       </glamorous.Aside>
       <glamorous.Div
         marginLeft="300px"

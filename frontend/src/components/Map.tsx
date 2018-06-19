@@ -11,8 +11,8 @@ export function Map({
   changeViewport,
   lat,
   lon,
-  mapboxKey,
   mapConfig,
+  spaConfig,
   zoom,
 }) {
   if (!mapConfig) {
@@ -22,7 +22,7 @@ export function Map({
   return (
     <ReactMapGL
       attributionControl={false}
-      mapboxApiAccessToken={mapboxKey}
+      mapboxApiAccessToken={spaConfig.token}
       width={window.innerWidth - 300}
       height={window.innerHeight}
       latitude={lat}
@@ -45,11 +45,11 @@ export function Map({
   );
 }
 export default connect(
-  ({ lat, lon, mapboxKey, mapConfig, zoom }: Store) => ({
+  ({ lat, lon, mapConfig, spaConfig, zoom }: Store) => ({
     lat,
     lon,
-    mapboxKey,
     mapConfig,
+    spaConfig,
     zoom,
   }),
   (dispatch) => bindActionCreators({ changeViewport }, dispatch),
