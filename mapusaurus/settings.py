@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'hmda',
     'api',
     'reports',
+    'ncrc',
 )
 
 MIDDLEWARE = (
@@ -130,15 +131,50 @@ LOGGING = {
     },
 }
 
+
 APP_TITLE = 'Redlining Risk Assessment Mapper'
-MAPBOX_TOKEN = os.environ.get(
-    'MAPBOX_TOKEN',
-    'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
-)
-MAPBOX_STYLE = os.environ.get(
-    'MAPBOX_STYLE',
-    'cmc333333/cji0srvay07792rpi58zl0tvc',
-)
+SPA_CONFIG = {
+    'token': os.environ.get(
+        'MAPBOX_TOKEN',
+        'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
+    ),
+    'style': os.environ.get(
+        'MAPBOX_STYLE',
+        'cmc333333/cji0srvay07792rpi58zl0tvc',
+    ),
+    'choropleth': [
+        {'id': 'gentrification', 'name': 'Gentrification'},
+        {'id': 'income', 'name': 'Income'},
+        {'id': 'msa-minority', 'name': 'Higher Minority than MSA Avg'},
+        {'id': 'minority-fifty', 'name': '50% Minority'},
+    ],
+    'features': [
+        {
+            'name': 'Places',
+            'ids': ['country-label', 'state-label', 'place-city-label-major',
+                    'place-city-label-minor',
+                    'place-town-village-hamlet-label',
+                    'place-neighborhood-suburb-label', 'admin-country',
+                    'admin-country-disputed', 'admin-state-province'],
+        },
+        {
+            'name': 'Landmarks',
+            'ids': ['airport-label', 'poi-label', 'aeroway-polygon',
+                    'building'],
+        },
+        {
+            'name': 'Roads',
+            'ids': ['road-label', 'bridge', 'bridge-case', 'road', 'tunnel',
+                    'pedestrian-path', 'aeroway-line'],
+        },
+        {
+            'name': 'Geography',
+            'ids': ['water', 'waterway', 'landuse', 'national_park',
+                    'background'],
+        },
+    ],
+}
+MAPBOX_TOKEN = SPA_CONFIG['token']
 
 GOOGLE_ANALYTICS_ANONYMIZE_IP = True
 GOOGLE_ANALYTICS_SITE_SPEED = True
