@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import typography from '../../util/typography';
 
-import { showLayer, Store } from '../../store';
+import { selectChoropleth } from '../../store/actions';
+import { Store } from '../../store/store';
 
 const MenuLi = glamorous.li({
   borderBottom: 'solid 1px black',
@@ -24,36 +25,34 @@ const MenuA = glamorous.a<{ active?: boolean }>(
   }),
 );
 
-function LayerLinkComponent({ isVisible, name, showLayer }) {
-  const clickShowLayer = (ev) => {
+function LayerLinkComponent({ isVisible, layer, selectChoropleth }) {
+  const clickChoropleth = (ev) => {
     ev.preventDefault();
-    showLayer();
+    selectChoropleth();
   }
   return (
     <MenuLi>
-      <MenuA active={isVisible} href="#" onClick={clickShowLayer}>
-        { name }
+      <MenuA active={isVisible} href="#" onClick={clickChoropleth}>
+        { layer.name }
       </MenuA>
     </MenuLi>
   );
 }
 const LayerLink = connect(
-  ({ visibleLayers }: Store, { layerId }) =>
-    ({ isVisible: visibleLayers.has(layerId) }),
-  (dispatch, { layerId }) => ({ 
-    showLayer: () => dispatch(showLayer(layerId)),
+  ({ visibleLayers }: Store, { layer }) =>
+    ({ isVisible: visibleLayers.has(layer.id) }),
+  (dispatch, { layer }) => ({
+    selectChoropleth: () => dispatch(selectChoropleth(layer.id)),
   }),
 )(LayerLinkComponent);
 
-export function ChoroplethSelection({ spaConfig }) {
+export function ChoroplethSelection({ choropleths }) {
   return (
     <glamorous.Ul margin="0">
-      { spaConfig.choropleth.map(l =>
-          <LayerLink key={l.id} layerId={l.id} name={l.name} />) 
-      }
+      { choropleths.map(layer => <LayerLink key={layer.id} layer={layer} />) }
     </glamorous.Ul>
   );
 }
 export default connect(
-  ({ spaConfig }: Store) => ({ spaConfig })
+  ({ config: { choropleths } }: Store) => ({ choropleths })
 )(ChoroplethSelection);
