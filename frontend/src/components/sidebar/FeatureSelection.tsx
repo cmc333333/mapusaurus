@@ -3,7 +3,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import typography from '../../util/typography';
 
-import { addLayers, removeLayers, Store } from '../../store';
+import { addLayers, removeLayers } from '../../store/actions';
+import { Store } from '../../store/store';
 
 function FeatureInputComponent({ addLayers, checked, feature, removeLayers }) {
   return (
@@ -35,15 +36,13 @@ const FeatureInput = connect(
   }),
 )(FeatureInputComponent);
 
-export function FeatureSelection({ spaConfig }) {
+export function FeatureSelection({ features }) {
   return (
     <glamorous.Ul margin="0">
-      { spaConfig.features.map(f =>
-          <FeatureInput key={f.name} feature={f} />)
-      }
+      { features.map(f => <FeatureInput key={f.name} feature={f} />) }
     </glamorous.Ul>
   );
 }
 export default connect(
-  ({ spaConfig }: Store) => ({ spaConfig })
+  ({ config: { features } }: Store) => ({ features })
 )(FeatureSelection);

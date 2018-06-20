@@ -137,11 +137,11 @@ SPA_CONFIG = {
         'MAPBOX_TOKEN',
         'pk.eyJ1IjoiY2ZwYiIsImEiOiJodmtiSk5zIn0.VkCynzmVYcLBxbyHzlvaQw',
     ),
-    'style': os.environ.get(
+    'styleName': os.environ.get(
         'MAPBOX_STYLE',
         'cmc333333/cji0srvay07792rpi58zl0tvc',
     ),
-    'choropleth': [
+    'choropleths': [
         {'id': 'gentrification', 'name': 'Gentrification'},
         {'id': 'income', 'name': 'Income'},
         {'id': 'msa-minority', 'name': 'Higher Minority than MSA Avg'},

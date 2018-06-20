@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 
 import SPA from './components/SPA';
-import reducer from './store';
+import reducer from './store/reducer';
 import { fetchLayerData } from './util/apis';
 import * as hash from './util/hash';
 import typography from './util/typography';
