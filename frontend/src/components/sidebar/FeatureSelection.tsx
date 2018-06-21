@@ -1,10 +1,10 @@
-import glamorous from 'glamorous';
-import * as React from 'react';
-import { connect } from 'react-redux';
-import typography from '../../util/typography';
+import glamorous from "glamorous";
+import * as React from "react";
+import { connect } from "react-redux";
+import typography from "../../util/typography";
 
-import { addLayers, removeLayers } from '../../store/actions';
-import { Store } from '../../store/store';
+import { addLayers, removeLayers } from "../../store/actions";
+import { Store } from "../../store/store";
 
 function FeatureInputComponent({ addLayers, checked, feature, removeLayers }) {
   return (
@@ -22,7 +22,7 @@ function FeatureInputComponent({ addLayers, checked, feature, removeLayers }) {
           onChange={checked ? removeLayers : addLayers}
           type="checkbox"
         />
-        { feature.name }
+        {feature.name}
       </glamorous.Label>
     </glamorous.Li>
   );
@@ -39,10 +39,10 @@ const FeatureInput = connect(
 export function FeatureSelection({ features }) {
   return (
     <glamorous.Ul margin="0">
-      { features.map(f => <FeatureInput key={f.name} feature={f} />) }
+      {features.map(f => <FeatureInput key={f.name} feature={f} />)}
     </glamorous.Ul>
   );
 }
 export default connect(
-  ({ config: { features } }: Store) => ({ features })
+  ({ config: { features } }: Store) => ({ features }),
 )(FeatureSelection);

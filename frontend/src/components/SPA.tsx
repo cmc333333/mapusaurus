@@ -1,9 +1,9 @@
-import glamorous from 'glamorous';
-import * as React from 'react';
+import glamorous from "glamorous";
+import * as React from "react";
 
-import Map from './Map';
-import ChoroplethSelection from './sidebar/ChoroplethSelection';
-import FeatureSelection from './sidebar/FeatureSelection';
+import Map from "./Map";
+import ChoroplethSelection from "./sidebar/ChoroplethSelection";
+import FeatureSelection from "./sidebar/FeatureSelection";
 
 export default function SPA() {
   return (
