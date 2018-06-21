@@ -1,12 +1,12 @@
-import glamorous from 'glamorous';
-import * as React from 'react';
-import ReactMapGL, { NavigationControl } from 'react-map-gl';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import glamorous from "glamorous";
+import * as React from "react";
+import ReactMapGL, { NavigationControl } from "react-map-gl";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 
-import { changeViewport } from '../store/actions';
-import { mapboxStyleSelector, Store } from '../store/store';
-import typography from '../util/typography';
+import { changeViewport } from "../store/actions";
+import { mapboxStyleSelector, Store } from "../store/store";
+import typography from "../util/typography";
 
 export function Map({ changeViewport, config, mapStyle, viewport }) {
   if (!mapStyle) {
@@ -43,5 +43,5 @@ export default connect(
     mapStyle: mapboxStyleSelector(store),
     viewport: store.viewport,
   }),
-  (dispatch) => bindActionCreators({ changeViewport }, dispatch),
+  dispatch => bindActionCreators({ changeViewport }, dispatch),
 )(Map);

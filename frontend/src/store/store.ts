@@ -1,29 +1,29 @@
-import { Set } from 'immutable';
-import { createSelector } from 'reselect';
+import { Set } from "immutable";
+import { createSelector } from "reselect";
 
 export interface Viewport {
-  latitude: number,
-  longitude: number,
-  zoom: number,
+  latitude: number;
+  longitude: number;
+  zoom: number;
 }
 
 export interface MapboxStyle {
-  center: number[],
-  layers: { id: string }[],
-  zoom: number,
-};
+  center: number[];
+  layers: { id: string }[];
+  zoom: number;
+}
 
-export type Store = {
+export interface Store {
   config: {
     choropleths: { id: string, name: string }[],
     features: { name: string, ids: Set<string> }[],
     style?: MapboxStyle,
     styleName: string,
     token: string,
-  },
-  viewport: Viewport,
-  visibleLayers: Set<string>,
-};
+  };
+  viewport: Viewport;
+  visibleLayers: Set<string>;
+}
 
 export const mapboxStyleSelector = createSelector(
   (state: Store) => state.config.style,
