@@ -1,0 +1,104 @@
+# Reusable definitions
+generic: &GENERIC
+  docker:
+  - image: node:8
+ui: &UI
+  <<: *GENERIC
+  working_directory: /app/frontend
+api: &API
+  docker:
+  - image: python:3.6.4
+  - image: mdillon/postgis:10-alpine
+  working_directory: /app
+  environment:
+    DATABASE_URL: postgis://postgres@localhost/postgres
+    DEBUG: "true"
+    PIPENV_SHELL_FANCY: "true"
+    PIPENV_VENV_IN_PROJECT: "true"
+    PYTHONUNBUFFERED: "1"
+
+
+version: 2
+jobs:
+  get-code:
+    <<: *GENERIC
+    steps:
+    - checkout:
+        path: /app/
+    - persist_to_workspace:
+        root: /app/
+        paths: ['*']
+  api-deps:
+    <<: *API
+    steps:
+    - attach_workspace:
+        at: /app/
+    - restore_cache:
+        key: api-{{ checksum "Pipfile.lock" }}
+    - run:
+        name: Install API Dependencies
+        command: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pipenv install --dev
+    - save_cache:
+        key: api-{{ checksum "Pipfile.lock" }}
+        paths: [".venv"]
+    - persist_to_workspace:
+        root: /app/
+        paths: [".venv"]
+  api-tests:
+    <<: *API
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run:
+        name: Py.test
+        command: |
+          . .venv/bin/activate
+          pytest
+
+  ui-deps:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - restore_cache:
+        key: ui-{{ checksum "package-lock.json" }}
+    - run:
+        name: Install UI Dependencies
+        command: npm install
+    - save_cache:
+        key: ui-{{ checksum "package-lock.json" }}
+        paths: ["node_modules"]
+    - persist_to_workspace:
+        root: /app/
+        paths: ["frontend/node_modules"]
+  ui-lint:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm run lint
+  ui-build:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm run build-dist
+
+workflows:
+  version: 2
+  all:
+    jobs:
+    - get-code
+    - api-deps:
+        requires: ["get-code"]
+    - ui-deps:
+        requires: ["get-code"]
+    - api-tests:
+        requires: ["api-deps"]
+    - ui-lint:
+        requires: ["ui-deps"]
+    - ui-build:
+        requires: ["ui-deps"]
