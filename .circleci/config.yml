@@ -1,62 +1,46 @@
 # Reusable definitions
-generic: &GENERIC
+generic: &UI
   docker:
   - image: node:8
-ui: &UI
-  <<: *GENERIC
   working_directory: /app/frontend
-api: &API
-  docker:
-  - image: python:3.6.4
-  - image: mdillon/postgis:10-alpine
-  working_directory: /app
-  environment:
-    DATABASE_URL: postgis://postgres@localhost/postgres
-    DEBUG: "true"
-    PIPENV_SHELL_FANCY: "true"
-    PIPENV_VENV_IN_PROJECT: "true"
-    PYTHONUNBUFFERED: "1"
 
 
 version: 2
 jobs:
   get-code:
-    <<: *GENERIC
+    <<: *UI
     steps:
     - checkout:
         path: /app/
     - persist_to_workspace:
         root: /app/
         paths: ['*']
-  api-deps:
-    <<: *API
-    steps:
-    - attach_workspace:
-        at: /app/
-    - restore_cache:
-        key: api-{{ checksum "Pipfile.lock" }}
-    - run:
-        name: Install API Dependencies
-        command: |
-          python -m venv .venv
-          . .venv/bin/activate
-          pipenv install --dev
-    - save_cache:
-        key: api-{{ checksum "Pipfile.lock" }}
-        paths: [".venv"]
-    - persist_to_workspace:
-        root: /app/
-        paths: [".venv"]
+
   api-tests:
-    <<: *API
+    docker:
+    - image: python:3.6.4
+    - image: mdillon/postgis:10-alpine
+    environment:
+      DATABASE_URL: postgis://postgres@localhost/postgres
+      DEBUG: "true"
+      PYTHONUNBUFFERED: "1"
+    working_directory: /app
     steps:
     - attach_workspace:
         at: /app/
+    - run:
+        name: Install system dependencies
+        command: |
+          apt-get update
+          apt-get install binutils libproj-dev gdal-bin libgeoip1 python3-gdal -y
+          apt-get autoremove -y
+          rm -rf /var/lib/apt/lists/*
+          rm -rf /var/cache/apt/*
+          pip install certifi pipenv
+    - run: pipenv sync --dev
     - run:
         name: Py.test
-        command: |
-          . .venv/bin/activate
-          pytest
+        command: pipenv run pytest
 
   ui-deps:
     <<: *UI
@@ -92,12 +76,10 @@ workflows:
   all:
     jobs:
     - get-code
-    - api-deps:
+    - api-tests:
         requires: ["get-code"]
     - ui-deps:
         requires: ["get-code"]
-    - api-tests:
-        requires: ["api-deps"]
     - ui-lint:
         requires: ["ui-deps"]
     - ui-build:
