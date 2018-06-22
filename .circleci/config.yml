@@ -24,6 +24,7 @@ jobs:
       DATABASE_URL: postgis://postgres@localhost/postgres
       DEBUG: "true"
       PYTHONUNBUFFERED: "1"
+      USING_SSL: "False"
     working_directory: /app
     steps:
     - attach_workspace:
