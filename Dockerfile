@@ -19,6 +19,7 @@ COPY ["hmda", "/app/hmda"]
 COPY ["mapping", "/app/mapping"]
 COPY ["mapusaurus", "/app/mapusaurus"]
 COPY ["respondents", "/app/respondents"]
+COPY ["reports", "/app/reports"]
 COPY [".docker", "/app/.docker"]
 COPY ["manage.py", "/app/"]
 
