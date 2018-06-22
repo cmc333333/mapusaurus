@@ -5,7 +5,7 @@ RUN apt-get update &&\
     apt-get autoremove -y &&\
     rm -rf /var/lib/apt/lists/* &&\
     rm -rf /var/cache/apt/*
-RUN pip install certifi pipenv && pipenv --update
+RUN pip install certifi pipenv
 COPY ["Pipfile", "Pipfile.lock", "/app/"]
 WORKDIR /app
 RUN pipenv install
@@ -19,6 +19,7 @@ COPY ["hmda", "/app/hmda"]
 COPY ["mapping", "/app/mapping"]
 COPY ["mapusaurus", "/app/mapusaurus"]
 COPY ["respondents", "/app/respondents"]
+COPY ["reports", "/app/reports"]
 COPY [".docker", "/app/.docker"]
 COPY ["manage.py", "/app/"]
 
