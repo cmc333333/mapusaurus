@@ -71,6 +71,12 @@ jobs:
     - attach_workspace:
         at: /app/
     - run: npm run build-dist
+  ui-test:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm test
 
 workflows:
   version: 2
@@ -84,4 +90,6 @@ workflows:
     - ui-lint:
         requires: ["ui-deps"]
     - ui-build:
+        requires: ["ui-deps"]
+    - ui-test:
         requires: ["ui-deps"]
