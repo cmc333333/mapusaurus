@@ -40,7 +40,7 @@ export default function reducer(state: Store, action: Action): Store {
       config.features.forEach(feature => {
         visibleLayers = visibleLayers.union(feature.ids);
       });
-      if (config.choropleths) {
+      if (config.choropleths.length) {
         visibleLayers = visibleLayers.add(config.choropleths[0].id);
       }
       return {
