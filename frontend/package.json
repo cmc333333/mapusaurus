@@ -16,9 +16,14 @@
   },
   "license": "https://github.com/cfpb/mapusaurus/blob/master/TERMS.md",
   "devDependencies": {
+    "@types/enzyme": "^3.1.10",
+    "@types/enzyme-adapter-react-16": "^1.0.2",
     "@types/es6-promise": "^3.3.0",
+    "@types/jest": "^23.1.1",
     "bower": "^1.8.2",
     "css-loader": "^0.28.10",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "file-loader": "^1.1.11",
     "grunt": "^0.4.5",
     "grunt-autoprefixer": "1.0.1",
@@ -28,12 +33,16 @@
     "grunt-contrib-uglify": "0.6.0",
     "grunt-contrib-watch": "0.6.1",
     "grunt-string-replace": "1.0.0",
+    "jest": "^23.1.0",
     "less": "^3.0.1",
     "less-loader": "^4.1.0",
     "mini-css-extract-plugin": "^0.4.0",
     "optimize-css-assets-webpack-plugin": "^4.0.1",
+    "random-js": "^1.0.8",
+    "rosie": "^2.0.1",
     "source-map-loader": "^0.2.3",
     "style-loader": "^0.20.2",
+    "ts-jest": "^22.4.6",
     "ts-loader": "^4.3.0",
     "tslint": "^5.10.0",
     "tslint-config-airbnb": "^5.9.2",
@@ -72,6 +81,22 @@
   "scripts": {
     "build-dev": "webpack --mode development",
     "build-dist": "webpack --mode production",
-    "lint": "tslint 'src/**/*.{ts,tsx}'"
+    "lint": "tslint 'src/**/*.{ts,tsx}'",
+    "test": "jest"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>node_modules/ts-jest/preprocessor.js"
+    },
+    "setupFiles": [
+      "raf/polyfill"
+    ],
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$",
+    "setupTestFrameworkScriptFile": "<rootDir>src/testUtils/setupTests.ts"
   }
 }
