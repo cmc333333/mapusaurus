@@ -4,9 +4,9 @@ import {
   Action,
   ADD_LAYERS,
   CHANGE_VIEWPORT,
-  LOAD_STYLE,
   REMOVE_LAYERS,
   SELECT_CHOROPLETH,
+  SET_STYLE,
 } from "./actions";
 import { choroplethIds, Store } from "./store";
 
@@ -18,7 +18,7 @@ export default function reducer(state: Store, action: Action): Store {
         viewport: action.viewport,
       };
     }
-    case LOAD_STYLE: {
+    case SET_STYLE: {
       const validIds = Set(action.style.layers.map(l => l.id));
       const config = {
         ...state.config,
