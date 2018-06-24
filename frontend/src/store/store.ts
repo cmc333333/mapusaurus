@@ -14,6 +14,7 @@ export interface MapboxStyle {
 }
 
 export interface LARPoint {
+  geoid: string;
   houseCount: number;
   latitude: number;
   loanCount: number;
@@ -56,7 +57,23 @@ export const choroplethIds = createSelector(
   choropleths => choropleths.map(l => l.id),
 );
 
-export const larData = createSelector(
-  (state: Store) => state.hmda && state.hmda.lar,
-  lar => lar ? lar : [],
+const CIRCLE_RADIUS_MULTIPLIER = 1 / 5;
+/*
+ * Derive a circle radius based on the zoom level and number of loans.
+ */
+export function toCircle(lar: LARPoint, zoom: number) {
+  const { geoid, latitude, longitude } = lar;
+
+  const zoomMultiplier = Math.pow(2, zoom);
+  const volume = lar.houseCount ? lar.loanCount / lar.houseCount : 0;
+  // Area of a circle = pi * r * r, but since pi is a constant and we're only
+  // displaying relative values, we can ignore it.
+  const radius = Math.sqrt(volume) * zoomMultiplier * CIRCLE_RADIUS_MULTIPLIER;
+  return { geoid, latitude, longitude, radius };
+}
+
+export const larCircles = createSelector(
+  ({ hmda }: Store) => hmda && hmda.lar,
+  ({ viewport }: Store) => viewport.zoom,
+  (lar, zoom) => lar ? lar.map(l => toCircle(l, zoom)) : [],
 );

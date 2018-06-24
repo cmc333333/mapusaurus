@@ -5,10 +5,11 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 
 import { changeViewport } from "../store/actions";
-import { mapboxStyleSelector, Store } from "../store/store";
+import { larCircles, mapboxStyleSelector, Store } from "../store/store";
 import typography from "../util/typography";
+import LoanMarker from "./LoanMarker";
 
-export function Map({ changeViewport, config, mapStyle, viewport }) {
+export function Map({ changeViewport, circles, config, mapStyle, viewport }) {
   if (!mapStyle) {
     return <div>Loading...</div>;
   }
@@ -24,6 +25,7 @@ export function Map({ changeViewport, config, mapStyle, viewport }) {
       mapStyle={mapStyle}
       onViewportChange={changeViewport}
     >
+      {circles.map(c => <LoanMarker key={c.geoid} {...c} />)}
       <glamorous.Div
         position="absolute"
         right={typography.rhythm(1)}
@@ -39,6 +41,7 @@ export function Map({ changeViewport, config, mapStyle, viewport }) {
 }
 export default connect(
   (store: Store) => ({
+    circles: larCircles(store),
     config: store.config,
     mapStyle: mapboxStyleSelector(store),
     viewport: store.viewport,

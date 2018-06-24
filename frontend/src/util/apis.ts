@@ -34,6 +34,7 @@ export async function fetchLar({ hmda }: Store): Promise<Action> {
     );
     // Convert between API format and ours
     const lar = Object.values(response.data).map((obj: any) => ({
+      geoid: obj.geoid,
       houseCount: obj.num_households,
       latitude: obj.centlat,
       loanCount: obj.volume,

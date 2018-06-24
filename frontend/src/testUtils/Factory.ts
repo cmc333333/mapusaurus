@@ -20,6 +20,7 @@ export const MapboxStyleFactory = new Factory().attrs({
 });
 
 export const LARPointFactory = new Factory().attrs({
+  geoid: () => random.string(15, "0123456789"),
   houseCount: () => random.integer(1, 10000),
   latitude: randLat,
   loanCount: () => random.integer(1, 100),

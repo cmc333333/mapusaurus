@@ -1,6 +1,6 @@
 import { Set } from "immutable";
 
-import { choroplethIds, larData, mapboxStyleSelector } from "../store";
+import { choroplethIds, larCircles, mapboxStyleSelector } from "../store";
 
 import {
   ConfigFactory,
@@ -8,6 +8,7 @@ import {
   LARPointFactory,
   MapboxStyleFactory,
   StoreFactory,
+  ViewportFactory,
 } from "../../testUtils/Factory";
 
 describe("choroplethIds", () => {
@@ -25,19 +26,43 @@ describe("choroplethIds", () => {
   });
 });
 
-describe("larData", () => {
-  it("grabs data if present", () => {
-    const lar = [LARPointFactory.build(), LARPointFactory.build()];
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build({ lar }),
+describe("larCircles", () => {
+  describe("radius addition", () => {
+    const lar = [
+      LARPointFactory.build({ houseCount: 1, loanCount: 4 }),
+      LARPointFactory.build({ houseCount: 3, loanCount: 75 }),
+    ];
+    const scaleConstant = 1 / 5;
+
+    it("adds a radius based on loan volume", () => {
+      const circles = larCircles(StoreFactory.build({
+        hmda: HMDAFactory.build({ lar }),
+        viewport: ViewportFactory.build({ zoom: 0 }),
+      }));
+      const zoomFactor = 1;
+      expect(circles.map(l => l.radius)).toEqual([
+        2 * zoomFactor * scaleConstant,
+        5 * zoomFactor * scaleConstant,
+      ]);
     });
-    expect(larData(state)).toEqual(lar);
+
+    it("adds a radius based on zoom level", () => {
+      const circles = larCircles(StoreFactory.build({
+        hmda: HMDAFactory.build({ lar }),
+        viewport: ViewportFactory.build({ zoom: 3 }),
+      }));
+      const zoomFactor = 2 * 2 * 2; // 2^3
+      expect(circles.map(l => l.radius)).toEqual([
+        2 * zoomFactor * scaleConstant,
+        5 * zoomFactor * scaleConstant,
+      ]);
+    });
   });
 
   it("is empty when HMDA's not set", () => {
     const state = StoreFactory.build();
     delete state.hmda;
-    expect(larData(state)).toEqual([]);
+    expect(larCircles(state)).toEqual([]);
   });
 });
 
