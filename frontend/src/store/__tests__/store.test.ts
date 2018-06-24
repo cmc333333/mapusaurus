@@ -1,9 +1,11 @@
 import { Set } from "immutable";
 
-import { choroplethIds, mapboxStyleSelector } from "../store";
+import { choroplethIds, larData, mapboxStyleSelector } from "../store";
 
 import {
   ConfigFactory,
+  HMDAFactory,
+  LARPointFactory,
   MapboxStyleFactory,
   StoreFactory,
 } from "../../testUtils/Factory";
@@ -20,6 +22,22 @@ describe("choroplethIds", () => {
     const state = StoreFactory.build({ config });
 
     expect(choroplethIds(state)).toEqual(["aaa", "bbb", "ccc"]);
+  });
+});
+
+describe("larData", () => {
+  it("grabs data if present", () => {
+    const lar = [LARPointFactory.build(), LARPointFactory.build()];
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build({ lar }),
+    });
+    expect(larData(state)).toEqual(lar);
+  });
+
+  it("is empty when HMDA's not set", () => {
+    const state = StoreFactory.build();
+    delete state.hmda;
+    expect(larData(state)).toEqual([]);
   });
 });
 

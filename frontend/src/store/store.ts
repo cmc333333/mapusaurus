@@ -13,6 +13,22 @@ export interface MapboxStyle {
   zoom: number;
 }
 
+export interface LARPoint {
+  houseCount: number;
+  latitude: number;
+  loanCount: number;
+  longitude: number;
+}
+
+export interface HMDA {
+  config: {
+    county?: string,
+    lender: string,
+    metro?: string,
+  };
+  lar: LARPoint[];
+}
+
 export interface Store {
   config: {
     choropleths: { id: string, name: string }[],
@@ -21,6 +37,7 @@ export interface Store {
     styleName: string,
     token: string,
   };
+  hmda?: HMDA;
   viewport: Viewport;
   visibleLayers: Set<string>;
 }
@@ -37,4 +54,9 @@ export const mapboxStyleSelector = createSelector(
 export const choroplethIds = createSelector(
   (state: Store) => state.config.choropleths,
   choropleths => choropleths.map(l => l.id),
+);
+
+export const larData = createSelector(
+  (state: Store) => state.hmda && state.hmda.lar,
+  lar => lar ? lar : [],
 );

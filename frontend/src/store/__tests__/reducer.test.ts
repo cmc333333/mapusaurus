@@ -5,12 +5,15 @@ import {
   changeViewport,
   removeLayers,
   selectChoropleth,
+  setLar,
   setStyle,
 } from "../actions";
 import reducer from "../reducer";
 
 import {
   ConfigFactory,
+  HMDAFactory,
+  LARPointFactory,
   MapboxStyleFactory,
   StoreFactory,
 } from "../../testUtils/Factory";
@@ -106,6 +109,27 @@ describe("reducer()", () => {
     expect(result.visibleLayers).toEqual(
       Set<string>(["aaa", "bbb", "ccc", "333"]),
     );
+  });
+
+  describe("setting lar", () => {
+    it("sets lar if HMDA's present", () => {
+      const lar = [LARPointFactory.build(), LARPointFactory.build()];
+      const state = StoreFactory.build({
+        hmda: HMDAFactory.build(),
+      });
+
+      const result = reducer(state, setLar(lar));
+      expect(result.hmda && result.hmda.lar).toEqual(lar);
+    });
+
+    it("does nothing if HMDA's not", () => {
+      const lar = [LARPointFactory.build(), LARPointFactory.build()];
+      const state = StoreFactory.build();
+      delete state.hmda;
+
+      const result = reducer(state, setLar(lar));
+      expect(result.hmda).toBeUndefined();
+    });
   });
 
   it("adds and removes layers", () => {
