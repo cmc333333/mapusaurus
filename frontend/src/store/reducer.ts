@@ -1,4 +1,4 @@
-import { Set } from 'immutable';
+import { Set } from "immutable";
 
 import {
   Action,
@@ -7,8 +7,8 @@ import {
   LOAD_STYLE,
   REMOVE_LAYERS,
   SELECT_CHOROPLETH,
-} from './actions';
-import { choroplethIds, Store } from './store';
+} from "./actions";
+import { choroplethIds, Store } from "./store";
 
 export default function reducer(state: Store, action: Action): Store {
   switch (action.type) {
@@ -24,7 +24,7 @@ export default function reducer(state: Store, action: Action): Store {
         ...state.config,
         // Remove invalid layer ids
         choropleths: state.config.choropleths.filter(l => validIds.has(l.id)),
-        features: state.config.features.map((feature) => ({
+        features: state.config.features.map(feature => ({
           ...feature,
           ids: feature.ids.intersect(validIds),
         })),
@@ -37,10 +37,10 @@ export default function reducer(state: Store, action: Action): Store {
         zoom: state.viewport.zoom || action.style.zoom,
       };
       let visibleLayers = Set<string>();
-      config.features.forEach((feature) => {
+      config.features.forEach(feature => {
         visibleLayers = visibleLayers.union(feature.ids);
       });
-      if (config.choropleths) {
+      if (config.choropleths.length) {
         visibleLayers = visibleLayers.add(config.choropleths[0].id);
       }
       return {
@@ -75,4 +75,3 @@ export default function reducer(state: Store, action: Action): Store {
       return state;
   }
 }
-

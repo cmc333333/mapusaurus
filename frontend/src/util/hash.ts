@@ -1,14 +1,10 @@
-import { Set } from 'immutable';
-import * as queryString from 'query-string';
+import { Set } from "immutable";
+import * as queryString from "query-string";
 
-import { Store } from '../store/store';
+import { Store } from "../store/store";
 
-export function deserialize(hash: string): Store {
+export function deserialize(hash: string, config): Store {
   const parsed = queryString.parse(hash);
-  const config = window['__SPA_CONFIG__'];
-  config.features.forEach((feature) => {
-    feature.ids = Set(feature.ids);
-  });
   return {
     config,
     viewport: {
