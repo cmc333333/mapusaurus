@@ -13,8 +13,7 @@
     {% analytical_body_top %}
     <div id="spa" style="height: 100%;">
     <script type="text/javascript">
-      window['__MAPBOX_TOKEN__'] = '{{ MAPBOX_TOKEN }}';
-      window['__MAPBOX_STYLE__'] = '{{ MAPBOX_STYLE }}';
+      window['__SPA_CONFIG__'] = {{ SPA_CONFIG | safe }};
     </script>
     <script type="text/javascript" src="{% static 'new-map.js' %}"></script>
     {% analytical_body_bottom %}

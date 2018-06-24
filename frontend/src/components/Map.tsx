@@ -4,31 +4,24 @@ import ReactMapGL, { NavigationControl } from 'react-map-gl';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { changeViewport, Store } from '../store';
+import { changeViewport } from '../store/actions';
+import { mapboxStyleSelector, Store } from '../store/store';
 import typography from '../util/typography';
 
-export function Map({
-  changeViewport,
-  lat,
-  lon,
-  mapboxKey,
-  mapConfig,
-  zoom,
-}) {
-  if (!mapConfig) {
+export function Map({ changeViewport, config, mapStyle, viewport }) {
+  if (!mapStyle) {
     return <div>Loading...</div>;
   }
 
   return (
     <ReactMapGL
-      attributionControl={false}
-      mapboxApiAccessToken={mapboxKey}
+      mapboxApiAccessToken={config.token}
       width={window.innerWidth - 300}
       height={window.innerHeight}
-      latitude={lat}
-      longitude={lon}
-      zoom={zoom}
-      mapStyle={mapConfig}
+      latitude={viewport.latitude}
+      longitude={viewport.longitude}
+      zoom={viewport.zoom}
+      mapStyle={mapStyle}
       onViewportChange={changeViewport}
     >
       <glamorous.Div
@@ -45,12 +38,10 @@ export function Map({
   );
 }
 export default connect(
-  ({ lat, lon, mapboxKey, mapConfig, zoom }: Store) => ({
-    lat,
-    lon,
-    mapboxKey,
-    mapConfig,
-    zoom,
+  (store: Store) => ({
+    config: store.config,
+    mapStyle: mapboxStyleSelector(store),
+    viewport: store.viewport,
   }),
   (dispatch) => bindActionCreators({ changeViewport }, dispatch),
 )(Map);

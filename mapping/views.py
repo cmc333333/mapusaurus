@@ -185,6 +185,5 @@ def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
 def single_page_app(request):
     """This page is managed almost exclusively by React"""
     return render(request, 'new-map.html', {
-        'MAPBOX_TOKEN': settings.MAPBOX_TOKEN,
-        'MAPBOX_STYLE': settings.MAPBOX_STYLE,
+        'SPA_CONFIG': json.dumps(settings.SPA_CONFIG),
     })
