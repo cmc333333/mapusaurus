@@ -1,0 +1,95 @@
+# Reusable definitions
+generic: &UI
+  docker:
+  - image: node:8
+  working_directory: /app/frontend
+
+
+version: 2
+jobs:
+  get-code:
+    <<: *UI
+    steps:
+    - checkout:
+        path: /app/
+    - persist_to_workspace:
+        root: /app/
+        paths: ['*']
+
+  api-tests:
+    docker:
+    - image: python:3.6.4
+    - image: mdillon/postgis:10-alpine
+    environment:
+      DATABASE_URL: postgis://postgres@localhost/postgres
+      DEBUG: "true"
+      PYTHONUNBUFFERED: "1"
+      USING_SSL: "False"
+    working_directory: /app
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run:
+        name: Install system dependencies
+        command: |
+          apt-get update
+          apt-get install binutils libproj-dev gdal-bin libgeoip1 python3-gdal -y
+          apt-get autoremove -y
+          rm -rf /var/lib/apt/lists/*
+          rm -rf /var/cache/apt/*
+          pip install certifi pipenv
+    - run: pipenv sync --dev
+    - run:
+        name: Py.test
+        command: pipenv run pytest
+
+  ui-deps:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - restore_cache:
+        key: ui-{{ checksum "package-lock.json" }}
+    - run:
+        name: Install UI Dependencies
+        command: npm install
+    - save_cache:
+        key: ui-{{ checksum "package-lock.json" }}
+        paths: ["node_modules"]
+    - persist_to_workspace:
+        root: /app/
+        paths: ["frontend/node_modules"]
+  ui-lint:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm run lint
+  ui-build:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm run build-dist
+  ui-test:
+    <<: *UI
+    steps:
+    - attach_workspace:
+        at: /app/
+    - run: npm test
+
+workflows:
+  version: 2
+  all:
+    jobs:
+    - get-code
+    - api-tests:
+        requires: ["get-code"]
+    - ui-deps:
+        requires: ["get-code"]
+    - ui-lint:
+        requires: ["ui-deps"]
+    - ui-build:
+        requires: ["ui-deps"]
+    - ui-test:
+        requires: ["ui-deps"]
