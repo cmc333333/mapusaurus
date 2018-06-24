@@ -1,12 +1,25 @@
 import axios from "axios";
 
-import { loadStyle } from "../store/actions";
+import { Action, setStyle } from "../store/actions";
+import { Store } from "../store/store";
 
-export async function fetchLayerData(store) {
-  const state = store.getState();
+/*
+ * Mapbox "style" data includes all layers; we'll load it from their API.
+ */
+export async function fetchStyle({ config }: Store): Promise<Action> {
   const response = await axios.get(
-    `https://api.mapbox.com/styles/v1/${state.config.styleName}`
-    + `?access_token=${state.config.token}`,
+    `https://api.mapbox.com/styles/v1/${config.styleName}`
+    + `?access_token=${config.token}`,
   );
-  store.dispatch(loadStyle(response.data));
+  return setStyle(response.data);
+}
+
+/*
+ * Kickoff fetch/load of data from the API.
+ */
+export function fetchData(store) {
+  const state = store.getState();
+  return Promise.all([
+    fetchStyle(state).then(store.dispatch),
+  ]);
 }

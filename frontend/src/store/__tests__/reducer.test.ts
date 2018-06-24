@@ -3,9 +3,9 @@ import { Set } from "immutable";
 import {
   addLayers,
   changeViewport,
-  loadStyle,
   removeLayers,
   selectChoropleth,
+  setStyle,
 } from "../actions";
 import reducer from "../reducer";
 
@@ -22,7 +22,7 @@ describe("reducer()", () => {
     expect(result.viewport).toEqual(viewport);
   });
 
-  describe("loading styles", () => {
+  describe("setting styles", () => {
     const config = ConfigFactory.build({
       choropleths: [
         { id: "aaa", name: "AAA" },
@@ -36,9 +36,9 @@ describe("reducer()", () => {
       ],
     });
 
-    it("sets the loaded style", () => {
+    it("sets the style", () => {
       const style = MapboxStyleFactory.build();
-      const result = reducer(StoreFactory.build(), loadStyle(style));
+      const result = reducer(StoreFactory.build(), setStyle(style));
       expect(result.config.style).toEqual(style);
     });
 
@@ -47,7 +47,7 @@ describe("reducer()", () => {
         layers: [{ id: "bbb" }, { id: "ccc" }],
       });
 
-      const result = reducer(StoreFactory.build({ config }), loadStyle(style));
+      const result = reducer(StoreFactory.build({ config }), setStyle(style));
       expect(result.config.choropleths).toEqual([
         { id: "bbb", name: "BBB" },
         { id: "ccc", name: "CCC" },
@@ -64,7 +64,7 @@ describe("reducer()", () => {
         layers: [{ id: "aaa" }, { id: "bbb" }, { id: "ccc" }],
       });
 
-      const result = reducer(StoreFactory.build({ config }), loadStyle(style));
+      const result = reducer(StoreFactory.build({ config }), setStyle(style));
       expect(result.visibleLayers).toEqual(Set<string>(["aaa", "bbb", "ccc"]));
     });
 
@@ -77,12 +77,12 @@ describe("reducer()", () => {
         viewport: { latitude: NaN, longitude: NaN, zoom: NaN },
       });
 
-      expect(reducer(stateWithData, loadStyle(style)).viewport).toEqual({
+      expect(reducer(stateWithData, setStyle(style)).viewport).toEqual({
         latitude: 7,
         longitude: 8,
         zoom: 9,
       });
-      expect(reducer(stateWithNaNs, loadStyle(style)).viewport).toEqual({
+      expect(reducer(stateWithNaNs, setStyle(style)).viewport).toEqual({
         latitude: 2,
         longitude: 1,
         zoom: 3,

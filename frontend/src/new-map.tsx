@@ -9,7 +9,7 @@ import { createStore } from "redux";
 
 import SPA from "./components/SPA";
 import reducer from "./store/reducer";
-import { fetchLayerData } from "./util/apis";
+import { fetchData } from "./util/apis";
 import * as hash from "./util/hash";
 import typography from "./util/typography";
 
@@ -33,7 +33,6 @@ const store = createStore(
 store.subscribe(() => {
   window.location.hash = hash.serialize(store.getState());
 });
-fetchLayerData(store);
 
 window.onload = () => {
   ReactDOM.render(
@@ -41,3 +40,4 @@ window.onload = () => {
     document.getElementById("spa"),
   );
 };
+fetchData(store);

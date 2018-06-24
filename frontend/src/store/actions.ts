@@ -3,7 +3,7 @@ import { Set } from "immutable";
 import { MapboxStyle, Store, Viewport } from "./store";
 
 export const CHANGE_VIEWPORT = "CHANGE_VIEWPORT";
-export const LOAD_STYLE = "LOAD_STYLE";
+export const SET_STYLE = "SET_STYLE";
 export const SELECT_CHOROPLETH = "SELECT_CHOROPLETH";
 export const REMOVE_LAYERS = "REMOVE_LAYERS";
 export const ADD_LAYERS = "ADD_LAYERS";
@@ -12,7 +12,7 @@ export type Action = {
   type: "CHANGE_VIEWPORT",
   viewport: Viewport,
 } | {
-  type: "LOAD_STYLE",
+  type: "SET_STYLE",
   style: MapboxStyle,
 } | {
   type: "SELECT_CHOROPLETH",
@@ -29,8 +29,8 @@ export function changeViewport(viewport: Viewport): Action {
   return { viewport, type: CHANGE_VIEWPORT };
 }
 
-export function loadStyle(style: MapboxStyle): Action {
-  return { style, type: LOAD_STYLE };
+export function setStyle(style: MapboxStyle): Action {
+  return { style, type: SET_STYLE };
 }
 
 export function selectChoropleth(layerId: string): Action {
