@@ -22,7 +22,7 @@ import {
 describe("reducer()", () => {
   it("changes the viewport", () => {
     const viewport = { latitude: 1, longitude: 2, zoom: 3 };
-    const result = reducer(StoreFactory.build(), changeViewport(viewport));
+    const result = reducer(StoreFactory.build(), changeViewport(1, 2, 3));
     expect(result.viewport).toEqual(viewport);
   });
 

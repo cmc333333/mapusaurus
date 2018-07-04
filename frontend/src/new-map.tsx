@@ -26,7 +26,7 @@ config.features.forEach(feature => {
 
 const store = createStore(
   reducer,
-  hash.deserialize(window.location.hash, config),
+  hash.deserialize(window.location.hash.substr(1), config),
   window[devtoolsField] && window[devtoolsField](),
 );
 

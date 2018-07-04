@@ -37,8 +37,12 @@ export function addLayers(layerIds: Set<string>): Action {
   return { layerIds, type: ADD_LAYERS };
 }
 
-export function changeViewport(viewport: Viewport): Action {
-  return { viewport, type: CHANGE_VIEWPORT };
+export function changeViewport(
+  latitude: number,
+  longitude: number,
+  zoom: number,
+): Action {
+  return { viewport: { latitude, longitude, zoom }, type: CHANGE_VIEWPORT };
 }
 
 export function removeLayers(layerIds: Set<string>): Action {

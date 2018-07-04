@@ -1,28 +1,29 @@
 import { Set } from "immutable";
-import * as queryString from "query-string";
+import * as qs from "qs";
 
-import { Store } from "../store/store";
+import { HMDA, Store } from "../store/store";
 
 function addHMDA({ county, lender, metro }, state: Store): Store {
   if (lender) {
-    state.hmda = {
+    const hmda: HMDA = {
       config: { lender },
       lar: [],
       lenderName: "",
     };
 
     if (county) {
-      state.hmda.config.county = county;
+      hmda.config.county = county;
     }
     if (metro) {
-      state.hmda.config.metro = metro;
+      hmda.config.metro = metro;
     }
+    return { hmda, ...state };
   }
   return state;
 }
 
 export function deserialize(hash: string, config): Store {
-  const parsed = queryString.parse(hash);
+  const parsed = qs.parse(hash);
   const mapConfig: Store = {
     config,
     viewport: {
@@ -36,19 +37,8 @@ export function deserialize(hash: string, config): Store {
 }
 
 export function serialize({ hmda, viewport }: Store): string {
-  const toSerialize: any = {
-    latitude: viewport.latitude,
-    longitude: viewport.longitude,
-    zoom: viewport.zoom,
-  };
-  if (hmda) {
-    toSerialize.lender = hmda.config.lender;
-    if (hmda.config.county) {
-      toSerialize.county = hmda.config.county;
-    }
-    if (hmda.config.metro) {
-      toSerialize.metro = hmda.config.metro;
-    }
-  }
-  return queryString.stringify(toSerialize);
+  return qs.stringify({
+    ...viewport,
+    ...(hmda ? hmda.config : {}),
+  });
 }
