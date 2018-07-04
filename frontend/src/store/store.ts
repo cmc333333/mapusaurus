@@ -57,23 +57,23 @@ export const choroplethIds = createSelector(
   choropleths => choropleths.map(l => l.id),
 );
 
-const CIRCLE_RADIUS_MULTIPLIER = 1 / 5;
-/*
- * Derive a circle radius based on the zoom level and number of loans.
- */
-export function toCircle(lar: LARPoint, zoom: number) {
-  const { geoid, latitude, longitude } = lar;
-
-  const zoomMultiplier = Math.pow(2, zoom);
-  const volume = lar.houseCount ? lar.loanCount / lar.houseCount : 0;
+export function toScatterPlot({
+  houseCount,
+  latitude,
+  loanCount,
+  longitude,
+}: LARPoint) {
+  const volume = houseCount ? loanCount / houseCount : 0;
   // Area of a circle = pi * r * r, but since pi is a constant and we're only
   // displaying relative values, we can ignore it.
-  const radius = Math.sqrt(volume) * zoomMultiplier * CIRCLE_RADIUS_MULTIPLIER;
-  return { geoid, latitude, longitude, radius };
+  const radius = Math.sqrt(volume);
+  return {
+    radius,
+    position: [longitude, latitude],
+  };
 }
 
-export const larCircles = createSelector(
+export const larScatterPlot = createSelector(
   ({ hmda }: Store) => hmda && hmda.lar,
-  ({ viewport }: Store) => viewport.zoom,
-  (lar, zoom) => lar ? lar.map(l => toCircle(l, zoom)) : [],
+  lar => lar ? lar.map(toScatterPlot) : [],
 );

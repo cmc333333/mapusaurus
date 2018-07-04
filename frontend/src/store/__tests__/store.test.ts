@@ -1,6 +1,6 @@
 import { Set } from "immutable";
 
-import { choroplethIds, larCircles, mapboxStyleSelector } from "../store";
+import { choroplethIds, larScatterPlot, mapboxStyleSelector } from "../store";
 
 import {
   ConfigFactory,
@@ -26,43 +26,36 @@ describe("choroplethIds", () => {
   });
 });
 
-describe("larCircles", () => {
-  describe("radius addition", () => {
+describe("larScatterPlot", () => {
+  it("transforms the data", () => {
     const lar = [
-      LARPointFactory.build({ houseCount: 1, loanCount: 4 }),
-      LARPointFactory.build({ houseCount: 3, loanCount: 75 }),
+      LARPointFactory.build({
+        houseCount: 1,
+        latitude: 11,
+        loanCount: 4,
+        longitude: 22,
+      }),
+      LARPointFactory.build({
+        houseCount: 3,
+        latitude: 33.33,
+        loanCount: 75,
+        longitude: 44.44,
+      }),
     ];
-    const scaleConstant = 1 / 5;
 
-    it("adds a radius based on loan volume", () => {
-      const circles = larCircles(StoreFactory.build({
-        hmda: HMDAFactory.build({ lar }),
-        viewport: ViewportFactory.build({ zoom: 0 }),
-      }));
-      const zoomFactor = 1;
-      expect(circles.map(l => l.radius)).toEqual([
-        2 * zoomFactor * scaleConstant,
-        5 * zoomFactor * scaleConstant,
-      ]);
-    });
-
-    it("adds a radius based on zoom level", () => {
-      const circles = larCircles(StoreFactory.build({
-        hmda: HMDAFactory.build({ lar }),
-        viewport: ViewportFactory.build({ zoom: 3 }),
-      }));
-      const zoomFactor = 2 * 2 * 2; // 2^3
-      expect(circles.map(l => l.radius)).toEqual([
-        2 * zoomFactor * scaleConstant,
-        5 * zoomFactor * scaleConstant,
-      ]);
-    });
+    const circles = larScatterPlot(StoreFactory.build({
+      hmda: HMDAFactory.build({ lar }),
+    }));
+    expect(circles).toEqual([
+      { radius: 2, position: [22, 11] },
+      { radius: 5, position: [44.44, 33.33] },
+    ]);
   });
 
   it("is empty when HMDA's not set", () => {
     const state = StoreFactory.build();
     delete state.hmda;
-    expect(larCircles(state)).toEqual([]);
+    expect(larScatterPlot(state)).toEqual([]);
   });
 });
 

@@ -14,9 +14,9 @@ describe("<Map />", () => {
     const result = shallow(
       <Map
         changeViewport={changeViewport}
-        circles={[]}
         config={ConfigFactory.build()}
         mapStyle={undefined}
+        scatterPlot={[]}
         viewport={ViewportFactory.build()}
       />,
     );
@@ -36,9 +36,9 @@ describe("<Map />", () => {
     const result = shallow(
       <Map
         changeViewport={changeViewport}
-        circles={[]}
         config={config}
         mapStyle={MapboxStyleFactory.build()}
+        scatterPlot={[]}
         viewport={viewport}
       />,
     );
@@ -49,19 +49,29 @@ describe("<Map />", () => {
     expect(result.prop("zoom")).toBe(3);
   });
 
-  it("has as many LoanMarkers as circles", () => {
+  it("has two Scatterplots with the correct data", () => {
     const changeViewport = () => null;
-    const circles = [{ geoid: "1" }, { geoid: "2" }, { geoid: "3" }];
-    const result = shallow(
+    const scatterPlot = [
+      { coordinates: [1, 2], radius: 3 },
+      { coordinates: [4, 5], radius: 6 },
+      { coordinates: [7, 8], radius: 9 },
+    ];
+
+    const layers = shallow(
       <Map
         changeViewport={changeViewport}
-        circles={circles}
         config={ConfigFactory.build()}
         mapStyle={MapboxStyleFactory.build()}
+        scatterPlot={scatterPlot}
         viewport={ViewportFactory.build()}
       />,
-    );
+    ).find("DeckGL").prop("layers");
 
-    expect(result.find("LoanMarker")).toHaveLength(3);
+    expect(layers).toHaveLength(2);
+    expect(layers[0].props.data).toBe(scatterPlot);
+    expect(layers[0].props.data).toBe(layers[1].props.data);
+    expect(layers[0].props.radiusScale).toBe(layers[1].props.radiusScale);
+    expect(layers[0].props.outline).toBeFalsy();
+    expect(layers[1].props.outline).toBeTruthy();
   });
 });
