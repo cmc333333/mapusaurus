@@ -7,17 +7,63 @@ import {
   REMOVE_LAYERS,
   SELECT_CHOROPLETH,
   SET_LAR,
+  SET_LENDER,
   SET_STYLE,
 } from "./actions";
 import { choroplethIds, Store } from "./store";
 
 export default function reducer(state: Store, action: Action): Store {
   switch (action.type) {
+    case ADD_LAYERS: {
+      return {
+        ...state,
+        visibleLayers: state.visibleLayers.union(action.layerIds),
+      };
+    }
     case CHANGE_VIEWPORT: {
       return {
         ...state,
         viewport: action.viewport,
       };
+    }
+    case REMOVE_LAYERS: {
+      return {
+        ...state,
+        visibleLayers: state.visibleLayers.subtract(action.layerIds),
+      };
+    }
+    case SELECT_CHOROPLETH: {
+      let visibleLayers = state.visibleLayers.subtract(choroplethIds(state));
+      visibleLayers = visibleLayers.add(action.layerId);
+
+      return {
+        ...state,
+        visibleLayers,
+      };
+    }
+    case SET_LAR: {
+      if (state.hmda) {
+        return {
+          ...state,
+          hmda: {
+            ...state.hmda,
+            lar: action.lar,
+          },
+        };
+      }
+      return state;
+    }
+    case SET_LENDER: {
+      if (state.hmda) {
+        return {
+          ...state,
+          hmda: {
+            ...state.hmda,
+            lenderName: action.lenderName,
+          },
+        };
+      }
+      return state;
     }
     case SET_STYLE: {
       const validIds = Set(action.style.layers.map(l => l.id));
@@ -49,39 +95,6 @@ export default function reducer(state: Store, action: Action): Store {
         config,
         viewport,
         visibleLayers,
-      };
-    }
-    case SET_LAR: {
-      if (state.hmda) {
-        return {
-          ...state,
-          hmda: {
-            ...state.hmda,
-            lar: action.lar,
-          },
-        };
-      }
-      return state;
-    }
-    case SELECT_CHOROPLETH: {
-      let visibleLayers = state.visibleLayers.subtract(choroplethIds(state));
-      visibleLayers = visibleLayers.add(action.layerId);
-
-      return {
-        ...state,
-        visibleLayers,
-      };
-    }
-    case ADD_LAYERS: {
-      return {
-        ...state,
-        visibleLayers: state.visibleLayers.union(action.layerIds),
-      };
-    }
-    case REMOVE_LAYERS: {
-      return {
-        ...state,
-        visibleLayers: state.visibleLayers.subtract(action.layerIds),
       };
     }
     default:

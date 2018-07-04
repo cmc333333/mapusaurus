@@ -42,6 +42,7 @@ describe("deserialize()", () => {
         metro: "678",
       },
       lar: [],
+      lenderName: "",
     });
   });
 });
@@ -80,6 +81,7 @@ describe("serialize()", () => {
           metro: "cccc",
         },
         lar: [LARPointFactory.build()],
+        lenderName: "",
       },
     }));
 
@@ -87,5 +89,6 @@ describe("serialize()", () => {
     expect(result).toMatch(/\blender=bbbb\b/);
     expect(result).toMatch(/\bmetro=cccc\b/);
     expect(result).not.toMatch(/lar/);
+    expect(result).not.toMatch(/lenderName/);
   });
 });

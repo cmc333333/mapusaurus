@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { Action, setLar, setStyle } from "../store/actions";
+import { Action, setLar, setLender, setStyle } from "../store/actions";
 import { Store } from "../store/store";
 
 /*
@@ -45,6 +45,14 @@ export async function fetchLar({ hmda }: Store): Promise<Action> {
   return setLar([]);
 }
 
+export async function fetchLender({ hmda }: Store): Promise<Action> {
+  if (hmda) {
+    const response = await axios.get(`/api/respondents/${hmda.config.lender}`);
+    return setLender(response.data.name);
+  }
+  return setLender("");
+}
+
 /*
  * Kickoff fetch/load of data from the API.
  */
@@ -53,5 +61,6 @@ export function fetchData(store) {
   return Promise.all([
     fetchStyle(state).then(store.dispatch),
     fetchLar(state).then(store.dispatch),
+    fetchLender(state).then(store.dispatch),
   ]);
 }

@@ -8,6 +8,7 @@ function addHMDA({ county, lender, metro }, state: Store): Store {
     state.hmda = {
       config: { lender },
       lar: [],
+      lenderName: "",
     };
 
     if (county) {

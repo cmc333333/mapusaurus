@@ -6,6 +6,7 @@ import {
   removeLayers,
   selectChoropleth,
   setLar,
+  setLender,
   setStyle,
 } from "../actions";
 import reducer from "../reducer";
@@ -128,6 +129,25 @@ describe("reducer()", () => {
       delete state.hmda;
 
       const result = reducer(state, setLar(lar));
+      expect(result.hmda).toBeUndefined();
+    });
+  });
+
+  describe("setting lender", () => {
+    it("sets lender if HMDA's present", () => {
+      const state = StoreFactory.build({
+        hmda: HMDAFactory.build(),
+      });
+
+      const result = reducer(state, setLender("a lender"));
+      expect(result.hmda && result.hmda.lenderName).toEqual("a lender");
+    });
+
+    it("does nothing if HMDA's not", () => {
+      const state = StoreFactory.build();
+      delete state.hmda;
+
+      const result = reducer(state, setLender("a lender"));
       expect(result.hmda).toBeUndefined();
     });
   });

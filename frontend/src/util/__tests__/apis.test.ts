@@ -1,13 +1,19 @@
 import axios from "axios";
 
-import { SET_LAR, setLar, setStyle } from "../../store/actions";
+import {
+  SET_LAR,
+  SET_LENDER,
+  setLar,
+  setLender,
+  setStyle,
+} from "../../store/actions";
 import {
   ConfigFactory,
   HMDAFactory,
   MapboxStyleFactory,
   StoreFactory,
 } from "../../testUtils/Factory";
-import { fetchData, fetchLar, fetchStyle } from "../apis";
+import { fetchData, fetchLar, fetchLender, fetchStyle } from "../apis";
 
 jest.mock("axios");
 
@@ -106,18 +112,54 @@ describe("fetchLar()", () => {
     const result = await fetchLar(state);
 
     expect(result.type).toBe(SET_LAR);
-    // switch-case for Typescript gymnastics
-    switch (result.type) {
-      case SET_LAR:
-        const lar = (result as any).lar;
-        // Ensure a consistent order
-        lar.sort((l, r) => l.loanCount - r.loanCount);
+    if (result.type === SET_LAR) {
+      const lar = (result as any).lar;
+      // Ensure a consistent order
+      lar.sort((l, r) => l.loanCount - r.loanCount);
 
-        expect(lar).toEqual([
-          { houseCount: 2, latitude: 3.3, loanCount: 1, longitude: -4.4 },
-          { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
-          { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
-        ]);
+      expect(lar).toEqual([
+        { houseCount: 2, latitude: 3.3, loanCount: 1, longitude: -4.4 },
+        { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
+        { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
+      ]);
+    }
+  });
+});
+
+describe("fetchLender()", () => {
+  it("hits the right endpoint", async () => {
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build({
+        config: { lender: "2012abcd123" },
+      }),
+    });
+    getMock.mockImplementationOnce(() => ({ data: {} }));
+    await fetchLender(state);
+    expect(getMock).toHaveBeenCalled();
+    const url = getMock.mock.calls[0][0];
+    expect(url).toMatch("/respondents/2012abcd123");
+  });
+
+  it("handles non-hmda displays", async () => {
+    const state = StoreFactory.build();
+    delete state.hmda;
+    const result = await fetchLender(state);
+    expect(getMock).not.toHaveBeenCalled();
+    expect(result).toEqual(setLender(""));
+  });
+
+  it("creates an action in the right format", async () => {
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build(),
+    });
+    getMock.mockImplementationOnce(() => ({
+      data: { name: "Some lender name" },
+    }));
+    const result = await fetchLender(state);
+
+    expect(result.type).toBe(SET_LENDER);
+    if (result.type === SET_LENDER) {
+      expect(result.lenderName).toBe("Some lender name");
     }
   });
 });
