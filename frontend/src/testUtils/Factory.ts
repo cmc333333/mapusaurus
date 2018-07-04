@@ -19,6 +19,22 @@ export const MapboxStyleFactory = new Factory().attrs({
   zoom: randZoom,
 });
 
+export const LARPointFactory = new Factory().attrs({
+  geoid: () => random.string(15, "0123456789"),
+  houseCount: () => random.integer(1, 10000),
+  latitude: randLat,
+  loanCount: () => random.integer(1, 100),
+  longitude: randLon,
+});
+
+export const HMDAFactory = new Factory().attrs({
+  config: () => ({
+    lender: random.string(15, "0123456789"),
+    metro: random.string(9, "0123456789"),
+  }),
+  lar: () => [],
+});
+
 export const ConfigFactory = new Factory().attrs({
   choropleths: () => [],
   features: () => [],

@@ -6,6 +6,7 @@ import {
   CHANGE_VIEWPORT,
   REMOVE_LAYERS,
   SELECT_CHOROPLETH,
+  SET_LAR,
   SET_STYLE,
 } from "./actions";
 import { choroplethIds, Store } from "./store";
@@ -49,6 +50,18 @@ export default function reducer(state: Store, action: Action): Store {
         viewport,
         visibleLayers,
       };
+    }
+    case SET_LAR: {
+      if (state.hmda) {
+        return {
+          ...state,
+          hmda: {
+            ...state.hmda,
+            lar: action.lar,
+          },
+        };
+      }
+      return state;
     }
     case SELECT_CHOROPLETH: {
       let visibleLayers = state.visibleLayers.subtract(choroplethIds(state));

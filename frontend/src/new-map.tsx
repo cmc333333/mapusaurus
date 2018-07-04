@@ -34,10 +34,8 @@ store.subscribe(() => {
   window.location.hash = hash.serialize(store.getState());
 });
 
-window.onload = () => {
-  ReactDOM.render(
-    <Provider store={store}><SPA /></Provider>,
-    document.getElementById("spa"),
-  );
-};
 fetchData(store);
+ReactDOM.render(
+  <Provider store={store}><SPA /></Provider>,
+  document.getElementById("spa"),
+);

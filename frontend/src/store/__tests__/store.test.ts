@@ -1,11 +1,14 @@
 import { Set } from "immutable";
 
-import { choroplethIds, mapboxStyleSelector } from "../store";
+import { choroplethIds, larScatterPlot, mapboxStyleSelector } from "../store";
 
 import {
   ConfigFactory,
+  HMDAFactory,
+  LARPointFactory,
   MapboxStyleFactory,
   StoreFactory,
+  ViewportFactory,
 } from "../../testUtils/Factory";
 
 describe("choroplethIds", () => {
@@ -20,6 +23,39 @@ describe("choroplethIds", () => {
     const state = StoreFactory.build({ config });
 
     expect(choroplethIds(state)).toEqual(["aaa", "bbb", "ccc"]);
+  });
+});
+
+describe("larScatterPlot", () => {
+  it("transforms the data", () => {
+    const lar = [
+      LARPointFactory.build({
+        houseCount: 1,
+        latitude: 11,
+        loanCount: 4,
+        longitude: 22,
+      }),
+      LARPointFactory.build({
+        houseCount: 3,
+        latitude: 33.33,
+        loanCount: 75,
+        longitude: 44.44,
+      }),
+    ];
+
+    const circles = larScatterPlot(StoreFactory.build({
+      hmda: HMDAFactory.build({ lar }),
+    }));
+    expect(circles).toEqual([
+      { radius: 2, position: [22, 11] },
+      { radius: 5, position: [44.44, 33.33] },
+    ]);
+  });
+
+  it("is empty when HMDA's not set", () => {
+    const state = StoreFactory.build();
+    delete state.hmda;
+    expect(larScatterPlot(state)).toEqual([]);
   });
 });
 
