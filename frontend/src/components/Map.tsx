@@ -66,5 +66,9 @@ export default connect(
     scatterPlot: larScatterPlot(store),
     viewport: store.viewport,
   }),
-  dispatch => bindActionCreators({ changeViewport }, dispatch),
+  dispatch => ({
+    changeViewport: ({ latitude, longitude, zoom }) => {
+      dispatch(changeViewport(latitude, longitude, zoom));
+    },
+  }),
 )(Map);

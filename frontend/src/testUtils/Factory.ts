@@ -32,7 +32,9 @@ export const HMDAFactory = new Factory().attrs({
     lender: random.string(15, "0123456789"),
     metro: random.string(9, "0123456789"),
   }),
+  geoName: random.string(12),
   lar: () => [],
+  lenderName: random.string(12),
 });
 
 export const ConfigFactory = new Factory().attrs({

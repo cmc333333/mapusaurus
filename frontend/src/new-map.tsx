@@ -26,13 +26,16 @@ config.features.forEach(feature => {
 
 const store = createStore(
   reducer,
-  hash.deserialize(window.location.hash, config),
+  hash.deserialize(window.location.hash.substr(1), config),
   window[devtoolsField] && window[devtoolsField](),
 );
 
-store.subscribe(() => {
-  window.location.hash = hash.serialize(store.getState());
-});
+window.setInterval(
+  () => {
+    window.location.hash = hash.serialize(store.getState());
+  },
+  3000,
+);
 
 fetchData(store);
 ReactDOM.render(

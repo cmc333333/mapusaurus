@@ -70,7 +70,7 @@
     "mapbox.js": "^2.4.0",
     "normalize.css": "^3.0.3",
     "prop-types": "^15.6.1",
-    "query-string": "^6.1.0",
+    "qs": "^6.5.2",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",
     "react-map-gl": "^3.2.7",

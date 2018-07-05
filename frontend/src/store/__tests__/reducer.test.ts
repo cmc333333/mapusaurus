@@ -5,7 +5,9 @@ import {
   changeViewport,
   removeLayers,
   selectChoropleth,
+  setGeo,
   setLar,
+  setLender,
   setStyle,
 } from "../actions";
 import reducer from "../reducer";
@@ -21,7 +23,7 @@ import {
 describe("reducer()", () => {
   it("changes the viewport", () => {
     const viewport = { latitude: 1, longitude: 2, zoom: 3 };
-    const result = reducer(StoreFactory.build(), changeViewport(viewport));
+    const result = reducer(StoreFactory.build(), changeViewport(1, 2, 3));
     expect(result.viewport).toEqual(viewport);
   });
 
@@ -128,6 +130,44 @@ describe("reducer()", () => {
       delete state.hmda;
 
       const result = reducer(state, setLar(lar));
+      expect(result.hmda).toBeUndefined();
+    });
+  });
+
+  describe("setting geo", () => {
+    it("sets geo if HMDA's present", () => {
+      const state = StoreFactory.build({
+        hmda: HMDAFactory.build(),
+      });
+
+      const result = reducer(state, setGeo("a geo"));
+      expect(result.hmda && result.hmda.geoName).toEqual("a geo");
+    });
+
+    it("does nothing if HMDA's not", () => {
+      const state = StoreFactory.build();
+      delete state.hmda;
+
+      const result = reducer(state, setGeo("a geo"));
+      expect(result.hmda).toBeUndefined();
+    });
+  });
+
+  describe("setting lender", () => {
+    it("sets lender if HMDA's present", () => {
+      const state = StoreFactory.build({
+        hmda: HMDAFactory.build(),
+      });
+
+      const result = reducer(state, setLender("a lender"));
+      expect(result.hmda && result.hmda.lenderName).toEqual("a lender");
+    });
+
+    it("does nothing if HMDA's not", () => {
+      const state = StoreFactory.build();
+      delete state.hmda;
+
+      const result = reducer(state, setLender("a lender"));
       expect(result.hmda).toBeUndefined();
     });
   });
