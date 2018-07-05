@@ -6,7 +6,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 from geo.models import Geo
+from geo.serializers import GeoSerializer
 
 
 class BoundarySerializer(serializers.Serializer):
@@ -54,13 +56,6 @@ class TractFilters(django_filters.FilterSet):
             queryset = queryset.filter(
                 geom__intersects=boundary_serializer.save())
         return queryset
-
-
-class GeoSerializer(serializers.ModelSerializer):
-    """Used in RESTful endpoints to serialize Geo objects; used in search"""
-    class Meta:
-        model = Geo
-        fields = ('geoid', 'geo_type', 'name', 'centlat', 'centlon', 'year')
 
 
 class SearchFilters(django_filters.FilterSet):
