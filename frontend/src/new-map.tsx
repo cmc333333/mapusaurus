@@ -30,9 +30,12 @@ const store = createStore(
   window[devtoolsField] && window[devtoolsField](),
 );
 
-store.subscribe(() => {
-  window.location.hash = hash.serialize(store.getState());
-});
+window.setInterval(
+  () => {
+    window.location.hash = hash.serialize(store.getState());
+  },
+  3000,
+);
 
 fetchData(store);
 ReactDOM.render(
