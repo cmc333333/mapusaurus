@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { Action, setLar, setLender, setStyle } from "../store/actions";
+import { Action, setGeo, setLar, setLender, setStyle } from "../store/actions";
 import { Store } from "../store/store";
 
 /*
@@ -47,10 +47,23 @@ export async function fetchLar({ hmda }: Store): Promise<Action> {
 
 export async function fetchLender({ hmda }: Store): Promise<Action> {
   if (hmda) {
-    const response = await axios.get(`/api/respondents/${hmda.config.lender}`);
+    const { lender } = hmda.config;
+    const response = await axios.get(`/api/respondents/${lender}/`);
     return setLender(response.data.name);
   }
   return setLender("");
+}
+
+export async function fetchGeo({ hmda }: Store): Promise<Action> {
+  if (hmda && hmda.config.county) {
+    const response = await axios.get(`/api/geo/${hmda.config.county}/`);
+    return setGeo(response.data.name);
+  }
+  if (hmda && hmda.config.metro) {
+    const response = await axios.get(`/api/geo/${hmda.config.metro}/`);
+    return setGeo(response.data.name);
+  }
+  return setGeo("");
 }
 
 /*
@@ -62,5 +75,6 @@ export function fetchData(store) {
     fetchStyle(state).then(store.dispatch),
     fetchLar(state).then(store.dispatch),
     fetchLender(state).then(store.dispatch),
+    fetchGeo(state).then(store.dispatch),
   ]);
 }

@@ -6,6 +6,7 @@ export const ADD_LAYERS = "ADD_LAYERS";
 export const CHANGE_VIEWPORT = "CHANGE_VIEWPORT";
 export const REMOVE_LAYERS = "REMOVE_LAYERS";
 export const SELECT_CHOROPLETH = "SELECT_CHOROPLETH";
+export const SET_GEO = "SET_GEO";
 export const SET_LAR = "SET_LAR";
 export const SET_LENDER = "SET_LENDER";
 export const SET_STYLE = "SET_STYLE";
@@ -22,6 +23,9 @@ export type Action = {
 } | {
   type: "SELECT_CHOROPLETH",
   layerId: string,
+} | {
+  type: "SET_GEO",
+  geoName: string,
 } | {
   type: "SET_LAR",
   lar: LARPoint[],
@@ -51,6 +55,10 @@ export function removeLayers(layerIds: Set<string>): Action {
 
 export function selectChoropleth(layerId: string): Action {
   return { layerId, type: SELECT_CHOROPLETH };
+}
+
+export function setGeo(geoName: string): Action {
+  return { geoName, type: SET_GEO };
 }
 
 export function setLar(lar: LARPoint[]): Action {

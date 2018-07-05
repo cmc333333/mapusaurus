@@ -27,6 +27,7 @@ export interface HMDA {
     lender: string,
     metro?: string,
   };
+  geoName: string;
   lenderName: string;
   lar: LARPoint[];
 }

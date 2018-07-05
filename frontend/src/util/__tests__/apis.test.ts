@@ -1,8 +1,10 @@
 import axios from "axios";
 
 import {
+  SET_GEO,
   SET_LAR,
   SET_LENDER,
+  setGeo,
   setLar,
   setLender,
   setStyle,
@@ -13,7 +15,7 @@ import {
   MapboxStyleFactory,
   StoreFactory,
 } from "../../testUtils/Factory";
-import { fetchData, fetchLar, fetchLender, fetchStyle } from "../apis";
+import { fetchGeo, fetchLar, fetchLender, fetchStyle } from "../apis";
 
 jest.mock("axios");
 
@@ -122,6 +124,56 @@ describe("fetchLar()", () => {
         { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
         { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
       ]);
+    }
+  });
+});
+
+describe("fetchGeo()", () => {
+  it("hits the right endpoint when county is defined", async () => {
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build({
+        config: { county: "2012abcd123", lender: "abcd" },
+      }),
+    });
+    getMock.mockImplementationOnce(() => ({ data: {} }));
+    await fetchGeo(state);
+    expect(getMock).toHaveBeenCalled();
+    const url = getMock.mock.calls[0][0];
+    expect(url).toMatch("/geo/2012abcd123");
+  });
+  it("hits the right endpoint when metro is defined", async () => {
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build({
+        config: { lender: "12345", metro: "2012abcd123" },
+      }),
+    });
+    getMock.mockImplementationOnce(() => ({ data: {} }));
+    await fetchGeo(state);
+    expect(getMock).toHaveBeenCalled();
+    const url = getMock.mock.calls[0][0];
+    expect(url).toMatch("/geo/2012abcd123");
+  });
+
+  it("handles non-hmda displays", async () => {
+    const state = StoreFactory.build();
+    delete state.hmda;
+    const result = await fetchGeo(state);
+    expect(getMock).not.toHaveBeenCalled();
+    expect(result).toEqual(setGeo(""));
+  });
+
+  it("creates an action in the right format", async () => {
+    const state = StoreFactory.build({
+      hmda: HMDAFactory.build(),
+    });
+    getMock.mockImplementationOnce(() => ({
+      data: { name: "Some geo name" },
+    }));
+    const result = await fetchGeo(state);
+
+    expect(result.type).toBe(SET_GEO);
+    if (result.type === SET_GEO) {
+      expect(result.geoName).toBe("Some geo name");
     }
   });
 });

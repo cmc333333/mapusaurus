@@ -7,6 +7,7 @@ function addHMDA({ county, lender, metro }, state: Store): Store {
   if (lender) {
     const hmda: HMDA = {
       config: { lender },
+      geoName: "",
       lar: [],
       lenderName: "",
     };

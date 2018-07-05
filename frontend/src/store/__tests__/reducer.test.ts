@@ -5,6 +5,7 @@ import {
   changeViewport,
   removeLayers,
   selectChoropleth,
+  setGeo,
   setLar,
   setLender,
   setStyle,
@@ -129,6 +130,25 @@ describe("reducer()", () => {
       delete state.hmda;
 
       const result = reducer(state, setLar(lar));
+      expect(result.hmda).toBeUndefined();
+    });
+  });
+
+  describe("setting geo", () => {
+    it("sets geo if HMDA's present", () => {
+      const state = StoreFactory.build({
+        hmda: HMDAFactory.build(),
+      });
+
+      const result = reducer(state, setGeo("a geo"));
+      expect(result.hmda && result.hmda.geoName).toEqual("a geo");
+    });
+
+    it("does nothing if HMDA's not", () => {
+      const state = StoreFactory.build();
+      delete state.hmda;
+
+      const result = reducer(state, setGeo("a geo"));
       expect(result.hmda).toBeUndefined();
     });
   });

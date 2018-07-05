@@ -6,6 +6,7 @@ import {
   CHANGE_VIEWPORT,
   REMOVE_LAYERS,
   SELECT_CHOROPLETH,
+  SET_GEO,
   SET_LAR,
   SET_LENDER,
   SET_STYLE,
@@ -40,6 +41,18 @@ export default function reducer(state: Store, action: Action): Store {
         ...state,
         visibleLayers,
       };
+    }
+    case SET_GEO: {
+      if (state.hmda) {
+        return {
+          ...state,
+          hmda: {
+            ...state.hmda,
+            geoName: action.geoName,
+          },
+        };
+      }
+      return state;
     }
     case SET_LAR: {
       if (state.hmda) {
