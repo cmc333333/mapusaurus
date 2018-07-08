@@ -3,8 +3,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import typography from "../../util/typography";
 
-import { addLayers, removeLayers } from "../../store/actions";
-import { Store } from "../../store/store";
+import { addLayers, removeLayers } from "../../store/Mapbox";
+import State from "../../store/State";
 
 export function FeatureCheckbox({ addLayers, checked, feature, removeLayers }) {
   return (
@@ -28,8 +28,8 @@ export function FeatureCheckbox({ addLayers, checked, feature, removeLayers }) {
   );
 }
 
-export function mapStateToProps({ visibleLayers }: Store, { feature }) {
-  return { checked: !visibleLayers.intersect(feature.ids).isEmpty() };
+export function mapStateToProps({ mapbox }: State, { feature }) {
+  return { checked: !mapbox.visible.intersect(feature.ids).isEmpty() };
 }
 
 export function mapDispatchToProps(dispatch, { feature }) {

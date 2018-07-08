@@ -4,7 +4,11 @@
     "array-type": [true, "array"],
     "arrow-parens": [true, "ban-single-arg-parens"],
     "function-name": false,
-    "import-name": [true, {"reactMapGl": "ReactMapGL", "deckGl": "DeckGL" }],
+    "import-name": [true, {
+      "deckGl": "DeckGL",
+      "reactMapGl": "ReactMapGL",
+      "typescriptFsa": "actionCreatorFactory"
+    }],
     "interface-name": [true, "never-prefix"],
     "no-implicit-dependencies": [true, "dev"],
     "no-shadowed-variable": false,

@@ -5,14 +5,16 @@ import ReactMapGL, { NavigationControl } from "react-map-gl";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 
-import { changeViewport } from "../store/actions";
-import { larScatterPlot, mapboxStyleSelector, Store } from "../store/store";
+import { scatterPlotSelector } from "../store/LARLayer";
+import { currentStyleSelector } from "../store/Mapbox";
+import State from "../store/State";
+import { setViewport } from "../store/Viewport";
 import typography from "../util/typography";
 
 export function Map({
   changeViewport,
-  config,
   mapStyle,
+  mapboxApiAccessToken,
   scatterPlot,
   viewport,
 }) {
@@ -39,7 +41,7 @@ export function Map({
   return (
     <ReactMapGL
       {...viewport}
-      mapboxApiAccessToken={config.token}
+      mapboxApiAccessToken={mapboxApiAccessToken}
       width={width}
       height={height}
       mapStyle={mapStyle}
@@ -60,15 +62,15 @@ export function Map({
   );
 }
 export default connect(
-  (store: Store) => ({
-    config: store.config,
-    mapStyle: mapboxStyleSelector(store),
-    scatterPlot: larScatterPlot(store),
-    viewport: store.viewport,
+  (state: State) => ({
+    mapStyle: currentStyleSelector(state.mapbox),
+    mapboxApiAccessToken: state.mapbox.config.token,
+    scatterPlot: scatterPlotSelector(state.larLayer),
+    viewport: state.viewport,
   }),
   dispatch => ({
     changeViewport: ({ latitude, longitude, zoom }) => {
-      dispatch(changeViewport(latitude, longitude, zoom));
+      dispatch(setViewport({ latitude, longitude, zoom }));
     },
   }),
 )(Map);

@@ -3,8 +3,8 @@ import * as React from "react";
 import { connect } from "react-redux";
 import typography from "../../util/typography";
 
-import { selectChoropleth } from "../../store/actions";
-import { Store } from "../../store/store";
+import { selectChoropleth } from "../../store/Mapbox";
+import State from "../../store/State";
 
 const MenuLi = glamorous.li({
   borderBottom: "solid 1px black",
@@ -38,8 +38,8 @@ export function ChoroplethLink({ isVisible, layer, selectChoropleth }) {
   );
 }
 
-export function mapStateToProps({ visibleLayers }: Store, { layer }) {
-  return { isVisible: visibleLayers.has(layer.id) };
+export function mapStateToProps({ mapbox }: State, { layer }) {
+  return { isVisible: mapbox.visible.has(layer.id) };
 }
 
 export function mapDispatchToProps(dispatch, { layer }) {

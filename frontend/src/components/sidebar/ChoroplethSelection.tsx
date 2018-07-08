@@ -2,7 +2,7 @@ import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { Store } from "../../store/store";
+import State from "../../store/State";
 import ChoroplethLink from "./ChoroplethLink";
 
 export function ChoroplethSelection({ choropleths }) {
@@ -13,5 +13,5 @@ export function ChoroplethSelection({ choropleths }) {
   );
 }
 export default connect(
-  ({ config: { choropleths } }: Store) => ({ choropleths }),
+  ({ mapbox: { config: { choropleths } } }: State) => ({ choropleths }),
 )(ChoroplethSelection);

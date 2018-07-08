@@ -2,8 +2,8 @@ import { mount, shallow } from "enzyme";
 import { Set } from "immutable";
 import * as React from "react";
 
-import { selectChoropleth } from "../../../store/actions";
-import { StoreFactory } from "../../../testUtils/Factory";
+import { selectChoropleth } from "../../../store/Mapbox";
+import { MapboxFactory, StateFactory } from "../../../testUtils/Factory";
 import {
   ChoroplethLink,
   mapDispatchToProps,
@@ -61,13 +61,15 @@ describe("<ChoroplethLink />", () => {
 });
 
 test("mapStateToProps() set isVisible based on the visible set", () => {
-  const store = StoreFactory.build({
-    visibleLayers: Set<string>(["aaa", "bbb", "ccc"]),
+  const state = StateFactory.build({
+    mapbox: MapboxFactory.build({
+      visible: Set<string>(["aaa", "bbb", "ccc"]),
+    }),
   });
-  expect(mapStateToProps(store, { layer: { id: "bbb" } })).toEqual({
+  expect(mapStateToProps(state, { layer: { id: "bbb" } })).toEqual({
     isVisible: true,
   });
-  expect(mapStateToProps(store, { layer: { id: "111" } })).toEqual({
+  expect(mapStateToProps(state, { layer: { id: "111" } })).toEqual({
     isVisible: false,
   });
 });

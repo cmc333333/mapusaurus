@@ -8,34 +8,32 @@ import { Provider } from "react-redux";
 import { createStore } from "redux";
 
 import SPA from "./components/SPA";
+import initialState from "./store/initial-state";
 import reducer from "./store/reducer";
+import serialize from "./store/serialize";
 import { fetchData } from "./util/apis";
-import * as hash from "./util/hash";
 import typography from "./util/typography";
 
 typography.injectStyles();
 
 const devtoolsField = "__REDUX_DEVTOOLS_EXTENSION__";
-const configField = "__SPA_CONFIG__";
-
-const config = window[configField] || {};
-config.features = config.features || [];
-config.features.forEach(feature => {
-  feature.ids = Set(feature.ids);
-});
 
 const store = createStore(
   reducer,
-  hash.deserialize(window.location.hash.substr(1), config),
+  initialState(window),
   window[devtoolsField] && window[devtoolsField](),
 );
 
-window.setInterval(
-  () => {
-    window.location.hash = hash.serialize(store.getState());
-  },
-  3000,
-);
+let serializerTimer;
+store.subscribe(() => {
+  if (serializerTimer) {
+    clearTimeout(serializerTimer);
+  }
+  serializerTimer = setTimeout(
+    () => { window.location.hash = serialize(store.getState()); },
+    1000,
+  );
+});
 
 fetchData(store);
 ReactDOM.render(
