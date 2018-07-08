@@ -1,0 +1,13 @@
+import * as qs from "qs";
+
+import State from "./State";
+
+/*
+ * Serialize relevant portions of the state tree into a string
+ */
+export default function serialize(state: State): string {
+  return qs.stringify(
+    { ...state.viewport, ...state.larLayer.config },
+    { arrayFormat: "brackets" },
+  );
+}

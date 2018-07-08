@@ -3,8 +3,8 @@ import glamorous from "glamorous";
 import { Set } from "immutable";
 import * as React from "react";
 
-import { addLayers, removeLayers } from "../../../store/actions";
-import { StoreFactory } from "../../../testUtils/Factory";
+import { addLayers, removeLayers } from "../../../store/Mapbox";
+import { MapboxFactory, StateFactory } from "../../../testUtils/Factory";
 import {
   FeatureCheckbox,
   mapDispatchToProps,
@@ -82,8 +82,10 @@ describe("<FeatureCheckbox />", () => {
 });
 
 test("mapStateToProps() set checked based on the visible set", () => {
-  const store = StoreFactory.build({
-    visibleLayers: Set<string>(["aaa", "bbb", "ccc"]),
+  const store = StateFactory.build({
+    mapbox: MapboxFactory.build({
+      visible: Set<string>(["aaa", "bbb", "ccc"]),
+    }),
   });
   const visibleFeature = { ids: Set<string>(["bbb", "111"]) };
   const hiddenFeature = { ids: Set<string>(["111", "222", "333"]) };

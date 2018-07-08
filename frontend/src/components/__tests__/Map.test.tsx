@@ -14,8 +14,8 @@ describe("<Map />", () => {
     const result = shallow(
       <Map
         changeViewport={changeViewport}
-        config={ConfigFactory.build()}
         mapStyle={undefined}
+        mapboxApiAccessToken=""
         scatterPlot={[]}
         viewport={ViewportFactory.build()}
       />,
@@ -32,12 +32,11 @@ describe("<Map />", () => {
       longitude: -22.22,
       zoom: 3,
     };
-    const config = ConfigFactory.build({ token: "A Token!" });
     const result = shallow(
       <Map
         changeViewport={changeViewport}
-        config={config}
         mapStyle={MapboxStyleFactory.build()}
+        mapboxApiAccessToken="A Token!"
         scatterPlot={[]}
         viewport={viewport}
       />,
@@ -60,8 +59,8 @@ describe("<Map />", () => {
     const layers = shallow(
       <Map
         changeViewport={changeViewport}
-        config={ConfigFactory.build()}
         mapStyle={MapboxStyleFactory.build()}
+        mapboxApiAccessToken=""
         scatterPlot={scatterPlot}
         viewport={ViewportFactory.build()}
       />,

@@ -1,3 +1,16 @@
+import { combineReducers } from "redux";
+
+import { reducer as larLayer } from "./LARLayer";
+import { reducer as mapbox } from "./Mapbox";
+import { reducer as viewport } from "./Viewport";
+
+export default combineReducers({
+  larLayer,
+  mapbox,
+  viewport,
+});
+
+/*
 import { Set } from "immutable";
 
 import {
@@ -114,3 +127,4 @@ export default function reducer(state: Store, action: Action): Store {
       return state;
   }
 }
+*/

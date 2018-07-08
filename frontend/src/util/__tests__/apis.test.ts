@@ -1,21 +1,23 @@
 import axios from "axios";
+import { Map } from "immutable";
 
+import { setLarData } from "../../store/LARLayer";
+import { setStyle } from "../../store/Mapbox";
 import {
-  SET_GEO,
-  SET_LAR,
-  SET_LENDER,
-  setGeo,
-  setLar,
-  setLender,
-  setStyle,
-} from "../../store/actions";
-import {
+  ApiConfigFactory,
   ConfigFactory,
-  HMDAFactory,
+  LARLayerFactory,
+  MapboxFactory,
   MapboxStyleFactory,
-  StoreFactory,
+  StateFactory,
 } from "../../testUtils/Factory";
-import { fetchGeo, fetchLar, fetchLender, fetchStyle } from "../apis";
+import {
+  fetchCountyNames,
+  fetchLar,
+  fetchLenderNames,
+  fetchMetroNames,
+  fetchStyle,
+} from "../apis";
 
 jest.mock("axios");
 
@@ -25,10 +27,12 @@ afterEach(getMock.mockReset);
 
 describe("fetchStyle()", () => {
   it("hits the right endpoint", async () => {
-    const state = StoreFactory.build({
-      config: ConfigFactory.build({
-        styleName: "some-style",
-        token: "some-token",
+    const state = StateFactory.build({
+      mapbox: MapboxFactory.build({
+        config: ConfigFactory.build({
+          styleName: "some-style",
+          token: "some-token",
+        }),
       }),
     });
     getMock.mockImplementationOnce(() => ({ data: null }));
@@ -42,25 +46,19 @@ describe("fetchStyle()", () => {
   it("creates an action based on the result", async () => {
     const style = MapboxStyleFactory.build();
     getMock.mockImplementationOnce(() => ({ data: style }));
-    const state = StoreFactory.build({
-      config: ConfigFactory.build({
-        styleName: "some-style",
-        token: "some-token",
-      }),
-    });
-    const result = await fetchStyle(StoreFactory.build());
+    const result = await fetchStyle(StateFactory.build());
     expect(result).toEqual(setStyle(style));
   });
 });
 
 describe("fetchLar()", () => {
   it("hits the right endpoint", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build({
-        config: {
-          lender: "2012abcd123",
-          metro: "333",
-        },
+    const state = StateFactory.build({
+      larLayer: LARLayerFactory.build({
+        config: ApiConfigFactory.build({
+          lenders: ["2012abcd123"],
+          metros: ["333"],
+        }),
       }),
     });
     getMock.mockImplementationOnce(() => ({ data: {} }));
@@ -78,17 +76,18 @@ describe("fetchLar()", () => {
   });
 
   it("handles non-hmda displays", async () => {
-    const state = StoreFactory.build();
-    delete state.hmda;
+    const state = StateFactory.build({
+      larLayer: LARLayerFactory.build({
+        config: ApiConfigFactory.build({ lenders: [] }),
+      }),
+    });
     const result = await fetchLar(state);
     expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual(setLar([]));
+    expect(result).toEqual(setLarData([]));
   });
 
   it("creates an action in the right format", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build(),
-    });
+    const state = StateFactory.build();
     getMock.mockImplementationOnce(() => ({
       data: {
         aaaaaaaa: {
@@ -113,105 +112,85 @@ describe("fetchLar()", () => {
     }));
     const result = await fetchLar(state);
 
-    expect(result.type).toBe(SET_LAR);
-    if (result.type === SET_LAR) {
-      const lar = (result as any).lar;
-      // Ensure a consistent order
-      lar.sort((l, r) => l.loanCount - r.loanCount);
+    const lar = result.payload;
+    // Ensure a consistent order
+    lar.sort((l, r) => l.loanCount - r.loanCount);
 
-      expect(lar).toEqual([
-        { houseCount: 2, latitude: 3.3, loanCount: 1, longitude: -4.4 },
-        { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
-        { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
-      ]);
-    }
+    expect(lar).toEqual([
+      { houseCount: 2, latitude: 3.3, loanCount: 1, longitude: -4.4 },
+      { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
+      { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
+    ]);
   });
 });
 
-describe("fetchGeo()", () => {
-  it("hits the right endpoint when county is defined", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build({
-        config: { county: "2012abcd123", lender: "abcd" },
-      }),
+describe("fetching names", () => {
+  const testConfigurations = [
+    {
+      action: fetchCountyNames,
+      configField: "counties",
+      endpoint: "/geo/",
+      idField: "geoid",
+    }, {
+      action: fetchLenderNames,
+      configField: "lenders",
+      endpoint: "/respondents/",
+      idField: "institution_id",
+    }, {
+      action: fetchMetroNames,
+      configField: "metros",
+      endpoint: "/geo/",
+      idField: "geoid",
+    },
+  ];
+  testConfigurations.forEach(configuration => {
+    const { action, configField, endpoint, idField } = configuration;
+
+    it("hits the right endpoint", async () => {
+      const state = StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          config: ApiConfigFactory.build({
+            [configField]: ["2012abcd123", "2013bcde234"],
+          }),
+        }),
+      });
+      getMock.mockImplementationOnce(() => ({ data: { results: [] } }));
+      await action(state);
+      expect(getMock).toHaveBeenCalled();
+      const [url, options] = getMock.mock.calls[0];
+      expect(url).toMatch(endpoint);
+      expect(options.params).toEqual({
+        [`${idField}__in`]: "2012abcd123,2013bcde234",
+      });
     });
-    getMock.mockImplementationOnce(() => ({ data: {} }));
-    await fetchGeo(state);
-    expect(getMock).toHaveBeenCalled();
-    const url = getMock.mock.calls[0][0];
-    expect(url).toMatch("/geo/2012abcd123");
-  });
-  it("hits the right endpoint when metro is defined", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build({
-        config: { lender: "12345", metro: "2012abcd123" },
-      }),
+
+    it("handles empty data", async () => {
+      const state = StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          config: ApiConfigFactory.build({ [configField]: [] }),
+        }),
+      });
+      const result = await action(state);
+      expect(getMock).not.toHaveBeenCalled();
+      expect(result.payload).toEqual(Map<string, string>());
     });
-    getMock.mockImplementationOnce(() => ({ data: {} }));
-    await fetchGeo(state);
-    expect(getMock).toHaveBeenCalled();
-    const url = getMock.mock.calls[0][0];
-    expect(url).toMatch("/geo/2012abcd123");
-  });
 
-  it("handles non-hmda displays", async () => {
-    const state = StoreFactory.build();
-    delete state.hmda;
-    const result = await fetchGeo(state);
-    expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual(setGeo(""));
-  });
+    it("creates an action in the right format", async () => {
+      const state = StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          config: ApiConfigFactory.build({ [configField]: ["2012abcd123"] }),
+        }),
+      });
+      getMock.mockImplementationOnce(() => ({ data: { results: [
+        { [idField]: "abc", name: "AAA" },
+        { [idField]: "def", name: "BBB" },
+      ]}}));
+      const result = await action(state);
 
-  it("creates an action in the right format", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build(),
+      expect(result.payload).toEqual(Map<string, string>({
+        abc: "AAA",
+        def: "BBB",
+      }));
     });
-    getMock.mockImplementationOnce(() => ({
-      data: { name: "Some geo name" },
-    }));
-    const result = await fetchGeo(state);
-
-    expect(result.type).toBe(SET_GEO);
-    if (result.type === SET_GEO) {
-      expect(result.geoName).toBe("Some geo name");
-    }
-  });
-});
-
-describe("fetchLender()", () => {
-  it("hits the right endpoint", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build({
-        config: { lender: "2012abcd123" },
-      }),
-    });
-    getMock.mockImplementationOnce(() => ({ data: {} }));
-    await fetchLender(state);
-    expect(getMock).toHaveBeenCalled();
-    const url = getMock.mock.calls[0][0];
-    expect(url).toMatch("/respondents/2012abcd123");
-  });
-
-  it("handles non-hmda displays", async () => {
-    const state = StoreFactory.build();
-    delete state.hmda;
-    const result = await fetchLender(state);
-    expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual(setLender(""));
-  });
-
-  it("creates an action in the right format", async () => {
-    const state = StoreFactory.build({
-      hmda: HMDAFactory.build(),
-    });
-    getMock.mockImplementationOnce(() => ({
-      data: { name: "Some lender name" },
-    }));
-    const result = await fetchLender(state);
-
-    expect(result.type).toBe(SET_LENDER);
-    if (result.type === SET_LENDER) {
-      expect(result.lenderName).toBe("Some lender name");
-    }
   });
 });
