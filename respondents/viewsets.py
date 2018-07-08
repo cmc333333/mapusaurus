@@ -7,3 +7,6 @@ from respondents.serializers import RespondentSerializer
 class RespondentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Institution.objects.all()
     serializer_class = RespondentSerializer
+    filter_fields = {
+        'institution_id': ('in',)
+    }
