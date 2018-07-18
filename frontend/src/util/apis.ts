@@ -27,9 +27,9 @@ export async function fetchStyle({ mapbox }: State) {
 export async function fetchLar(state: State) {
   const config = state.larLayer.config;
 
-  const county = config.counties.length ? config.counties[0] : "";
-  const lender = config.lenders.length ? config.lenders[0] : "";
-  const metro = config.metros.length ? config.metros[0] : "";
+  const county = config.counties.first() || "";
+  const lender = config.lenders.first() || "";
+  const metro = config.metros.first() || "";
   const params: any = {
     lender,
     action_taken: "1,2,3,4,5",
@@ -59,10 +59,10 @@ export async function fetchLar(state: State) {
 }
 
 export async function fetchLenderNames({ larLayer }: State) {
-  if (larLayer.config.lenders.length) {
+  if (larLayer.config.lenders.size) {
     const response = await axios.get(
       `/api/respondents/`,
-      { params: { institution_id__in: larLayer.config.lenders.join(",") } },
+      { params: { institution_id__in: larLayer.config.lenders.toArray().join(",") } },
     );
     const pairs = response.data.results.map(r => [r.institution_id, r.name]);
     return addLenderNames(Map<string, string>(pairs));
@@ -71,10 +71,10 @@ export async function fetchLenderNames({ larLayer }: State) {
 }
 
 export async function fetchCountyNames({ larLayer }: State) {
-  if (larLayer.config.counties.length) {
+  if (larLayer.config.counties.size) {
     const response = await axios.get(
       `/api/geo/`,
-      { params: { geoid__in: larLayer.config.counties.join(",") } },
+      { params: { geoid__in: larLayer.config.counties.toArray().join(",") } },
     );
     const pairs = response.data.results.map(r => [r.geoid, r.name]);
     return addCountyNames(Map<string, string>(pairs));
@@ -83,10 +83,10 @@ export async function fetchCountyNames({ larLayer }: State) {
 }
 
 export async function fetchMetroNames({ larLayer }: State) {
-  if (larLayer.config.metros.length) {
+  if (larLayer.config.metros.size) {
     const response = await axios.get(
       `/api/geo/`,
-      { params: { geoid__in: larLayer.config.metros.join(",") } },
+      { params: { geoid__in: larLayer.config.metros.toArray().join(",") } },
     );
     const pairs = response.data.results.map(r => [r.geoid, r.name]);
     return addMetroNames(Map<string, string>(pairs));

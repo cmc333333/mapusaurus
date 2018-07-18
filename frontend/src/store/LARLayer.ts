@@ -1,4 +1,4 @@
-import { Map } from "immutable";
+import { Map, Set } from "immutable";
 import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
@@ -12,9 +12,9 @@ export interface LARPoint {
 }
 
 export interface ApiConfig {
-  counties: string[];
-  lenders: string[];
-  metros: string[];
+  counties: Set<string>;
+  lenders: Set<string>;
+  metros: Set<string>;
 }
 
 export default interface LARLayer {
@@ -27,9 +27,9 @@ export default interface LARLayer {
 
 export const SAFE_INIT: LARLayer = {
   config: {
-    counties: [],
-    lenders: [],
-    metros: [],
+    counties: Set<string>(),
+    lenders: Set<string>(),
+    metros: Set<string>(),
   },
   countyNames: Map<string, string>(),
   lar: [],
@@ -85,10 +85,10 @@ export const scatterPlotSelector = createSelector(
 );
 
 export function reduceToNames(
-  ids: string[],
+  ids: Set<string>,
   nameMap: Map<string, string>,
 ): string[] {
-  return ids
+  return ids.toArray()
     .filter(id => nameMap.has(id))
     .map(id => nameMap.get(id))
     .sort();

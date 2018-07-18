@@ -1,3 +1,4 @@
+import { Set } from "immutable";
 import * as qs from "qs";
 
 import {
@@ -12,9 +13,9 @@ describe("serialize()", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
         config: {
-          counties: [],
-          lenders: [],
-          metros: [],
+          counties: Set<string>([]),
+          lenders: Set<string>([]),
+          metros: Set<string>([]),
         },
       }),
       viewport: ViewportFactory.build({
@@ -35,9 +36,9 @@ describe("serialize()", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
         config: {
-          counties: ["aaa", "bbb", "ccc"],
-          lenders: ["12", "34"],
-          metros: ["Z"],
+          counties: Set<string>(["aaa", "bbb", "ccc"]),
+          lenders: Set<string>(["12", "34"]),
+          metros: Set<string>(["Z"]),
         },
       }),
     }));

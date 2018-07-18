@@ -22,9 +22,9 @@ export const LARPointFactory = new Factory().attrs({
 });
 
 export const ApiConfigFactory = new Factory().attrs({
-  counties: () => [],
-  lenders: () => [random.string(15, "0123456789")],
-  metros: () => [random.string(9, "0123456789")],
+  counties: () => Set<string>([]),
+  lenders: () => Set<string>([random.string(15, "0123456789")]),
+  metros: () => Set<string>([random.string(9, "0123456789")]),
 });
 
 export const LARLayerFactory = new Factory().attrs({

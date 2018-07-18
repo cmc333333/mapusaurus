@@ -11,9 +11,9 @@ export function deriveLARLayer(hash: string): LARLayer {
   return {
     ...larInit,
     config: {
-      counties: parsed.counties || [],
-      lenders: parsed.lenders || [],
-      metros: parsed.metros || [],
+      counties: Set<string>(parsed.counties || []),
+      lenders: Set<string>(parsed.lenders || []),
+      metros: Set<string>(parsed.metros || []),
     },
   };
 }

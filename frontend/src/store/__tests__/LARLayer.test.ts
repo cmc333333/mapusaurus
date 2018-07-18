@@ -1,4 +1,4 @@
-import { Map } from "immutable";
+import { Map, Set } from "immutable";
 
 import { LARLayerFactory, LARPointFactory } from "../../testUtils/Factory";
 import {
@@ -83,13 +83,13 @@ describe("scatterPlotSelector", () => {
 
 describe("reduceToNames()", () => {
   it("only includes ids that are present", () => {
-    const ids = ["aaa", "bbb", "ccc"];
+    const ids = Set<string>(["aaa", "bbb", "ccc"]);
     const mapping = Map<string, string>({ bbb: "BBB", ccc: "CCC" });
     expect(reduceToNames(ids, mapping)).toEqual(["BBB", "CCC"]);
   });
 
   it("sorts the results", () => {
-    const ids = ["aaa", "zzz"];
+    const ids = Set<string>(["aaa", "zzz"]);
     const mapping = Map<string, string>({ aaa: "ZZZ", zzz: "AAA" });
     expect(reduceToNames(ids, mapping)).toEqual(["AAA", "ZZZ"]);
   });

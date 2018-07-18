@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Map } from "immutable";
+import { Map, Set } from "immutable";
 
 import { setLarData } from "../../store/LARLayer";
 import { setStyle } from "../../store/Mapbox";
@@ -56,8 +56,8 @@ describe("fetchLar()", () => {
     const state = StateFactory.build({
       larLayer: LARLayerFactory.build({
         config: ApiConfigFactory.build({
-          lenders: ["2012abcd123"],
-          metros: ["333"],
+          lenders: Set<string>(["2012abcd123"]),
+          metros: Set<string>(["333"]),
         }),
       }),
     });
@@ -78,7 +78,9 @@ describe("fetchLar()", () => {
   it("handles non-hmda displays", async () => {
     const state = StateFactory.build({
       larLayer: LARLayerFactory.build({
-        config: ApiConfigFactory.build({ lenders: [] }),
+        config: ApiConfigFactory.build({
+          lenders: Set<string>([]),
+        }),
       }),
     });
     const result = await fetchLar(state);
@@ -150,7 +152,7 @@ describe("fetching names", () => {
       const state = StateFactory.build({
         larLayer: LARLayerFactory.build({
           config: ApiConfigFactory.build({
-            [configField]: ["2012abcd123", "2013bcde234"],
+            [configField]: Set<string>(["2012abcd123", "2013bcde234"]),
           }),
         }),
       });
@@ -178,7 +180,9 @@ describe("fetching names", () => {
     it("creates an action in the right format", async () => {
       const state = StateFactory.build({
         larLayer: LARLayerFactory.build({
-          config: ApiConfigFactory.build({ [configField]: ["2012abcd123"] }),
+          config: ApiConfigFactory.build({
+            [configField]: Set<string>(["2012abcd123"]),
+          }),
         }),
       });
       getMock.mockImplementationOnce(() => ({ data: { results: [
