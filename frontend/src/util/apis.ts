@@ -94,16 +94,4 @@ export async function fetchMetroNames({ larLayer }: State) {
   return addMetroNames(Map<string, string>());
 }
 
-/*
- * Kickoff fetch/load of data from the API.
- */
-export function fetchData(store) {
-  const state: State = store.getState();
-  return Promise.all([
-    fetchCountyNames(state).then(store.dispatch),
-    fetchLar(state).then(store.dispatch),
-    fetchLenderNames(state).then(store.dispatch),
-    fetchMetroNames(state).then(store.dispatch),
-    fetchStyle(state).then(store.dispatch),
-  ]);
 }
