@@ -11,55 +11,54 @@ export interface LARPoint {
   longitude: number;
 }
 
-export interface ApiConfig {
-  counties: Set<string>;
-  lenders: Set<string>;
-  metros: Set<string>;
+export interface Lender {
+  id: string;
+  name?: string;
+}
+
+export interface Geography {
+  id: string;
+  name?: string;
 }
 
 export default interface LARLayer {
-  config: ApiConfig;
-  countyNames: Map<string, string>;
+  counties: Geography[];
   lar: LARPoint[];
-  lenderNames: Map<string, string>;
-  metroNames: Map<string, string>;
+  lenders: Lender[];
+  metros: Geography[];
 }
 
 export const SAFE_INIT: LARLayer = {
-  config: {
-    counties: Set<string>(),
-    lenders: Set<string>(),
-    metros: Set<string>(),
-  },
-  countyNames: Map<string, string>(),
+  counties: [],
   lar: [],
-  lenderNames: Map<string, string>(),
-  metroNames: Map<string, string>(),
+  lenders: [],
+  metros: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
 
-export const addCountyNames = actionCreator<Map<string, string>>("ADD_COUNTY_NAMES");
-export const addLenderNames = actionCreator<Map<string, string>>("ADD_LENDER_NAMES");
-export const addMetroNames = actionCreator<Map<string, string>>("ADD_METRO_NAMES");
+export const setCounties = actionCreator<Geography[]>("SET_COUNTIES");
+export const setLenders = actionCreator<Lender[]>("SET_LENDERS");
 export const setLarData = actionCreator<LARPoint[]>("SET_LAR_DATA");
+export const setMetros = actionCreator<Geography[]>("SET_METROS");
+
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
-  .case(addCountyNames, (original: LARLayer, names: Map<string, string>) => ({
+  .case(setCounties, (original: LARLayer, counties: Geography[]) => ({
     ...original,
-    countyNames: original.countyNames.merge(names),
-  }))
-  .case(addLenderNames, (original: LARLayer, names: Map<string, string>) => ({
-    ...original,
-    lenderNames: original.lenderNames.merge(names),
-  }))
-  .case(addMetroNames, (original: LARLayer, names: Map<string, string>) => ({
-    ...original,
-    metroNames: original.metroNames.merge(names),
+    counties,
   }))
   .case(setLarData, (original: LARLayer, lar: LARPoint[]) => ({
     ...original,
     lar,
+  }))
+  .case(setLenders, (original: LARLayer, lenders: Lender[]) => ({
+    ...original,
+    lenders,
+  }))
+  .case(setMetros, (original: LARLayer, metros: Geography[]) => ({
+    ...original,
+    metros,
   }))
   .build();
 
@@ -84,30 +83,17 @@ export const scatterPlotSelector = createSelector(
   lar => lar.map(toScatterPlot),
 );
 
-export function reduceToNames(
-  ids: Set<string>,
-  nameMap: Map<string, string>,
-): string[] {
-  return ids.toArray()
-    .filter(id => nameMap.has(id))
-    .map(id => nameMap.get(id))
-    .sort();
-}
-
 export const countyNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.counties,
-  ({ countyNames }: LARLayer) => countyNames,
-  reduceToNames,
+  ({ counties }: LARLayer) => counties,
+  (counties: Geography[]) => counties.filter(c => c.name).map(c => c.name).sort(),
 );
 
 export const lenderNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.lenders,
-  ({ lenderNames }: LARLayer) => lenderNames,
-  reduceToNames,
+  ({ lenders }: LARLayer) => lenders,
+  (lenders: Lender[]) => lenders.filter(l => l.name).map(l => l.name).sort(),
 );
 
 export const metroNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.metros,
-  ({ metroNames }: LARLayer) => metroNames,
-  reduceToNames,
+  ({ metros }: LARLayer) => metros,
+  (metros: Geography[]) => metros.filter(m => m.name).map(m => m.name).sort(),
 );

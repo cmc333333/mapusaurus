@@ -12,11 +12,9 @@ describe("serialize()", () => {
   it("serializes the viewport, ignoring other args", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
-        config: {
-          counties: Set<string>([]),
-          lenders: Set<string>([]),
-          metros: Set<string>([]),
-        },
+        counties: [],
+        lenders: [],
+        metros: [],
       }),
       viewport: ViewportFactory.build({
         latitude: 44,
@@ -35,11 +33,16 @@ describe("serialize()", () => {
   it("serializes lar config", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
-        config: {
-          counties: Set<string>(["aaa", "bbb", "ccc"]),
-          lenders: Set<string>(["12", "34"]),
-          metros: Set<string>(["Z"]),
-        },
+        counties: [
+          { id: "aaa", name: "AAA" },
+          { id: "bbb", name: "BBB" },
+          { id: "ccc", name: "CCC" },
+        ],
+        lenders: [
+          { id: "12", name: "one-two" },
+          { id: "34", name: "three-four" },
+        ],
+        metros: [{ id: "Z", name: "zee" }],
       }),
     }));
     expect(result).toMatch(/\bcounties%5B%5D=aaa\b/);

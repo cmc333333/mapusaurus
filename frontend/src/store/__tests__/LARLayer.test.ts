@@ -1,14 +1,16 @@
-import { Map, Set } from "immutable";
+import { Map } from "immutable";
 
 import { LARLayerFactory, LARPointFactory } from "../../testUtils/Factory";
-import {
-  addCountyNames,
-  addLenderNames,
-  addMetroNames,
+import LARLayer, {
+  countyNamesSelector,
+  lenderNamesSelector,
+  metroNamesSelector,
   reducer,
-  reduceToNames,
   scatterPlotSelector,
+  setCounties,
   setLarData,
+  setLenders,
+  setMetros,
 } from "../LARLayer";
 
 describe("reducer()", () => {
@@ -19,40 +21,31 @@ describe("reducer()", () => {
     expect(result.lar).toEqual(lar);
   });
 
-  describe("setting names", () => {
-    const original = LARLayerFactory.build({
-      countyNames: Map<string, string>({ one: "1", two: "2" }),
-      lenderNames: Map<string, string>({ aye: "aaa", bee: "bbb" }),
-      metroNames: Map<string, string>({ a: "AaA" }),
-    });
-    const names = Map<string, string>({ names: "here", some: "stuff" });
+  it("sets counties", () => {
+    const counties = [
+      { id: "names", names: "here" },
+      { id: "one", names: "two" },
+    ];
+    const result = reducer(LARLayerFactory.build(), setCounties(counties));
+    expect(result.counties).toEqual(counties);
+  });
 
-    it("adds counties", () => {
-      const result = reducer(original, addCountyNames(names));
-      expect(result.countyNames).toEqual(Map<string, string>({
-        names: "here", one: "1", some: "stuff", two: "2",
-      }));
-      expect(result.lenderNames).toEqual(original.lenderNames);
-      expect(result.metroNames).toEqual(original.metroNames);
-    });
+  it("sets lenders", () => {
+    const lenders = [
+      { id: "names", names: "here" },
+      { id: "one", names: "two" },
+    ];
+    const result = reducer(LARLayerFactory.build(), setLenders(lenders));
+    expect(result.lenders).toEqual(lenders);
+  });
 
-    it("adds lenders", () => {
-      const result = reducer(original, addLenderNames(names));
-      expect(result.countyNames).toEqual(original.countyNames);
-      expect(result.lenderNames).toEqual(Map<string, string>({
-        aye: "aaa", bee: "bbb", names: "here", some: "stuff",
-      }));
-      expect(result.metroNames).toEqual(original.metroNames);
-    });
-
-    it("adds metros", () => {
-      const result = reducer(original, addMetroNames(names));
-      expect(result.countyNames).toEqual(original.countyNames);
-      expect(result.lenderNames).toEqual(original.lenderNames);
-      expect(result.metroNames).toEqual(Map<string, string>({
-        a: "AaA", names: "here", some: "stuff",
-      }));
-    });
+  it("sets metros", () => {
+    const metros = [
+      { id: "names", names: "here" },
+      { id: "one", names: "two" },
+    ];
+    const result = reducer(LARLayerFactory.build(), setMetros(metros));
+    expect(result.metros).toEqual(metros);
   });
 });
 
@@ -81,16 +74,29 @@ describe("scatterPlotSelector", () => {
   });
 });
 
-describe("reduceToNames()", () => {
-  it("only includes ids that are present", () => {
-    const ids = Set<string>(["aaa", "bbb", "ccc"]);
-    const mapping = Map<string, string>({ bbb: "BBB", ccc: "CCC" });
-    expect(reduceToNames(ids, mapping)).toEqual(["BBB", "CCC"]);
-  });
+describe("name selectors", () => {
+  const configs = [
+    { inputField: "counties", selector: countyNamesSelector },
+    { inputField: "lenders", selector: lenderNamesSelector },
+    { inputField: "metros", selector: metroNamesSelector },
+  ];
+  configs.forEach(({ inputField, selector }) => {
+    it("only includes ids that are present", () => {
+      const inputs = [
+        { id: "bbb", name: "BBB" },
+        { id: "ccc", name: "CCC" },
+      ];
+      const input: any = { [inputField]: inputs };
+      expect(selector(input)).toEqual(["BBB", "CCC"]);
+    });
 
-  it("sorts the results", () => {
-    const ids = Set<string>(["aaa", "zzz"]);
-    const mapping = Map<string, string>({ aaa: "ZZZ", zzz: "AAA" });
-    expect(reduceToNames(ids, mapping)).toEqual(["AAA", "ZZZ"]);
+    it("sorts the results", () => {
+      const inputs = [
+        { id: "aaa", name: "ZZZ" },
+        { id: "zzz", name: "AAA" },
+      ];
+      const input: any = { [inputField]: inputs };
+      expect(selector(input)).toEqual(["AAA", "ZZZ"]);
+    });
   });
 });

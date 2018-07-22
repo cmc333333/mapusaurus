@@ -9,9 +9,9 @@ export default function serialize(state: State): string {
   return qs.stringify(
     {
       ...state.viewport,
-      counties: state.larLayer.config.counties.toArray(),
-      lenders: state.larLayer.config.lenders.toArray(),
-      metros: state.larLayer.config.metros.toArray(),
+      counties: state.larLayer.counties.map(c => c.id),
+      lenders: state.larLayer.lenders.map(l => l.id),
+      metros: state.larLayer.metros.map(m => m.id),
     },
     { arrayFormat: "brackets" },
   );
