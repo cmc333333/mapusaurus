@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { fetchLenders } from "../lenders";
+import { fetchLenders, searchLenders } from "../lenders";
 
 jest.mock("axios");
 
@@ -26,12 +26,40 @@ describe("fetchLenders()", () => {
     expect(result).toEqual([]);
   });
 
-  it("creates an action in the right format", async () => {
+  it("transforms the result", async () => {
     getMock.mockImplementationOnce(() => ({ data: { results: [
       { institution_id: "abc", name: "AAA" },
       { institution_id: "def", name: "BBB" },
     ]}}));
     const result = await fetchLenders(["2012abcd123"]);
+
+    expect(result).toEqual([
+      { id: "abc", name: "AAA" },
+      { id: "def", name: "BBB" },
+    ]);
+  });
+});
+
+describe("searchLenders()", () => {
+  it("hits the right endpoint", async () => {
+    getMock.mockImplementationOnce(() => ({ data: { institutions: [] } }));
+    await searchLenders("abcd", 2020);
+    expect(getMock).toHaveBeenCalled();
+    const [url, options] = getMock.mock.calls[0];
+    expect(url).toBe("/institutions/search/");
+    expect(options.params).toEqual({
+      auto: 1,
+      q: "abcd",
+      year: 2020,
+    });
+  });
+
+  it("transforms the result", async () => {
+    getMock.mockImplementationOnce(() => ({ data: { institutions: [
+      { institution_id: "abc", name: "AAA" },
+      { institution_id: "def", name: "BBB" },
+    ]}}));
+    const result = await searchLenders("1234", 2000);
 
     expect(result).toEqual([
       { id: "abc", name: "AAA" },
