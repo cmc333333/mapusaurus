@@ -1,7 +1,9 @@
-import { Map, Set } from "immutable";
 import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
+import { asyncFactory } from "typescript-fsa-redux-thunk";
+
+import { fetchLar } from "../apis/lar";
 
 export interface LARPoint {
   geoid: string;
@@ -36,12 +38,46 @@ export const SAFE_INIT: LARLayer = {
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
+const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
 export const setCounties = actionCreator<Geography[]>("SET_COUNTIES");
 export const setLenders = actionCreator<Lender[]>("SET_LENDERS");
 export const setLarData = actionCreator<LARPoint[]>("SET_LAR_DATA");
 export const setMetros = actionCreator<Geography[]>("SET_METROS");
 
+export const addLender = asyncActionCreator<Lender, Lender[]>(
+  "ADD_LENDER",
+  async (lender: Lender, dispatch, getState: () => any) => {
+    const old = getState().larLayer;
+    const oldLenders = old.lenders.filter(l => l.id !== lender.id);
+    // Ensure order is preserved
+    const lenders = [...oldLenders, lender].sort(
+      (l, r) => (l.name || "").localeCompare(r.name || ""),
+    );
+    const lar = await fetchLar(
+      old.counties.map(c => c.id),
+      lenders.map(l => l.id),
+      old.metros.map(m => m.id),
+    );
+    dispatch(setLarData(lar));
+    return lenders;
+  },
+);
+
+export const removeLender = asyncActionCreator<string, Lender[]>(
+  "REMOVE_LENDER",
+  async (id: string, dispatch, getState: () => any) => {
+    const old = getState().larLayer;
+    const lenders = old.lenders.filter(l => l.id !== id);
+    const lar = await fetchLar(
+      old.counties.map(c => c.id),
+      lenders.map(l => l.id),
+      old.metros.map(m => m.id),
+    );
+    dispatch(setLarData(lar));
+    return lenders;
+  },
+);
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(setCounties, (original: LARLayer, counties: Geography[]) => ({
@@ -60,6 +96,14 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
     ...original,
     metros,
   }))
+  .cases(
+    [addLender.async.started, removeLender.async.started],
+    (original: LARLayer) => ({ ...original, lar: [] }),
+  )
+  .cases(
+    [addLender.async.done, removeLender.async.done],
+    (original: LARLayer, { result: lenders }) => ({ ...original, lenders }),
+  )
   .build();
 
 export function toScatterPlot({

@@ -21,17 +21,21 @@ export const LARPointFactory = new Factory().attrs({
   longitude: randLon,
 });
 
+export const GeoFactory = new Factory().attrs({
+  id: random.string(15, "0123456789"),
+  name: random.string(32),
+});
+
+export const LenderFactory = new Factory().attrs({
+  id: random.string(15, "0123456789"),
+  name: random.string(32),
+});
+
 export const LARLayerFactory = new Factory().attrs({
   counties: () => [],
   lar: () => [],
-  lenders: () => [{
-    id: random.string(15, "0123456789"),
-    name: random.string(32),
-  }],
-  metros: () => [{
-    id: random.string(15, "0123456789"),
-    name: random.string(32),
-  }],
+  lenders: () => [LenderFactory.build()],
+  metros: () => [GeoFactory.build()],
 });
 
 export const ConfigFactory = new Factory().attrs({
