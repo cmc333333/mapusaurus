@@ -127,17 +127,7 @@ export const scatterPlotSelector = createSelector(
   lar => lar.map(toScatterPlot),
 );
 
-export const countyNamesSelector = createSelector(
-  ({ counties }: LARLayer) => counties,
-  (counties: Geography[]) => counties.filter(c => c.name).map(c => c.name).sort(),
-);
-
-export const lenderNamesSelector = createSelector(
+export const lenderSelector = createSelector(
   ({ lenders }: LARLayer) => lenders,
-  (lenders: Lender[]) => lenders.filter(l => l.name).map(l => l.name).sort(),
-);
-
-export const metroNamesSelector = createSelector(
-  ({ metros }: LARLayer) => metros,
-  (metros: Geography[]) => metros.filter(m => m.name).map(m => m.name).sort(),
+  lenders => lenders.filter(l => l.name),
 );
