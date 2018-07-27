@@ -1,4 +1,4 @@
-import { Map, Set } from "immutable";
+import { Set } from "immutable";
 import * as Random from "random-js";
 import { Factory } from "rosie";
 
@@ -21,18 +21,21 @@ export const LARPointFactory = new Factory().attrs({
   longitude: randLon,
 });
 
-export const ApiConfigFactory = new Factory().attrs({
-  counties: () => [],
-  lenders: () => [random.string(15, "0123456789")],
-  metros: () => [random.string(9, "0123456789")],
+export const GeoFactory = new Factory().attrs({
+  id: random.string(15, "0123456789"),
+  name: random.string(32),
+});
+
+export const LenderFactory = new Factory().attrs({
+  id: random.string(15, "0123456789"),
+  name: random.string(32),
 });
 
 export const LARLayerFactory = new Factory().attrs({
-  config: () => ApiConfigFactory.build(),
-  countyNames: () => Map<string, string>(),
+  counties: () => [],
   lar: () => [],
-  lenderNames: () => Map<string, string>(),
-  metroNames: () => Map<string, string>(),
+  lenders: () => [LenderFactory.build()],
+  metros: () => [GeoFactory.build()],
 });
 
 export const ConfigFactory = new Factory().attrs({

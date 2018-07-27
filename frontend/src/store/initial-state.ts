@@ -10,11 +10,9 @@ export function deriveLARLayer(hash: string): LARLayer {
   const parsed = qs.parse(hash);
   return {
     ...larInit,
-    config: {
-      counties: parsed.counties || [],
-      lenders: parsed.lenders || [],
-      metros: parsed.metros || [],
-    },
+    counties: (parsed.counties || []).map(id => ({ id })),
+    lenders: (parsed.lenders || []).map(id => ({ id })),
+    metros: (parsed.metros || []).map(id => ({ id })),
   };
 }
 

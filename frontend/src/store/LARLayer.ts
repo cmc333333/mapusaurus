@@ -1,7 +1,9 @@
-import { Map } from "immutable";
 import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
+import { asyncFactory } from "typescript-fsa-redux-thunk";
+
+import { fetchLar } from "../apis/lar";
 
 export interface LARPoint {
   geoid: string;
@@ -11,56 +13,97 @@ export interface LARPoint {
   longitude: number;
 }
 
-export interface ApiConfig {
-  counties: string[];
-  lenders: string[];
-  metros: string[];
+export interface Lender {
+  id: string;
+  name?: string;
+}
+
+export interface Geography {
+  id: string;
+  name?: string;
 }
 
 export default interface LARLayer {
-  config: ApiConfig;
-  countyNames: Map<string, string>;
+  counties: Geography[];
   lar: LARPoint[];
-  lenderNames: Map<string, string>;
-  metroNames: Map<string, string>;
+  lenders: Lender[];
+  metros: Geography[];
 }
 
 export const SAFE_INIT: LARLayer = {
-  config: {
-    counties: [],
-    lenders: [],
-    metros: [],
-  },
-  countyNames: Map<string, string>(),
+  counties: [],
   lar: [],
-  lenderNames: Map<string, string>(),
-  metroNames: Map<string, string>(),
+  lenders: [],
+  metros: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
+const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
-export const addCountyNames = actionCreator<Map<string, string>>("ADD_COUNTY_NAMES");
-export const addLenderNames = actionCreator<Map<string, string>>("ADD_LENDER_NAMES");
-export const addMetroNames = actionCreator<Map<string, string>>("ADD_METRO_NAMES");
+export const setCounties = actionCreator<Geography[]>("SET_COUNTIES");
+export const setLenders = actionCreator<Lender[]>("SET_LENDERS");
 export const setLarData = actionCreator<LARPoint[]>("SET_LAR_DATA");
+export const setMetros = actionCreator<Geography[]>("SET_METROS");
+
+export const addLender = asyncActionCreator<Lender, Lender[]>(
+  "ADD_LENDER",
+  async (lender: Lender, dispatch, getState: () => any) => {
+    const old = getState().larLayer;
+    const oldLenders = old.lenders.filter(l => l.id !== lender.id);
+    // Ensure order is preserved
+    const lenders = [...oldLenders, lender].sort(
+      (l, r) => (l.name || "").localeCompare(r.name || ""),
+    );
+    const lar = await fetchLar(
+      old.counties.map(c => c.id),
+      lenders.map(l => l.id),
+      old.metros.map(m => m.id),
+    );
+    dispatch(setLarData(lar));
+    return lenders;
+  },
+);
+
+export const removeLender = asyncActionCreator<string, Lender[]>(
+  "REMOVE_LENDER",
+  async (id: string, dispatch, getState: () => any) => {
+    const old = getState().larLayer;
+    const lenders = old.lenders.filter(l => l.id !== id);
+    const lar = await fetchLar(
+      old.counties.map(c => c.id),
+      lenders.map(l => l.id),
+      old.metros.map(m => m.id),
+    );
+    dispatch(setLarData(lar));
+    return lenders;
+  },
+);
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
-  .case(addCountyNames, (original: LARLayer, names: Map<string, string>) => ({
+  .case(setCounties, (original: LARLayer, counties: Geography[]) => ({
     ...original,
-    countyNames: original.countyNames.merge(names),
-  }))
-  .case(addLenderNames, (original: LARLayer, names: Map<string, string>) => ({
-    ...original,
-    lenderNames: original.lenderNames.merge(names),
-  }))
-  .case(addMetroNames, (original: LARLayer, names: Map<string, string>) => ({
-    ...original,
-    metroNames: original.metroNames.merge(names),
+    counties,
   }))
   .case(setLarData, (original: LARLayer, lar: LARPoint[]) => ({
     ...original,
     lar,
   }))
+  .case(setLenders, (original: LARLayer, lenders: Lender[]) => ({
+    ...original,
+    lenders,
+  }))
+  .case(setMetros, (original: LARLayer, metros: Geography[]) => ({
+    ...original,
+    metros,
+  }))
+  .cases(
+    [addLender.async.started, removeLender.async.started],
+    (original: LARLayer) => ({ ...original, lar: [] }),
+  )
+  .cases(
+    [addLender.async.done, removeLender.async.done],
+    (original: LARLayer, { result: lenders }) => ({ ...original, lenders }),
+  )
   .build();
 
 export function toScatterPlot({
@@ -84,30 +127,7 @@ export const scatterPlotSelector = createSelector(
   lar => lar.map(toScatterPlot),
 );
 
-export function reduceToNames(
-  ids: string[],
-  nameMap: Map<string, string>,
-): string[] {
-  return ids
-    .filter(id => nameMap.has(id))
-    .map(id => nameMap.get(id))
-    .sort();
-}
-
-export const countyNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.counties,
-  ({ countyNames }: LARLayer) => countyNames,
-  reduceToNames,
-);
-
-export const lenderNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.lenders,
-  ({ lenderNames }: LARLayer) => lenderNames,
-  reduceToNames,
-);
-
-export const metroNamesSelector = createSelector(
-  ({ config }: LARLayer) => config.metros,
-  ({ metroNames }: LARLayer) => metroNames,
-  reduceToNames,
+export const lenderSelector = createSelector(
+  ({ lenders }: LARLayer) => lenders,
+  lenders => lenders.filter(l => l.name),
 );

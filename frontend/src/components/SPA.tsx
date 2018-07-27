@@ -4,7 +4,7 @@ import * as React from "react";
 import Map from "./Map";
 import ChoroplethSelection from "./sidebar/ChoroplethSelection";
 import FeatureSelection from "./sidebar/FeatureSelection";
-import HMDASelection from "./sidebar/HMDASelection";
+import HMDAFilters from "./sidebar/HMDAFilters";
 
 export default function SPA() {
   return (
@@ -20,7 +20,7 @@ export default function SPA() {
       >
         <ChoroplethSelection />
         <FeatureSelection />
-        <HMDASelection />
+        <HMDAFilters />
       </glamorous.Aside>
       <glamorous.Div
         marginLeft="300px"

@@ -3,27 +3,25 @@ import { deriveLARLayer, deriveViewport } from "../initial-state";
 describe("deriveLARLayer()", () => {
   it("loads county, lender, and metro", () => {
     const result = deriveLARLayer("counties[]=123&lenders[]=456&metros[]=789");
-    expect(result.config).toEqual({
-      counties: ["123"],
-      lenders: ["456"],
-      metros: ["789"],
-    });
+    expect(result.counties).toEqual([{ id: "123" }]);
+    expect(result.lenders).toEqual([{ id: "456" }]);
+    expect(result.metros).toEqual([{ id: "789" }]);
   });
   it("defaults to empty values", () => {
     const result = deriveLARLayer("");
-    expect(result.config).toEqual({
-      counties: [],
-      lenders: [],
-      metros: [],
-    });
+    expect(result.counties).toEqual([]);
+    expect(result.lenders).toEqual([]);
+    expect(result.metros).toEqual([]);
   });
   it("loads multiple", () => {
     const result = deriveLARLayer("metros[]=123&metros[]=456&metros[]=789");
-    expect(result.config).toEqual({
-      counties: [],
-      lenders: [],
-      metros: ["123", "456", "789"],
-    });
+    expect(result.counties).toEqual([]);
+    expect(result.lenders).toEqual([]);
+    expect(result.metros).toEqual([
+      { id: "123" },
+      { id: "456" },
+      { id: "789" },
+    ]);
   });
 });
 

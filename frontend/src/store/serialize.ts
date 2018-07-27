@@ -7,7 +7,12 @@ import State from "./State";
  */
 export default function serialize(state: State): string {
   return qs.stringify(
-    { ...state.viewport, ...state.larLayer.config },
+    {
+      ...state.viewport,
+      counties: state.larLayer.counties.map(c => c.id),
+      lenders: state.larLayer.lenders.map(l => l.id),
+      metros: state.larLayer.metros.map(m => m.id),
+    },
     { arrayFormat: "brackets" },
   );
 }
