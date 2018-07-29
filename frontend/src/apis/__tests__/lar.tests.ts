@@ -10,17 +10,14 @@ afterEach(getMock.mockReset);
 
 describe("fetchLar()", () => {
   it("hits the right endpoint", async () => {
-    getMock.mockImplementationOnce(() => ({ data: {} }));
+    getMock.mockImplementationOnce(() => ({ data: [] }));
     await fetchLar([], ["2012abcd123"], ["333"]);
     expect(getMock).toHaveBeenCalled();
     const options = getMock.mock.calls[0][1];
     expect(options.params).toEqual({
       action_taken: "1,2,3,4,5",
       lender: "2012abcd123",
-      lh: "false",
       metro: "333",
-      peers: "false",
-      year: "2012",
     });
   });
 
@@ -30,28 +27,35 @@ describe("fetchLar()", () => {
     expect(result).toEqual([]);
   });
 
+  it("requires a geo", async () => {
+    const result = await fetchLar([], ["1"], []);
+    expect(getMock).not.toHaveBeenCalled();
+    expect(result).toEqual([]);
+  });
+
   it("creates an action in the right format", async () => {
     getMock.mockImplementationOnce(() => ({
-      data: {
-        aaaaaaaa: {
+      data: [
+        {
           centlat: 3.3,
           centlon: -4.4,
+          geo_id: "aaaaaaaa",
           num_households: 2,
           volume: 1,
-        },
-        bbbbbbbb: {
+        }, {
           centlat: -7.7,
           centlon: 8.8,
+          geo_id: "bbbbbbbb",
           num_households: 6,
           volume: 5,
-        },
-        cccccccc: {
+        }, {
           centlat: 11,
           centlon: -12,
+          geo_id: "cccccccc",
           num_households: 10,
           volume: 9,
         },
-      } ,
+      ],
     }));
     const lar = await fetchLar(["1"], ["2"], ["3"]);
 
