@@ -1,12 +1,15 @@
 import json
 
+import pytest
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from model_mommy import mommy
+
 from censusdata.models import Census2010Households
+from geo.models import Geo
 from hmda.models import HMDARecord, LendingStats
 from respondents.models import Institution
-from geo.models import Geo
 
 
 class ViewsTest(TestCase):
@@ -239,3 +242,28 @@ class ViewsTest(TestCase):
         self.assertTrue('20131122233400' in resp)
         self.assertEqual(resp['20131122233400']['volume'], 1)
         self.assertEqual(resp['20131122233400']['num_households'], 1000)
+
+
+@pytest.mark.django_db
+def test_LARMultipleLenderFilters(client):
+    metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE)
+    tract_a, tract_b, tract_ab, tract_none = mommy.make(
+        Geo, _quantity=4,
+        geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa, year=metro.year,
+    )
+    lender_a, lender_b = mommy.make(Institution, _quantity=2)
+    mommy.make(HMDARecord, institution=lender_a, geo=tract_a)
+    mommy.make(HMDARecord, institution=lender_a, geo=tract_ab)
+    mommy.make(HMDARecord, institution=lender_b, geo=tract_ab)
+    mommy.make(HMDARecord, institution=lender_b, geo=tract_b)
+
+    assert len(
+        client.get(f"/api/lar/?lender={lender_a.pk}&metro={metro.pk}").json()
+    ) == 2
+    assert len(
+        client.get(f"/api/lar/?lender={lender_b.pk}&metro={metro.pk}").json()
+    ) == 2
+    assert len(
+        client.get(f"/api/lar/?lender={lender_a.pk},{lender_b.pk}"
+                   f"&metro={metro.pk}").json()
+    ) == 3
