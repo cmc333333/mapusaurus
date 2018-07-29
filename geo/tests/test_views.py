@@ -1,7 +1,6 @@
 import pytest
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
-from django.http import Http404
 from model_mommy import mommy
 
 from geo import views
@@ -37,8 +36,9 @@ def test_filter_to_metro():
     result = views.TractFilters({'metro': second.pk, 'year': '2010'}).qs
     assert result.count() == 3
 
-    with pytest.raises(Http404):
-        views.TractFilters({'metro': 'something-else', 'year': '2010'}).qs
+    result = views.TractFilters({'metro': f"{first.pk},{second.pk}",
+                                 'year': '2010'}).qs
+    assert result.count() == 8
 
 
 @pytest.mark.django_db

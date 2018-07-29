@@ -7,17 +7,6 @@ from geo.models import Geo
 
 
 @pytest.mark.django_db
-def test_valid_metro(client):
-    tract = mommy.make(Geo, geo_type=Geo.TRACT_TYPE)
-    result = client.get('/reports/population-demographics/'
-                        f'?year=2000&metro={tract.pk}')
-    assert result.status_code == 404
-    result = client.get('/reports/population-demographics/'
-                        f'?year=2000&metro=12345')
-    assert result.status_code == 404
-
-
-@pytest.mark.django_db
 def test_spotcheck_data(client):
     metro = mommy.make(Geo, geo_type=Geo.METRO_TYPE, cbsa='12345', year=1990)
     tract1, tract2 = mommy.make(Geo, geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa,

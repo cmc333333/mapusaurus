@@ -2,7 +2,6 @@ import django_filters
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -34,8 +33,13 @@ class TractFilters(django_filters.FilterSet):
         fields = ('year',)
 
     def filter_to_metro(self, queryset, name, value):
-        msa = get_object_or_404(Geo, geo_type=Geo.METRO_TYPE, geoid=value)
-        return queryset.filter(cbsa=msa.cbsa, year=msa.year)
+        metros = Geo.objects.filter(geo_type=Geo.METRO_TYPE,
+                                    geoid__in=value.split(','))
+        filter_clause = Q()
+        for metro in metros:
+            filter_clause = filter_clause \
+                | Q(cbsa=metro.cbsa, year=metro.year)
+        return queryset.filter(filter_clause)
 
     def filter_to_county(self, queryset, name, value):
         counties = Geo.objects.filter(geo_type=Geo.COUNTY_TYPE,

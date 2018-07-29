@@ -26,7 +26,6 @@ class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
 class LARFilters(django_filters.FilterSet):
     action_taken = ChoiceInFilter(choices=ACTION_TAKEN_CHOICES,
                                   lookup_expr='in')
-    year = django_filters.NumberFilter(name='as_of_year')
 
     class Meta:
         model = HMDARecord
