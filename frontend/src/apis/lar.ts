@@ -10,33 +10,28 @@ export async function fetchLar(
   lenderIds: string[],
   metroIds: string[],
 ): Promise<LARPoint[]> {
-  const county = countyIds.length ? countyIds[0] : "";
-  const lender = lenderIds.length ? lenderIds[0] : "";
-  const metro = metroIds.length ? metroIds[0] : "";
   const params: any = {
-    lender,
     action_taken: "1,2,3,4,5",
-    lh: "false",
-    peers: "false",
-    year: lender.substr(0, 4),
   };
-  if (county) {
-    params.county = county;
-  } else if (metro) {
-    params.metro = metro;
+  if (countyIds.length) {
+    params.county = countyIds.join(",");
+  }
+  if (lenderIds.length) {
+    params.lender = lenderIds.join(",");
+  }
+  if (metroIds.length) {
+    params.metro = metroIds.join(",");
   }
 
-  if (lender) {
-    const response = await axios.get("/api/hmda/", { params });
+  if (lenderIds.length && (countyIds.length || metroIds.length)) {
+    const response = await axios.get("/api/lar/", { params });
     // Convert between API format and ours
-    const lar = Object.values(response.data).map((obj: any) => ({
-      geoid: obj.geoid,
+    return response.data.map(obj => ({
       houseCount: obj.num_households,
       latitude: obj.centlat,
       loanCount: obj.volume,
       longitude: obj.centlon,
     }));
-    return lar;
   }
   return [];
 }

@@ -13,98 +13,94 @@ export interface LARPoint {
   longitude: number;
 }
 
-export interface Lender {
-  id: string;
-  name?: string;
-}
+export type EntityType = "county" | "lender" | "metro";
+export class FilterEntity {
+  public entityType: EntityType;
+  public id: string;
+  public name?: string;
 
-export interface Geography {
-  id: string;
-  name?: string;
+  constructor(initParams: Partial<FilterEntity>) {
+    Object.assign(this, initParams);
+  }
+
+  public sameAs(other: FilterEntity): boolean {
+    return this.id === other.id && this.entityType === other.entityType;
+  }
+
+  public compareNameWith(other: FilterEntity): number {
+    return (this.name || "").localeCompare(other.name || "");
+  }
 }
 
 export default interface LARLayer {
-  counties: Geography[];
+  filters: FilterEntity[];
   lar: LARPoint[];
-  lenders: Lender[];
-  metros: Geography[];
 }
 
 export const SAFE_INIT: LARLayer = {
-  counties: [],
+  filters: [],
   lar: [],
-  lenders: [],
-  metros: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
 const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
-export const setCounties = actionCreator<Geography[]>("SET_COUNTIES");
-export const setLenders = actionCreator<Lender[]>("SET_LENDERS");
-export const setLarData = actionCreator<LARPoint[]>("SET_LAR_DATA");
-export const setMetros = actionCreator<Geography[]>("SET_METROS");
+export function orderedUnion(
+  oldEntries: FilterEntity[],
+  toAdd: FilterEntity[],
+): FilterEntity[] {
+  const removed = oldEntries.filter(
+    existing => !toAdd.some(added => added.sameAs(existing)),
+  );
+  // Ensure order is preserved
+  return [...removed, ...toAdd].sort((l, r) => l.compareNameWith(r));
+}
 
-export const addLender = asyncActionCreator<Lender, Lender[]>(
-  "ADD_LENDER",
-  async (lender: Lender, dispatch, getState: () => any) => {
-    const old = getState().larLayer;
-    const oldLenders = old.lenders.filter(l => l.id !== lender.id);
-    // Ensure order is preserved
-    const lenders = [...oldLenders, lender].sort(
-      (l, r) => (l.name || "").localeCompare(r.name || ""),
-    );
-    const lar = await fetchLar(
-      old.counties.map(c => c.id),
-      lenders.map(l => l.id),
-      old.metros.map(m => m.id),
-    );
-    dispatch(setLarData(lar));
-    return lenders;
+function filtersToLar(entities: FilterEntity[]) {
+  return fetchLar(
+    entities.filter(e => e.entityType === "county").map(e => e.id),
+    entities.filter(e => e.entityType === "lender").map(e => e.id),
+    entities.filter(e => e.entityType === "metro").map(e => e.id),
+  );
+}
+
+export const addFilters = asyncActionCreator<FilterEntity[], LARPoint[]>(
+  "ADD_FILTERS",
+  (entities: FilterEntity[], dispatch, getState: () => any) => {
+    const updated = orderedUnion(getState().larLayer.filters, entities);
+    return filtersToLar(updated);
   },
 );
-
-export const removeLender = asyncActionCreator<string, Lender[]>(
-  "REMOVE_LENDER",
-  async (id: string, dispatch, getState: () => any) => {
-    const old = getState().larLayer;
-    const lenders = old.lenders.filter(l => l.id !== id);
-    const lar = await fetchLar(
-      old.counties.map(c => c.id),
-      lenders.map(l => l.id),
-      old.metros.map(m => m.id),
-    );
-    dispatch(setLarData(lar));
-    return lenders;
+export const removeFilter = asyncActionCreator<FilterEntity, LARPoint[]>(
+  "REMOVE_FITLER",
+  (entity: FilterEntity, dispatch, getState: () => any) => {
+    const removed = getState().larLayer.filters.filter(e => !e.sameAs(entity));
+    return filtersToLar(removed);
   },
 );
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
-  .case(setCounties, (original: LARLayer, counties: Geography[]) => ({
-    ...original,
-    counties,
-  }))
-  .case(setLarData, (original: LARLayer, lar: LARPoint[]) => ({
-    ...original,
-    lar,
-  }))
-  .case(setLenders, (original: LARLayer, lenders: Lender[]) => ({
-    ...original,
-    lenders,
-  }))
-  .case(setMetros, (original: LARLayer, metros: Geography[]) => ({
-    ...original,
-    metros,
-  }))
-  .cases(
-    [addLender.async.started, removeLender.async.started],
-    (original: LARLayer) => ({ ...original, lar: [] }),
-  )
-  .cases(
-    [addLender.async.done, removeLender.async.done],
-    (original: LARLayer, { result: lenders }) => ({ ...original, lenders }),
-  )
-  .build();
+  .case(
+    addFilters.async.started,
+    (original: LARLayer, toAdd: FilterEntity[]) => ({
+      ...original,
+      filters: orderedUnion(original.filters, toAdd),
+      lar: [],
+    }),
+  ).case(
+    removeFilter.async.started,
+    (original: LARLayer, toRemove: FilterEntity) => ({
+      ...original,
+      filters: original.filters.filter(e => !e.sameAs(toRemove)),
+      lar: [],
+    }),
+  ).cases(
+    [addFilters.async.done, removeFilter.async.done],
+    (original: LARLayer, { result }) => ({
+      ...original,
+      lar: result,
+    }),
+  ).build();
 
 export function toScatterPlot({
   houseCount,
@@ -125,9 +121,4 @@ export function toScatterPlot({
 export const scatterPlotSelector = createSelector(
   ({ lar }: LARLayer) => lar,
   lar => lar.map(toScatterPlot),
-);
-
-export const lenderSelector = createSelector(
-  ({ lenders }: LARLayer) => lenders,
-  lenders => lenders.filter(l => l.name),
 );

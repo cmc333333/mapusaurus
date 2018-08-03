@@ -2,23 +2,26 @@ import { shallow } from "enzyme";
 import glamorous from "glamorous";
 import * as React from "react";
 
-import HMDAFilter, { ExistingFilter } from "../HMDAFilter";
+import { LenderFactory } from "../../../testUtils/Factory";
+import { ExistingFilter, HMDAFilter } from "../HMDAFilter";
 
 describe("<ExistingFilter />", () => {
   it("renders the correct name", () => {
+    const filter = LenderFactory.build({ name: "NameName" });
     const rendered = shallow(
-      <ExistingFilter id="abc" name="NameName" removeFn={jest.fn()} />,
+      <ExistingFilter filter={filter} removeFn={jest.fn()} />,
     );
     expect(rendered.text()).toMatch("NameName");
   });
 
   it("calls the remove fn when clicked", () => {
     const removeFn = jest.fn();
+    const filter = LenderFactory.build();
     const rendered = shallow(
-      <ExistingFilter id="abc" name="NameName" removeFn={removeFn} />,
+      <ExistingFilter filter={filter} removeFn={removeFn} />,
     ).find(glamorous.A);
     rendered.simulate("click", { preventDefault: jest.fn() });
-    expect(removeFn).toHaveBeenCalledWith("abc");
+    expect(removeFn).toHaveBeenCalledWith(filter);
   });
 });
 
@@ -57,9 +60,9 @@ describe("<HMDAFilter />", () => {
 
   it("includes an ExistingFilter per item", () => {
     const items = [
-      { id: "abc", name: "ABC" },
-      { id: "111", name: "one" },
-      { id: "222", name: "zZz" },
+      LenderFactory.build(),
+      LenderFactory.build(),
+      LenderFactory.build({ name: "zZz" }),
     ];
     const removeFn = jest.fn();
     const lis = shallow(
@@ -73,7 +76,6 @@ describe("<HMDAFilter />", () => {
     ).find(ExistingFilter);
     expect(lis).toHaveLength(3);
     lis.map(li => expect(li.prop("removeFn")).toBe(removeFn));
-    expect(lis.at(1).prop("id")).toBe("111");
-    expect(lis.at(2).prop("name")).toBe("zZz");
+    expect(lis.at(2).prop("filter").name).toBe("zZz");
   });
 });

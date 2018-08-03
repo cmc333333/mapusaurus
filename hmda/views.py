@@ -19,11 +19,43 @@ class ChoiceInFilter(django_filters.BaseInFilter,
     combined "In" and "Choice" filter."""
 
 
+class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
+    pass
+
+
 class LARFilters(django_filters.FilterSet):
     action_taken = ChoiceInFilter(choices=ACTION_TAKEN_CHOICES,
                                   lookup_expr='in')
-    year = django_filters.NumberFilter(name='as_of_year')
 
+    class Meta:
+        model = HMDARecord
+        fields = tuple()
+
+    @property
+    def qs(self):
+        queryset = super().qs\
+            .values(    # implicitly group by these fields
+                    'geo_id', 'geo__census2010households__total',
+                    'geo__centlat', 'geo__centlon', 'geo__state',
+                    'geo__county', 'geo__tract')\
+            .annotate(volume=Count('geo_id'))\
+            .order_by('geo_id')
+        queryset = self.filter_to_tracts(queryset)
+        return queryset
+
+    def filter_to_tracts(self, queryset):
+        tracts = TractFilters(
+            getattr(self.request, 'GET', {}),
+            request=self.request,
+        ).qs
+        return queryset.filter(geo__in=tracts)
+
+
+class LARMultipleLenderFilters(LARFilters):
+    lender = CharInFilter(name="institution_id", lookup_expr="in")
+
+
+class LARSingleLenderFilters(LARFilters):
     institution_args = {
         'lender': webargs.fields.Function(
             deserialize=lambda pk: get_object_or_404(Institution, pk=pk),
@@ -39,28 +71,9 @@ class LARFilters(django_filters.FilterSet):
 
     }
 
-    class Meta:
-        model = HMDARecord
-        fields = tuple()
-
     @property
     def qs(self):
-        queryset = super().qs\
-            .values(    # implicitly group by these fields
-                    'geo_id', 'geo__census2010households__total',
-                    'geo__centlat', 'geo__centlon', 'geo__state',
-                    'geo__county', 'geo__tract')\
-            .annotate(volume=Count('geo_id'))
-        queryset = self.filter_to_tracts(queryset)
-        queryset = self.filter_to_institutions(queryset)
-        return queryset
-
-    def filter_to_tracts(self, queryset):
-        tracts = TractFilters(
-            getattr(self.request, 'GET', {}),
-            request=self.request,
-        ).qs
-        return queryset.filter(geo__in=tracts)
+        return self.filter_to_institutions(super().qs)
 
     def filter_to_institutions(self, queryset):
         if not self.request:
@@ -88,7 +101,7 @@ class LARFilters(django_filters.FilterSet):
 
 
 def loan_originations_as_json(request):
-    records = LARFilters(request.GET, request=request).qs
+    records = LARSingleLenderFilters(request.GET, request=request).qs
     data = {}
     if records:
         for row in records:

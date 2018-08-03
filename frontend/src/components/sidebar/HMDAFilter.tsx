@@ -1,23 +1,25 @@
 import glamorous from "glamorous";
 import * as React from "react";
+import { connect } from "react-redux";
 
+import { addFilters, FilterEntity, removeFilter } from "../../store/LARLayer";
 import typography from "../../util/typography";
 import Autocomplete from "../Autocomplete";
 
-export function ExistingFilter({ id, name, removeFn }) {
+export function ExistingFilter({ filter, removeFn }) {
   const removeClick = ev => {
     ev.preventDefault();
-    removeFn(id);
+    removeFn(filter);
   };
   return (
     <li>
-      {name}
+      {filter.name}
       <glamorous.A float="right" href="#" onClick={removeClick}>x</glamorous.A>
     </li>
   );
 }
 
-export default function HMDAFilter({
+export function HMDAFilter({
   addFn,
   items,
   removeFn,
@@ -30,7 +32,7 @@ export default function HMDAFilter({
     toValue: input => input.name || "",
   };
   const lis = items.map(
-    item => <ExistingFilter key={item.id} removeFn={removeFn} {...item} />,
+    item => <ExistingFilter filter={item} key={item.id} removeFn={removeFn} />,
   );
   return (
     <glamorous.Div margin={typography.rhythm(1)}>
@@ -51,3 +53,11 @@ export default function HMDAFilter({
     </glamorous.Div>
   );
 }
+
+export default connect(
+  null,
+  dispatch => ({
+    addFn: (filter: FilterEntity) => dispatch(addFilters.action([filter])),
+    removeFn: (filter: FilterEntity) => dispatch(removeFilter.action(filter)),
+  }),
+)(HMDAFilter);

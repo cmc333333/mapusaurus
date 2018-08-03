@@ -6,12 +6,16 @@ import State from "./State";
  * Serialize relevant portions of the state tree into a string
  */
 export default function serialize(state: State): string {
+  const { filters } = state.larLayer;
+  const counties = filters.filter(f => f.entityType === "county").map(f => f.id);
+  const lenders = filters.filter(f => f.entityType === "lender").map(f => f.id);
+  const metros = filters.filter(f => f.entityType === "metro").map(f => f.id);
   return qs.stringify(
     {
       ...state.viewport,
-      counties: state.larLayer.counties.map(c => c.id),
-      lenders: state.larLayer.lenders.map(l => l.id),
-      metros: state.larLayer.metros.map(m => m.id),
+      counties,
+      lenders,
+      metros,
     },
     { arrayFormat: "brackets" },
   );

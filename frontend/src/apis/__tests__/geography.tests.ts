@@ -28,14 +28,14 @@ describe("fetchGeos()", () => {
 
   it("creates an action in the right format", async () => {
     getMock.mockImplementationOnce(() => ({ data: { results: [
-      { geoid: "abc", name: "AAA" },
-      { geoid: "def", name: "BBB" },
+      { geo_type: 4, geoid: "abc", name: "AAA" },
+      { geo_type: 2, geoid: "def", name: "BBB" },
     ]}}));
     const result = await fetchGeos(["2012abcd123"]);
 
     expect(result).toEqual([
-      { id: "abc", name: "AAA" },
-      { id: "def", name: "BBB" },
+      { entityType: "metro", id: "abc", name: "AAA" },
+      { entityType: "county", id: "def", name: "BBB" },
     ]);
   });
 });
