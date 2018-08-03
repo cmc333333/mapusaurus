@@ -1,18 +1,25 @@
 import { Set } from "immutable";
 import * as qs from "qs";
 
-import LARLayer, { SAFE_INIT as larInit } from "./LARLayer";
+import LARLayer, { FilterEntity, SAFE_INIT as larInit } from "./LARLayer";
 import Mapbox, { SAFE_INIT as mapboxInit } from "./Mapbox";
 import State from "./State";
 import Viewport, { SAFE_INIT as viewportInit } from "./Viewport";
 
 export function deriveLARLayer(hash: string): LARLayer {
   const parsed = qs.parse(hash);
+  const counties =
+    (Array.isArray(parsed.counties) ? parsed.counties : [])
+    .map(id => new FilterEntity({ entityType: "county", id: `${id}` }));
+  const lenders =
+    (Array.isArray(parsed.lenders) ? parsed.lenders : [])
+    .map(id => new FilterEntity({ entityType: "lender", id: `${id}` }));
+  const metros =
+    (Array.isArray(parsed.metros) ? parsed.metros : [])
+    .map(id => new FilterEntity({ entityType: "metro", id: `${id}` }));
   return {
     ...larInit,
-    counties: (parsed.counties || []).map(id => ({ id })),
-    lenders: (parsed.lenders || []).map(id => ({ id })),
-    metros: (parsed.metros || []).map(id => ({ id })),
+    filters: [...counties, ...lenders, ...metros],
   };
 }
 

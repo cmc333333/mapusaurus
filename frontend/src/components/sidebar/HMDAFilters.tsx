@@ -2,32 +2,23 @@ import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
+import { searchMetros } from "../../apis/geography";
 import { searchLenders } from "../../apis/lenders";
-import {
-  addLender,
-  Lender,
-  lenderSelector,
-  removeLender,
-} from "../../store/LARLayer";
 import State from "../../store/State";
 import HMDAFilter from "./HMDAFilter";
 
-export function mapLenderDispatchToProps(dispatch) {
-  return {
-    addFn: (lender: Lender) => dispatch(addLender.action(lender)),
-    removeFn: (id: string) => dispatch(removeLender.action(id)),
-  };
-}
-
-export const LenderFilter = connect(
-  ({ larLayer }: State) => ({ items: lenderSelector(larLayer) }),
-  mapLenderDispatchToProps,
-)(HMDAFilter);
-
-export default function HMDASelection() {
+export function HMDAFilters({ lenders, metros }) {
   return (
     <glamorous.Section borderTop="1px solid black">
-      <LenderFilter searchFn={searchLenders} title="Lenders" />
+      <HMDAFilter items={metros} searchFn={searchMetros} title="Metros" />
+      <HMDAFilter items={lenders} searchFn={searchLenders} title="Lenders" />
     </glamorous.Section>
   );
 }
+
+export default connect(
+  ({ larLayer: { filters } }: State) => ({
+    lenders: filters.filter(e => e.name && e.entityType === "lender"),
+    metros: filters.filter(e => e.name && e.entityType === "metro"),
+  }),
+)(HMDAFilters);

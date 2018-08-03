@@ -2,15 +2,9 @@ import actionCreatorFactory from "typescript-fsa";
 import { asyncFactory } from "typescript-fsa-redux-thunk";
 
 import { fetchGeos } from "../apis/geography";
-import { fetchLar } from "../apis/lar";
 import { fetchLenders } from "../apis/lenders";
 import { fetchStyle } from "../apis/styles";
-import LARLayer, {
-  setCounties,
-  setLarData,
-  setLenders,
-  setMetros,
-} from "./LARLayer";
+import LARLayer, { addFilters } from "./LARLayer";
 import Mapbox, { setStyle } from "./Mapbox";
 import Viewport from "./Viewport";
 
@@ -27,19 +21,20 @@ export const initCalls = asyncActionCreator<State, void>(
   /*
    * Kickoff fetch/load of data from the API.
    */
-  async (state: State, dispatch) => {
-    const countyIds = state.larLayer.counties.map(c => c.id);
-    const lenderIds = state.larLayer.lenders.map(l => l.id);
-    const metroIds = state.larLayer.metros.map(m => m.id);
+  async (state: State, dispatch: any) => {
+    const countyIds = state.larLayer.filters
+      .filter(e => e.entityType === "county").map(e => e.id);
+    const lenderIds = state.larLayer.filters
+      .filter(e => e.entityType === "lender").map(e => e.id);
+    const metroIds = state.larLayer.filters
+      .filter(e => e.entityType === "metro").map(e => e.id);
     const { styleName, token } = state.mapbox.config;
 
     await Promise.all([
-      fetchGeos(countyIds).then(geos => dispatch(setCounties(geos))),
-      fetchLar(countyIds, lenderIds, metroIds).then(
-        lar => dispatch(setLarData(lar)),
-      ),
-      fetchLenders(lenderIds).then(lenders => dispatch(setLenders(lenders))),
-      fetchGeos(metroIds).then(geos => dispatch(setMetros(geos))),
+      fetchGeos(countyIds.concat(metroIds))
+        .then(geos => dispatch(addFilters.action(geos))),
+      fetchLenders(lenderIds)
+        .then(lenders => dispatch(addFilters.action(lenders))),
       fetchStyle(styleName, token).then(style => dispatch(setStyle(style))),
     ]);
   },

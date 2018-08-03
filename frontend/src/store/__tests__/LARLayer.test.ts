@@ -2,78 +2,97 @@ import { Map } from "immutable";
 
 import { fetchLar } from "../../apis/lar";
 import {
-  GeoFactory,
+  CountyFactory,
   LARLayerFactory,
   LARPointFactory,
   LenderFactory,
+  MetroFactory,
   StateFactory,
 } from "../../testUtils/Factory";
 import LARLayer, {
-  addLender,
+  addFilters,
   reducer,
-  removeLender,
+  removeFilter,
   scatterPlotSelector,
-  setCounties,
-  setLarData,
-  setLenders,
-  setMetros,
 } from "../LARLayer";
 
 jest.mock("../../apis/lar");
 
-const fetchLarMock = fetchLar as jest.Mock<{}>;
+const fetchLarMock = fetchLar as jest.Mock; // hack around Jest typing
+
+afterEach(fetchLarMock.mockReset);
 
 describe("reducer()", () => {
-  it("sets lar data", () => {
-    const lar = [LARPointFactory.build(), LARPointFactory.build()];
-
-    const result = reducer(LARLayerFactory.build(), setLarData(lar));
-    expect(result.lar).toEqual(lar);
-  });
-
-  it("sets counties", () => {
-    const counties = [
-      { id: "names", names: "here" },
-      { id: "one", names: "two" },
-    ];
-    const result = reducer(LARLayerFactory.build(), setCounties(counties));
-    expect(result.counties).toEqual(counties);
-  });
-
-  it("sets lenders", () => {
-    const lenders = [
-      { id: "names", names: "here" },
-      { id: "one", names: "two" },
-    ];
-    const result = reducer(LARLayerFactory.build(), setLenders(lenders));
-    expect(result.lenders).toEqual(lenders);
-  });
-
-  it("sets metros", () => {
-    const metros = [
-      { id: "names", names: "here" },
-      { id: "one", names: "two" },
-    ];
-    const result = reducer(LARLayerFactory.build(), setMetros(metros));
-    expect(result.metros).toEqual(metros);
-  });
-
-  [addLender.async.started, removeLender.async.started].forEach(action => {
-    it(`clears lar for ${action}`, () => {
-      const lar = [LARPointFactory.build(), LARPointFactory.build()];
-      const result = reducer(LARLayerFactory.build({ lar }), action);
+  describe("adding filters", () => {
+    it("clears lar", () => {
+      const layer = LARLayerFactory.build({
+        lar: LARPointFactory.buildList(2),
+      });
+      const result = reducer(
+        layer,
+        (addFilters.async.started as any)(LenderFactory.buildList(3)),
+      );
       expect(result.lar).toEqual([]);
+    });
+
+    it("adds the filters", () => {
+      const layer = LARLayerFactory.build({
+        filters: [
+          LenderFactory.build({ id: "aaa", name: "AAA" }),
+          LenderFactory.build({ id: "ccc", name: "CCC" }),
+        ],
+      });
+      const toAdd = [
+        LenderFactory.build({ id: "bbb", name: "BBB" }),
+        LenderFactory.build({ id: "ccc", name: "CCC Prime" }),
+        LenderFactory.build({ id: "ddd", name: "DDD" }),
+      ];
+      const result = reducer(
+        layer,
+        (addFilters.async.started as any)(toAdd),
+      );
+      expect(result.filters.map(f => f.name))
+        .toEqual(["AAA", "BBB", "CCC Prime", "DDD"]);
     });
   });
 
-  [addLender.async.done, removeLender.async.done].forEach(action => {
-    it(`sets lenders when ${action}`, () => {
-      const lenders = [LenderFactory.build(), LenderFactory.build()];
+  describe("removing a filter", () => {
+    it("clears lar", () => {
+      const layer = LARLayerFactory.build({
+        lar: LARPointFactory.buildList(2),
+      });
       const result = reducer(
-        LARLayerFactory.build({ lender: [] }),
-        (action as any)({ result: lenders }),
+        layer,
+        (removeFilter.async.started as any)(LenderFactory.build()),
       );
-      expect(result.lenders).toEqual(lenders);
+      expect(result.lar).toEqual([]);
+    });
+
+    it("removes the filter", () => {
+      const layer = LARLayerFactory.build({
+        filters: [
+          LenderFactory.build({ id: "aaa", name: "AAA" }),
+          LenderFactory.build({ id: "ccc", name: "CCC" }),
+        ],
+      });
+      const result = reducer(
+        layer,
+        (removeFilter.async.started as any)(layer.filters[0]),
+      );
+      expect(result.filters.map(f => f.name)).toEqual(["CCC"]);
+    });
+  });
+
+  describe("setting lar data", () => {
+    const lar = LARPointFactory.buildList(3);
+    [addFilters.async.done, removeFilter.async.done].forEach(action => {
+      it(`happens for ${action}`, () => {
+        const result = reducer(
+          LARLayerFactory.build(),
+          (action as any)({ result: lar }),
+        );
+        expect(result.lar).toEqual(lar);
+      });
     });
   });
 });
@@ -103,75 +122,75 @@ describe("scatterPlotSelector", () => {
   });
 });
 
-describe("addLender()", () => {
-  const counties = [GeoFactory.build(), GeoFactory.build()];
-  const lenderB = LenderFactory.build({ id: "b", name: "B" });
-  const metros = [GeoFactory.build()];
-
+describe("addFilters()", () => {
+  const counties = [
+    CountyFactory.build({ name: "countyA" }),
+    CountyFactory.build({ name: "countyB" }),
+  ];
+  const lenderB = LenderFactory.build({ id: "b", name: "lenderB" });
+  const metro = MetroFactory.build({ name: "metroA" });
   const larLayer = LARLayerFactory.build({
-    counties,
-    metros,
-    lenders: [lenderB],
+    filters: [...counties, lenderB, metro],
   });
   const getState = jest.fn(() => StateFactory.build({ larLayer }));
 
   it("triggers a fetch with appropriate params", async () => {
-    const lenderC = LenderFactory.build({ id: "c", name: "C" });
-    const action = addLender.action(lenderC) as any;
+    const lenderC = LenderFactory.build({ id: "c", name: "lenderC" });
+    const action = addFilters.action([lenderC]) as any;
     await action(jest.fn(), getState);
 
     expect(fetchLarMock).toHaveBeenCalledWith(
       [counties[0].id, counties[1].id],
       ["b", "c"],
-      [metros[0].id],
+      [metro.id],
     );
   });
 
-  it("adds the lender", async () => {
+  it("adds the filters", async () => {
     const lender = LenderFactory.build();
-    const action = addLender.action(lender) as any;
-    const result = await action(jest.fn(), getState);
+    const county = CountyFactory.build();
+    const action = addFilters.action([lender, county]) as any;
+    await action(jest.fn(), getState);
 
-    expect(result).toContain(lender);
+    expect(fetchLarMock.mock.calls[0][0]).toContain(county.id);
+    expect(fetchLarMock.mock.calls[0][1]).toContain(lender.id);
   });
 
   it("can be present already", async () => {
     const replacement = LenderFactory.build({ id: "b" });
-    const action = addLender.action(replacement) as any;
-    const result = await action(jest.fn(), getState);
-
-    expect(result).toEqual([replacement]);
+    const action = addFilters.action([replacement]) as any;
+    await action(jest.fn(), getState);
+    expect(fetchLarMock).toHaveBeenCalledWith(
+      [counties[0].id, counties[1].id],
+      ["b"],
+      [metro.id],
+    );
   });
 
-  it("keeps the lenders sorted", async () => {
+  it("keeps the filters sorted", async () => {
     const lenderA = LenderFactory.build({ name: "A" });
-    const action = addLender.action(lenderA) as any;
-    const result = await action(jest.fn(), getState);
-
-    expect(result).toEqual([lenderA, lenderB]);
-  });
-
-  it("dispatches setLarData results", async () => {
-    const lar = [LARPointFactory.build(), LARPointFactory.build()];
-    fetchLarMock.mockReturnValueOnce(lar);
-    const dispatch = jest.fn();
-    const action = addLender.action(LenderFactory.build()) as any;
-    await action(dispatch, getState);
-
-    expect(dispatch).toHaveBeenCalledWith(setLarData(lar));
+    const action = addFilters.action([lenderA]) as any;
+    await action(jest.fn(), getState);
+    expect(fetchLarMock).toHaveBeenCalledWith(
+      [counties[0].id, counties[1].id],
+      [lenderA.id, "b"],
+      [metro.id],
+    );
   });
 });
 
-describe("removeLender()", () => {
-  const counties = [GeoFactory.build(), GeoFactory.build()];
-  const lenders = [LenderFactory.build({ id: "b" }), LenderFactory.build()];
-  const metros = [GeoFactory.build()];
+describe("removeFilter()", () => {
+  const counties = CountyFactory.buildList(2);
+  const lenders = LenderFactory.buildList(2);
+  const metros = [MetroFactory.build({ entityType: "metro" })];
 
-  const larLayer = LARLayerFactory.build({ counties, lenders, metros });
+  const larLayer = LARLayerFactory.build({
+    filters: [...counties, ...lenders, ...metros],
+  });
   const getState = jest.fn(() => StateFactory.build({ larLayer }));
 
   it("triggers a fetch with appropriate params", async () => {
-    const action = removeLender.action("b") as any;
+    const action = removeFilter.action(lenders[0]) as any;
     await action(jest.fn(), getState);
 
     expect(fetchLarMock).toHaveBeenCalledWith(
@@ -181,27 +200,14 @@ describe("removeLender()", () => {
     );
   });
 
-  it("removes the lender", async () => {
-    const action = removeLender.action("b") as any;
-    const result = await action(jest.fn(), getState);
-
-    expect(result).toEqual([lenders[1]]);
-  });
-
   it("doesn't have to be present", async () => {
-    const action = removeLender.action("not-present") as any;
-    const result = await action(jest.fn(), getState);
+    const action = removeFilter.action(LenderFactory.build()) as any;
+    await action(jest.fn(), getState);
 
-    expect(result).toEqual(lenders);
-  });
-
-  it("dispatches setLarData results", async () => {
-    const lar = [LARPointFactory.build(), LARPointFactory.build()];
-    fetchLarMock.mockReturnValueOnce(lar);
-    const dispatch = jest.fn();
-    const action = removeLender.action("b") as any;
-    await action(dispatch, getState);
-
-    expect(dispatch).toHaveBeenCalledWith(setLarData(lar));
+    expect(fetchLarMock).toHaveBeenCalledWith(
+      [counties[0].id, counties[1].id],
+      [lenders[0].id, lenders[1].id],
+      [metros[0].id],
+    );
   });
 });

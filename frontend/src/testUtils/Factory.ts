@@ -2,6 +2,8 @@ import { Set } from "immutable";
 import * as Random from "random-js";
 import { Factory } from "rosie";
 
+import { FilterEntity } from "../store/LARLayer";
+
 const random = Random();
 const randLat = () => random.real(-90, 90);
 const randLon = () => random.real(-180, 180);
@@ -21,21 +23,27 @@ export const LARPointFactory = new Factory().attrs({
   longitude: randLon,
 });
 
-export const GeoFactory = new Factory().attrs({
-  id: random.string(15, "0123456789"),
-  name: random.string(32),
+export const CountyFactory = new Factory(FilterEntity).attrs({
+  entityType: () => "county",
+  id: () => random.string(15, "0123456789"),
+  name: () => random.string(32),
 });
 
-export const LenderFactory = new Factory().attrs({
-  id: random.string(15, "0123456789"),
-  name: random.string(32),
+export const LenderFactory = new Factory(FilterEntity).attrs({
+  entityType: () => "lender",
+  id: () => random.string(15, "0123456789"),
+  name: () => random.string(32),
+});
+
+export const MetroFactory = new Factory(FilterEntity).attrs({
+  entityType: () => "metro",
+  id: () => random.string(15, "0123456789"),
+  name: () => random.string(32),
 });
 
 export const LARLayerFactory = new Factory().attrs({
-  counties: () => [],
+  filters: () => [CountyFactory.build(), LenderFactory.build()],
   lar: () => [],
-  lenders: () => [LenderFactory.build()],
-  metros: () => [GeoFactory.build()],
 });
 
 export const ConfigFactory = new Factory().attrs({
