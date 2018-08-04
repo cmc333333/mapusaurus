@@ -13,7 +13,7 @@ import initialState from "./store/initial-state";
 import reducer from "./store/reducer";
 import serialize from "./store/serialize";
 import State, { initCalls } from "./store/State";
-import typography from "./util/typography";
+import { typography } from "./theme";
 
 typography.injectStyles();
 

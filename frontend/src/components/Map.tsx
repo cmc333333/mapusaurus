@@ -9,7 +9,7 @@ import { scatterPlotSelector } from "../store/LARLayer";
 import { currentStyleSelector } from "../store/Mapbox";
 import State from "../store/State";
 import { setViewport } from "../store/Viewport";
-import typography from "../util/typography";
+import { largeSpace } from "../theme";
 
 export function Map({
   changeViewport,
@@ -48,11 +48,7 @@ export function Map({
       onViewportChange={changeViewport}
     >
       <DeckGL {...viewport} layers={layers} width={width} height={height} />
-      <glamorous.Div
-        position="absolute"
-        right={typography.rhythm(1)}
-        top={typography.rhythm(1)}
-      >
+      <glamorous.Div position="absolute" right={largeSpace} top={largeSpace}>
         <NavigationControl
           onViewportChange={changeViewport}
           showCompass={false}

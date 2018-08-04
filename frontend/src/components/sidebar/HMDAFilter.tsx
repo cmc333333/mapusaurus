@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import { addFilters, FilterEntity, removeFilter } from "../../store/LARLayer";
-import typography from "../../util/typography";
+import { largeSpace, mediumSpace, smallHeading } from "../../theme";
 import Autocomplete from "../Autocomplete";
 
 export function ExistingFilter({ filter, removeFn }) {
@@ -35,19 +35,12 @@ export function HMDAFilter({
     item => <ExistingFilter filter={item} key={item.id} removeFn={removeFn} />,
   );
   return (
-    <glamorous.Div margin={typography.rhythm(1)}>
-      <glamorous.H3
-        marginBottom={typography.rhythm(.5)}
-        {...typography.scale(.5)}
-      >
+    <glamorous.Div margin={largeSpace}>
+      <glamorous.H3 {...smallHeading} marginBottom={mediumSpace}>
         {title}
       </glamorous.H3>
       <Autocomplete {...props} />
-      <glamorous.Ul
-        listStyle="none"
-        margin={0}
-        marginTop={typography.rhythm(.5)}
-      >
+      <glamorous.Ul listStyle="none" margin={0} marginTop={mediumSpace}>
         {lis}
       </glamorous.Ul>
     </glamorous.Div>
