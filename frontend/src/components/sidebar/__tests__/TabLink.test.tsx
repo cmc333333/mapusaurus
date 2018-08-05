@@ -2,6 +2,7 @@ import { shallow } from "enzyme";
 import * as React from "react";
 
 import { activateTab } from "../../../store/Sidebar";
+import tabs from "../../../tabs";
 import { SidebarFactory, StateFactory } from "../../../testUtils/Factory";
 import { mapDispatchToProps, mapStateToProps, TabLink } from "../TabLink";
 
@@ -12,7 +13,7 @@ describe("<TabLink />", () => {
         <TabLink
           activateTab={jest.fn()}
           active={active}
-          icon={{}}
+          tab={tabs[0]}
           size={1}
         />,
       );
@@ -27,7 +28,7 @@ describe("<TabLink />", () => {
       <TabLink
         activateTab={activateTab}
         active={true}
-        icon={{}}
+        tab={tabs[0]}
         size={1}
       />,
     );
@@ -41,17 +42,17 @@ describe("<TabLink />", () => {
 
 describe("mapStateToProps()", () => {
   const state = StateFactory.build({
-    sidebar: SidebarFactory.build({ activeTab: "features" }),
+    sidebar: SidebarFactory.build({ activeTabId: tabs[0].id }),
   });
 
   it("sets active when active", () => {
-    expect(mapStateToProps(state, { tab: "features" })).toEqual({
+    expect(mapStateToProps(state, { tab: tabs[0] })).toEqual({
       active: true,
     });
   });
 
   it("does not set active when not active", () => {
-    expect(mapStateToProps(state, { tab: "other" })).toEqual({
+    expect(mapStateToProps(state, { tab: tabs[1] })).toEqual({
       active: false,
     });
   });
@@ -59,7 +60,7 @@ describe("mapStateToProps()", () => {
 
 test("mapDispatchToProps()", () => {
   const dispatch = jest.fn();
-  const result = mapDispatchToProps(dispatch, { tab: "lar" });
+  const result = mapDispatchToProps(dispatch, { tab: tabs[2] });
   result.activateTab();
-  expect(dispatch).toHaveBeenCalledWith(activateTab("lar"));
+  expect(dispatch).toHaveBeenCalledWith(activateTab(tabs[2].id));
 });

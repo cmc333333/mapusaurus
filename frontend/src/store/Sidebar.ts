@@ -1,24 +1,30 @@
+import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 
-export type Tab = "layers" | "features" | "lar";
+import tabs, { TabId } from "../tabs";
 
 export default interface Sidebar {
-  activeTab: Tab;
+  activeTabId: TabId;
   expanded: boolean;
 }
 
 export const SAFE_INIT: Sidebar = {
-  activeTab: "layers",
+  activeTabId: "layers",
   expanded: true,
 };
 
 const actionCreator = actionCreatorFactory("Sidebar");
 
-export const activateTab = actionCreator<Tab>("ACTIVATE");
+export const activateTab = actionCreator<TabId>("ACTIVATE");
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(
     activateTab,
-    (original: Sidebar, activeTab: Tab) => ({ ...original, activeTab }),
+    (original: Sidebar, activeTabId: TabId) => ({ ...original, activeTabId }),
   ).build();
+
+export const activeTabSelector = createSelector(
+  ({ activeTabId }: Sidebar) => activeTabId,
+  activeTabId => tabs.find(tab => tab.id === activeTabId) || tabs[0],
+);

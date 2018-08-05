@@ -17,6 +17,7 @@ export const smallSpace = typography.rhythm(.25);
 export const mediumSpace = typography.rhythm(.5);
 export const largeSpace = typography.rhythm(1);
 
+export const xSmallHeading = typography.scale(.25);
 export const smallHeading = typography.scale(.5);
 export const mediumHeading = typography.scale(.75);
 
@@ -26,4 +27,5 @@ export const border = `${borderWidth}px ${borderStyle} ${dividerColor}`;
 export const softBorder = `${borderWidth}px ${borderStyle} ${softDividerColor}`;
 
 export const activeBg = "#0af";
+export const inactiveBg = "#ccc";
 export const textBg = "#fff";

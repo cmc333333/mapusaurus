@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import { addFilters, FilterEntity, removeFilter } from "../../store/LARLayer";
-import { largeSpace, mediumSpace, smallHeading } from "../../theme";
+import { largeSpace, mediumSpace, xSmallHeading } from "../../theme";
 import Autocomplete from "../Autocomplete";
 
 export function ExistingFilter({ filter, removeFn }) {
@@ -36,7 +36,7 @@ export function HMDAFilter({
   );
   return (
     <glamorous.Div margin={largeSpace}>
-      <glamorous.H3 {...smallHeading} marginBottom={mediumSpace}>
+      <glamorous.H3 {...xSmallHeading} marginBottom={mediumSpace}>
         {title}
       </glamorous.H3>
       <Autocomplete {...props} />

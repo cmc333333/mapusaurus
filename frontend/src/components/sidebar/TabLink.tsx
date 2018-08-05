@@ -6,12 +6,13 @@ import { connect } from "react-redux";
 import { activateTab } from "../../store/Sidebar";
 import State from "../../store/State";
 import {
-  activeBg,
   borderStyle,
   borderWidth,
   dividerColor,
+  inactiveBg,
   mediumHeading,
   smallSpace,
+  textBg,
 } from "../../theme";
 
 const TabAnchor = glamorous.a<{ active: boolean, size: number }>(
@@ -24,35 +25,41 @@ const TabAnchor = glamorous.a<{ active: boolean, size: number }>(
     textAlign: "center",
   },
   ({ active, size }) => ({
-    backgroundColor: active ? activeBg : "inherit",
-    borderBottomColor: active ? activeBg : dividerColor,
+    backgroundColor: active ? "inherit" : inactiveBg,
+    borderBottomColor: active ? textBg : dividerColor,
     width: `${size}px`,
   }),
 );
 
-export function TabLink({ activateTab, active, icon, size, ...css }) {
+export function TabLink({ activateTab, active, size, tab, ...css }) {
   const onClick = ev => {
     ev.preventDefault();
     activateTab();
   };
   return (
     <glamorous.Li {...css} display="inline-block" margin="0">
-      <TabAnchor active={active} href="#" onClick={onClick} size={size}>
-        <FontAwesomeIcon icon={icon} />
+      <TabAnchor
+        active={active}
+        href="#"
+        onClick={onClick}
+        size={size}
+        title={tab.title}
+      >
+        <FontAwesomeIcon icon={tab.icon} />
       </TabAnchor>
     </glamorous.Li>
   );
 }
 
-export function mapStateToProps({ sidebar: { activeTab } }: State, { tab }) {
+export function mapStateToProps({ sidebar: { activeTabId } }: State, { tab }) {
   return {
-    active: tab === activeTab,
+    active: tab.id === activeTabId,
   };
 }
 
 export function mapDispatchToProps(dispatch, { tab }) {
   return {
-    activateTab: () => dispatch(activateTab(tab)),
+    activateTab: () => dispatch(activateTab(tab.id)),
   };
 }
 

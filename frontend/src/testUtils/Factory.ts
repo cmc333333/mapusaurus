@@ -65,7 +65,7 @@ export const MapboxFactory = new Factory().attrs({
 });
 
 export const SidebarFactory = new Factory().attrs({
-  activeTab: () => "layers",
+  activeTabId: () => "layers",
   expanded: () => true,
 });
 

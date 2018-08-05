@@ -1,22 +1,22 @@
-import {
-  faGlobe,
-  faHome,
-  faLayerGroup,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { Tab } from "../../store/Sidebar";
-import { border, borderWidth, textBg } from "../../theme";
-import ChoroplethSelection from "./ChoroplethSelection";
-import FeatureSelection from "./FeatureSelection";
-import HMDAFilters from "./HMDAFilters";
+import { activeTabSelector } from "../../store/Sidebar";
+import tabs from "../../tabs";
+import { border, borderWidth, smallHeading, textBg } from "../../theme";
 import TabLink from "./TabLink";
 
-export function Sidebar({ children, size }) {
+export function Sidebar({ activeTab, size }) {
   const tabSize = Math.floor((size - borderWidth) / 3);
+  const tabLinks = tabs.map((tab, idx) => (
+    <TabLink
+      borderRight={idx === tabs.length - 1 ? "none" : border}
+      key={tab.id}
+      tab={tab}
+      size={tabSize}
+    />
+  ));
   return (
     <glamorous.Aside
       background={textBg}
@@ -27,33 +27,23 @@ export function Sidebar({ children, size }) {
       width={`${size}px`}
     >
       <glamorous.Ul listStyle="none" margin="0">
-        <TabLink icon={faLayerGroup} size={tabSize} tab="layers" />
-        <TabLink
-          borderLeft={border}
-          borderRight={border}
-          icon={faGlobe}
-          size={tabSize}
-          tab="features"
-        />
-        <TabLink icon={faHome} size={tabSize} tab="lar" />
+        {tabLinks}
       </glamorous.Ul>
+      <glamorous.H2
+        {...smallHeading}
+        borderBottom={border}
+        marginBottom={0}
+        textAlign="center"
+      >
+        {activeTab.title}
+      </glamorous.H2>
       <glamorous.Section overflowY="auto" >
-        {children}
+        <activeTab.Component />
       </glamorous.Section>
     </glamorous.Aside>
   );
 }
 
-function deriveChildren(activeTab: Tab) {
-  switch (activeTab) {
-    case "layers": return <ChoroplethSelection />;
-    case "features": return <FeatureSelection />;
-    case "lar": return <HMDAFilters />;
-  }
-}
-
 export default connect(
-  ({ sidebar: { activeTab } }) => ({
-    children: deriveChildren(activeTab),
-  }),
+  ({ sidebar }) => ({ activeTab: activeTabSelector(sidebar) }),
 )(Sidebar);
