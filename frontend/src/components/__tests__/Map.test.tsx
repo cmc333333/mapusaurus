@@ -14,10 +14,12 @@ describe("<Map />", () => {
     const result = shallow(
       <Map
         changeViewport={changeViewport}
+        height={10}
         mapStyle={undefined}
         mapboxApiAccessToken=""
         scatterPlot={[]}
         viewport={ViewportFactory.build()}
+        width={10}
       />,
     );
 
@@ -35,10 +37,12 @@ describe("<Map />", () => {
     const result = shallow(
       <Map
         changeViewport={changeViewport}
+        height={10}
         mapStyle={MapboxStyleFactory.build()}
         mapboxApiAccessToken="A Token!"
         scatterPlot={[]}
         viewport={viewport}
+        width={10}
       />,
     );
 
@@ -59,10 +63,12 @@ describe("<Map />", () => {
     const layers = shallow(
       <Map
         changeViewport={changeViewport}
+        height={10}
         mapStyle={MapboxStyleFactory.build()}
         mapboxApiAccessToken=""
         scatterPlot={scatterPlot}
         viewport={ViewportFactory.build()}
+        width={10}
       />,
     ).find("DeckGL").prop("layers");
 

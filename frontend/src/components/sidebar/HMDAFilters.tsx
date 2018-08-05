@@ -1,4 +1,3 @@
-import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
@@ -9,10 +8,10 @@ import HMDAFilter from "./HMDAFilter";
 
 export function HMDAFilters({ lenders, metros }) {
   return (
-    <glamorous.Section borderTop="1px solid black">
+    <>
       <HMDAFilter items={metros} searchFn={searchMetros} title="Metros" />
       <HMDAFilter items={lenders} searchFn={searchLenders} title="Lenders" />
-    </glamorous.Section>
+    </>
   );
 }
 

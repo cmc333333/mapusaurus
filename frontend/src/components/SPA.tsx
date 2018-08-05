@@ -2,29 +2,14 @@ import glamorous from "glamorous";
 import * as React from "react";
 
 import Map from "./Map";
-import ChoroplethSelection from "./sidebar/ChoroplethSelection";
-import FeatureSelection from "./sidebar/FeatureSelection";
-import HMDAFilters from "./sidebar/HMDAFilters";
+import Sidebar from "./sidebar/Sidebar";
 
 export default function SPA() {
+  const sidebarSize = 300;
   return (
     <>
-      <glamorous.Aside
-        background="white"
-        borderRight="solid 1px black"
-        display="inline-block"
-        float="left"
-        height="100%"
-        overflowY="auto"
-        width="300px"
-      >
-        <ChoroplethSelection />
-        <FeatureSelection />
-        <HMDAFilters />
-      </glamorous.Aside>
-      <glamorous.Div
-        marginLeft="300px"
-      >
+      <Sidebar size={sidebarSize} />
+      <glamorous.Div marginLeft={`${sidebarSize}px`}>
         <Map />
       </glamorous.Div>
     </>

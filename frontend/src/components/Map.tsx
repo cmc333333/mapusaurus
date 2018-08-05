@@ -9,21 +9,21 @@ import { scatterPlotSelector } from "../store/LARLayer";
 import { currentStyleSelector } from "../store/Mapbox";
 import State from "../store/State";
 import { setViewport } from "../store/Viewport";
-import typography from "../util/typography";
+import { largeSpace } from "../theme";
 
 export function Map({
   changeViewport,
+  height,
   mapStyle,
   mapboxApiAccessToken,
   scatterPlot,
   viewport,
+  width,
 }) {
   if (!mapStyle) {
     return <div>Loading...</div>;
   }
 
-  const width = window.innerWidth - 300;
-  const height = window.innerHeight;
   const layers = [
     new ScatterplotLayer({
       data: scatterPlot,
@@ -48,11 +48,7 @@ export function Map({
       onViewportChange={changeViewport}
     >
       <DeckGL {...viewport} layers={layers} width={width} height={height} />
-      <glamorous.Div
-        position="absolute"
-        right={typography.rhythm(1)}
-        top={typography.rhythm(1)}
-      >
+      <glamorous.Div position="absolute" right={largeSpace} top={largeSpace}>
         <NavigationControl
           onViewportChange={changeViewport}
           showCompass={false}
@@ -63,10 +59,12 @@ export function Map({
 }
 export default connect(
   (state: State) => ({
+    height: state.window.height,
     mapStyle: currentStyleSelector(state.mapbox),
     mapboxApiAccessToken: state.mapbox.config.token,
     scatterPlot: scatterPlotSelector(state.larLayer),
     viewport: state.viewport,
+    width: state.window.width - 300,
   }),
   dispatch => ({
     changeViewport: ({ latitude, longitude, zoom }) => {

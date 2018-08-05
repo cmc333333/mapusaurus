@@ -1,26 +1,26 @@
 import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
-import typography from "../../util/typography";
 
 import { selectChoropleth } from "../../store/Mapbox";
 import State from "../../store/State";
+import { activeBg, border, largeSpace, mediumSpace } from "../../theme";
 
 const MenuLi = glamorous.li({
-  borderBottom: "solid 1px black",
+  borderBottom: border,
   margin: 0,
 });
 const MenuA = glamorous.a<{ active?: boolean }>(
   {
     display: "block",
     fontWeight: "bold",
-    paddingBottom: typography.rhythm(.5),
-    paddingLeft: typography.rhythm(1),
-    paddingRight: typography.rhythm(1),
-    paddingTop: typography.rhythm(.5),
+    paddingBottom: mediumSpace,
+    paddingLeft: largeSpace,
+    paddingRight: largeSpace,
+    paddingTop: mediumSpace,
   },
   ({ active }) => ({
-    backgroundColor: active ? "#0af" : "inherit",
+    background: active ? activeBg : "inherit",
   }),
 );
 

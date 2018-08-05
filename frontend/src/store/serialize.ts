@@ -20,3 +20,16 @@ export default function serialize(state: State): string {
     { arrayFormat: "brackets" },
   );
 }
+
+export function setupSerialization(window, store) {
+  let timer;
+  store.subscribe(() => {
+    if (timer) {
+      window.clearTimeout(timer);
+    }
+    timer = window.setTimeout(
+      () => { window.location.hash = serialize(store.getState()); },
+      1000,
+    );
+  });
+}

@@ -6,12 +6,16 @@ import { fetchLenders } from "../apis/lenders";
 import { fetchStyle } from "../apis/styles";
 import LARLayer, { addFilters } from "./LARLayer";
 import Mapbox, { setStyle } from "./Mapbox";
+import Sidebar from "./Sidebar";
 import Viewport from "./Viewport";
+import Window from "./Window";
 
 export default interface State {
   larLayer: LARLayer;
   mapbox: Mapbox;
+  sidebar: Sidebar;
   viewport: Viewport;
+  window: Window;
 }
 
 const asyncActionCreator = asyncFactory<State>(actionCreatorFactory("ROOT"));

@@ -3,35 +3,35 @@ import { Map } from "immutable";
 import * as React from "react";
 import * as Autosuggest from "react-autosuggest";
 
-import typography from "../util/typography";
+import { border, mediumSpace, smallSpace, softBorder } from "../theme";
 
 const inputStyle = css({
-  border: "1px solid black",
-  paddingBottom: typography.rhythm(.25),
-  paddingLeft: typography.rhythm(.5),
-  paddingRight: typography.rhythm(.5),
-  paddingTop: typography.rhythm(.25),
+  border,
+  paddingBottom: smallSpace,
+  paddingLeft: mediumSpace,
+  paddingRight: mediumSpace,
+  paddingTop: smallSpace,
   width: "100%",
 });
 const suggestionHighlightedStyle = css({
   fontWeight: "bold",
 });
 const suggestionListStyle = css({
-  borderBottom: "1px solid grey",
-  borderLeft: "1px solid grey",
-  borderRight: "1px solid grey",
+  borderBottom: softBorder,
+  borderLeft: softBorder,
+  borderRight: softBorder,
   listStyle: "none",
   margin: 0,
-  maxHeight: typography.rhythm(10),
+  maxHeight: "10rem",
   overflowY: "auto",
 });
 const suggestionStyle = css({
-  borderBottom: "1px solid grey",
+  borderBottom: softBorder,
   margin: 0,
-  padding: typography.rhythm(.5),
+  padding: mediumSpace,
   width: "100%",
 });
-const theme = {
+const autosuggestTheme = {
   input: inputStyle.toString(),
   suggestion: suggestionStyle.toString(),
   suggestionHighlighted: suggestionHighlightedStyle.toString(),
@@ -91,7 +91,7 @@ export default class Autocomplete<T>
         onSuggestionsFetchRequested={this.fetchRequested}
         renderSuggestion={this.renderSuggestion}
         suggestions={this.state.suggestions}
-        theme={theme}
+        theme={autosuggestTheme}
       />
     );
   }
