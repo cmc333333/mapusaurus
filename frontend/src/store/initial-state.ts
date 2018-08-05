@@ -59,5 +59,9 @@ export default function initialState(window): State {
     mapbox: deriveMapbox(window[configField]),
     sidebar: sidebarInit,
     viewport: deriveViewport(hash),
+    window: {
+      height: window.innerHeight,
+      width: window.innerWidth,
+    },
   };
 }

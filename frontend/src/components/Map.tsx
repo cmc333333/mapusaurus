@@ -13,17 +13,17 @@ import { largeSpace } from "../theme";
 
 export function Map({
   changeViewport,
+  height,
   mapStyle,
   mapboxApiAccessToken,
   scatterPlot,
   viewport,
+  width,
 }) {
   if (!mapStyle) {
     return <div>Loading...</div>;
   }
 
-  const width = window.innerWidth - 300;
-  const height = window.innerHeight;
   const layers = [
     new ScatterplotLayer({
       data: scatterPlot,
@@ -59,10 +59,12 @@ export function Map({
 }
 export default connect(
   (state: State) => ({
+    height: state.window.height,
     mapStyle: currentStyleSelector(state.mapbox),
     mapboxApiAccessToken: state.mapbox.config.token,
     scatterPlot: scatterPlotSelector(state.larLayer),
     viewport: state.viewport,
+    width: state.window.width - 300,
   }),
   dispatch => ({
     changeViewport: ({ latitude, longitude, zoom }) => {

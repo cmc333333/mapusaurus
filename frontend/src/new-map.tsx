@@ -11,8 +11,9 @@ import reduxThunk, { ThunkDispatch } from "redux-thunk";
 import SPA from "./components/SPA";
 import initialState from "./store/initial-state";
 import reducer from "./store/reducer";
-import serialize from "./store/serialize";
+import { setupSerialization } from "./store/serialize";
 import State, { initCalls } from "./store/State";
+import { setupResize } from "./store/Window";
 import { typography } from "./theme";
 
 typography.injectStyles();
@@ -28,16 +29,8 @@ const store = createStore(
   ),
 );
 
-let serializerTimer;
-store.subscribe(() => {
-  if (serializerTimer) {
-    clearTimeout(serializerTimer);
-  }
-  serializerTimer = setTimeout(
-    () => { window.location.hash = serialize(store.getState()); },
-    1000,
-  );
-});
+setupSerialization(window, store);
+setupResize(window, store);
 
 (store.dispatch as ThunkDispatch<State, void, AnyAction>)(
   initCalls.action(store.getState()),
