@@ -3,6 +3,7 @@ import * as qs from "qs";
 
 import LARLayer, { FilterEntity, SAFE_INIT as larInit } from "./LARLayer";
 import Mapbox, { SAFE_INIT as mapboxInit } from "./Mapbox";
+import { SAFE_INIT as sidebarInit } from "./Sidebar";
 import State from "./State";
 import Viewport, { SAFE_INIT as viewportInit } from "./Viewport";
 
@@ -56,6 +57,7 @@ export default function initialState(window): State {
   return {
     larLayer: deriveLARLayer(hash),
     mapbox: deriveMapbox(window[configField]),
+    sidebar: sidebarInit,
     viewport: deriveViewport(hash),
   };
 }

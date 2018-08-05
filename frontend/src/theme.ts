@@ -20,8 +20,10 @@ export const largeSpace = typography.rhythm(1);
 export const smallHeading = typography.scale(.5);
 export const mediumHeading = typography.scale(.75);
 
-export const border = `1px solid ${dividerColor}`;
-export const softBorder = `1px solid ${softDividerColor}`;
+export const borderWidth = 1;
+export const borderStyle = "solid";
+export const border = `${borderWidth}px ${borderStyle} ${dividerColor}`;
+export const softBorder = `${borderWidth}px ${borderStyle} ${softDividerColor}`;
 
 export const activeBg = "#0af";
 export const textBg = "#fff";

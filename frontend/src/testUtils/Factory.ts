@@ -64,8 +64,14 @@ export const MapboxFactory = new Factory().attrs({
   visible: Set<string>(),
 });
 
+export const SidebarFactory = new Factory().attrs({
+  activeTab: () => "layers",
+  expanded: () => true,
+});
+
 export const StateFactory = new Factory().attrs({
   larLayer: () => LARLayerFactory.build(),
   mapbox: () => MapboxFactory.build(),
+  sidebar: () => SidebarFactory.build(),
   viewport: () => ViewportFactory.build(),
 });
