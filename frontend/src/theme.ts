@@ -29,3 +29,8 @@ export const softBorder = `${borderWidth}px ${borderStyle} ${softDividerColor}`;
 export const activeBg = "#0af";
 export const inactiveBg = "#ccc";
 export const textBg = "#fff";
+
+export const inverted = {
+  background: dividerColor,
+  color: textBg,
+};

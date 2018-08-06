@@ -1,9 +1,17 @@
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
 import { addFilters, FilterEntity, removeFilter } from "../../store/LARLayer";
-import { largeSpace, mediumSpace, xSmallHeading } from "../../theme";
+import {
+  inverted,
+  largeSpace,
+  mediumSpace,
+  smallSpace,
+  xSmallHeading,
+} from "../../theme";
 import Autocomplete from "../Autocomplete";
 
 export function ExistingFilter({ filter, removeFn }) {
@@ -12,10 +20,28 @@ export function ExistingFilter({ filter, removeFn }) {
     removeFn(filter);
   };
   return (
-    <li>
+    <glamorous.Li
+      {...inverted}
+      borderRadius={mediumSpace}
+      paddingBottom={smallSpace}
+      paddingLeft={smallSpace}
+      paddingRight={largeSpace}
+      paddingTop={smallSpace}
+      position="relative"
+      textAlign="center"
+    >
       {filter.name}
-      <glamorous.A float="right" href="#" onClick={removeClick}>x</glamorous.A>
-    </li>
+      <glamorous.A
+        href="#"
+        onClick={removeClick}
+        position="absolute"
+        right={smallSpace}
+        title="Remove"
+        top={smallSpace}
+      >
+        <FontAwesomeIcon icon={faTimesCircle} />
+      </glamorous.A>
+    </glamorous.Li>
   );
 }
 
