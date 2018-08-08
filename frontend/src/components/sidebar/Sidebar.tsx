@@ -4,7 +4,13 @@ import { connect } from "react-redux";
 
 import { activeTabSelector } from "../../store/Sidebar";
 import tabs from "../../tabs";
-import { border, borderWidth, smallHeading, textBg } from "../../theme";
+import {
+  border,
+  borderWidth,
+  smallHeading,
+  textBg,
+  typography,
+} from "../../theme";
 import TabLink from "./TabLink";
 
 export function Sidebar({ activeTab, size }) {
@@ -22,8 +28,10 @@ export function Sidebar({ activeTab, size }) {
       background={textBg}
       borderRight={border}
       display="inline-block"
-      float="left"
       height="100%"
+      left="0"
+      position="absolute"
+      top="0"
       width={`${size}px`}
     >
       <glamorous.Ul listStyle="none" margin="0">
@@ -37,7 +45,10 @@ export function Sidebar({ activeTab, size }) {
       >
         {activeTab.title}
       </glamorous.H2>
-      <glamorous.Section overflowY="auto" >
+      <glamorous.Section
+        height={`calc(100% - ${typography.rhythm(3.75)})`}
+        overflowY="auto"
+      >
         <activeTab.Component />
       </glamorous.Section>
     </glamorous.Aside>

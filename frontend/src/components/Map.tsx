@@ -64,7 +64,7 @@ export default connect(
     mapboxApiAccessToken: state.mapbox.config.token,
     scatterPlot: scatterPlotSelector(state.larLayer),
     viewport: state.viewport,
-    width: state.window.width - 300,
+    width: state.window.width,
   }),
   dispatch => ({
     changeViewport: ({ latitude, longitude, zoom }) => {
