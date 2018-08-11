@@ -14,7 +14,7 @@ import serialize, { setupSerialization } from "../serialize";
 describe("serialize()", () => {
   it("serializes the viewport, ignoring other args", () => {
     const result = serialize(StateFactory.build({
-      larLayer: LARLayerFactory.build({ filters: [] }),
+      larLayer: LARLayerFactory.build({ filters: [], year: 2002 }),
       viewport: ViewportFactory.build({
         latitude: 44,
         longitude: 55.55,
@@ -25,6 +25,7 @@ describe("serialize()", () => {
     expect(qs.parse(result)).toEqual({
       latitude: "44",
       longitude: "55.55",
+      year: "2002",
       zoom: "6",
     });
   });
@@ -40,6 +41,7 @@ describe("serialize()", () => {
           LenderFactory.build({ id: "34" }),
           MetroFactory.build({ id: "Z" }),
         ],
+        year: 2004,
       }),
     }));
     expect(result).toMatch(/\bcounties%5B%5D=aaa\b/);
@@ -48,6 +50,7 @@ describe("serialize()", () => {
     expect(result).toMatch(/\blenders%5B%5D=12\b/);
     expect(result).toMatch(/\blenders%5B%5D=34\b/);
     expect(result).toMatch(/\bmetros%5B%5D=Z\b/);
+    expect(result).toMatch(/\byear=2004\b/);
   });
 });
 

@@ -7,7 +7,7 @@ import { SAFE_INIT as sidebarInit } from "./Sidebar";
 import State from "./State";
 import Viewport, { SAFE_INIT as viewportInit } from "./Viewport";
 
-export function deriveLARLayer(hash: string): LARLayer {
+export function deriveLARLayer(hash: string, years: number[]): LARLayer {
   const parsed = qs.parse(hash);
   const counties =
     (Array.isArray(parsed.counties) ? parsed.counties : [])
@@ -20,7 +20,9 @@ export function deriveLARLayer(hash: string): LARLayer {
     .map(id => new FilterEntity({ entityType: "metro", id: `${id}` }));
   return {
     ...larInit,
+    years,
     filters: [...counties, ...lenders, ...metros],
+    year: parseInt(parsed.year, 10) || (years.length ? years[0] : NaN),
   };
 }
 
@@ -55,7 +57,7 @@ const configField = "__SPA_CONFIG__";
 export default function initialState(window): State {
   const hash = window.location.hash.substr(1);
   return {
-    larLayer: deriveLARLayer(hash),
+    larLayer: deriveLARLayer(hash, window[configField].years),
     mapbox: deriveMapbox(window[configField]),
     sidebar: sidebarInit,
     viewport: deriveViewport(hash),
