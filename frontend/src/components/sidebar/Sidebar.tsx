@@ -1,59 +1,105 @@
-import {
-  faGlobe,
-  faHome,
-  faLayerGroup,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { css } from "glamor";
 import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { Tab } from "../../store/Sidebar";
-import { border, borderWidth, textBg } from "../../theme";
-import ChoroplethSelection from "./ChoroplethSelection";
-import FeatureSelection from "./FeatureSelection";
-import HMDAFilters from "./HMDAFilters";
+import { activeTabSelector } from "../../store/Sidebar";
+import tabs from "../../tabs";
+import {
+  border,
+  borderStyle,
+  borderWidth,
+  dividerColor,
+  inactiveBg,
+  mediumHeading,
+  smallHeading,
+  smallSpace,
+  textBg,
+  typography,
+} from "../../theme";
+import Expander from "./Expander";
 import TabLink from "./TabLink";
 
-export function Sidebar({ children, size }) {
-  const tabSize = Math.floor((size - borderWidth) / 3);
+const tabHeight = 50;
+const headingHeight = 40;
+const sidebarWidth = 300;
+
+const headingStyle = css({
+  ...smallHeading,
+  lineHeight: `${headingHeight}px`,
+  marginBottom: 0,
+  textAlign: "center",
+});
+
+export function Sidebar({ activeTab, expanded }) {
+  const tabSize = Math.floor(sidebarWidth / 3);
+  const contentHeight = expanded
+    ? `calc(100% - ${tabHeight + 2 * headingHeight + 2 * borderWidth}px)`
+    : "0";
+  const tabLinks = tabs.map((tab, idx) => (
+    <glamorous.Li
+      {...mediumHeading}
+      borderBottomColor={tab.matches(activeTab) ? "transparent" : dividerColor}
+      borderBottomStyle={borderStyle}
+      borderBottomWidth={`${borderWidth}px`}
+      borderLeft={idx ? border : "none"}
+      display="inline-block"
+      key={tab.id}
+      margin="0"
+    >
+      <TabLink
+        backgroundColor={tab.matches(activeTab) ? "inherit" : inactiveBg}
+        display="inline-block"
+        height={`${tabHeight}px`}
+        padding={smallSpace}
+        tab={tab}
+        textAlign="center"
+        width={`${tabSize - borderWidth}px`}
+      />
+    </glamorous.Li>
+  ));
   return (
     <glamorous.Aside
       background={textBg}
+      borderBottom={expanded ? "none" : border}
       borderRight={border}
       display="inline-block"
-      float="left"
-      height="100%"
-      width={`${size}px`}
+      height={expanded ? "100%" : "auto"}
+      left="0"
+      position="absolute"
+      top="0"
+      width={`${sidebarWidth}px`}
     >
       <glamorous.Ul listStyle="none" margin="0">
-        <TabLink icon={faLayerGroup} size={tabSize} tab="layers" />
-        <TabLink
-          borderLeft={border}
-          borderRight={border}
-          icon={faGlobe}
-          size={tabSize}
-          tab="features"
-        />
-        <TabLink icon={faHome} size={tabSize} tab="lar" />
+        {tabLinks}
       </glamorous.Ul>
-      <glamorous.Section overflowY="auto" >
-        {children}
+      <glamorous.H2
+        {...headingStyle}
+        height={expanded ? `${headingHeight}px` : "0"}
+        overflowY="hidden"
+      >
+        {activeTab.title}
+      </glamorous.H2>
+      <glamorous.Section
+        borderBottom={expanded ? border : "none"}
+        borderTop={expanded ? border : "none"}
+        height={contentHeight}
+        overflowY={expanded ? "auto" : "hidden"}
+      >
+        <activeTab.Component />
       </glamorous.Section>
+      <Expander
+        {...headingStyle}
+        display="block"
+        height={`${headingHeight}px`}
+      />
     </glamorous.Aside>
   );
 }
 
-function deriveChildren(activeTab: Tab) {
-  switch (activeTab) {
-    case "layers": return <ChoroplethSelection />;
-    case "features": return <FeatureSelection />;
-    case "lar": return <HMDAFilters />;
-  }
-}
-
 export default connect(
-  ({ sidebar: { activeTab } }) => ({
-    children: deriveChildren(activeTab),
+  ({ sidebar }) => ({
+    activeTab: activeTabSelector(sidebar),
+    expanded: sidebar.expanded,
   }),
 )(Sidebar);

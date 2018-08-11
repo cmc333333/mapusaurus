@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 
 import { selectChoropleth } from "../../store/Mapbox";
 import State from "../../store/State";
-import { activeBg, border, largeSpace, mediumSpace } from "../../theme";
+import { border, inverted, largeSpace, mediumSpace } from "../../theme";
 
 const MenuLi = glamorous.li({
   borderBottom: border,
@@ -19,9 +19,12 @@ const MenuA = glamorous.a<{ active?: boolean }>(
     paddingRight: largeSpace,
     paddingTop: mediumSpace,
   },
-  ({ active }) => ({
-    background: active ? activeBg : "inherit",
-  }),
+  ({ active }) => {
+    if (active) {
+      return inverted;
+    }
+    return {};
+  },
 );
 
 export function ChoroplethLink({ isVisible, layer, selectChoropleth }) {

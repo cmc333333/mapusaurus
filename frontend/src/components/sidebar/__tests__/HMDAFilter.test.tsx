@@ -11,7 +11,7 @@ describe("<ExistingFilter />", () => {
     const rendered = shallow(
       <ExistingFilter filter={filter} removeFn={jest.fn()} />,
     );
-    expect(rendered.text()).toMatch("NameName");
+    expect(rendered.dive().text()).toMatch("NameName");
   });
 
   it("calls the remove fn when clicked", () => {
