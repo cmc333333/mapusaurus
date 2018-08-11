@@ -14,14 +14,22 @@ export const SAFE_INIT: Sidebar = {
   expanded: true,
 };
 
-const actionCreator = actionCreatorFactory("Sidebar");
+const actionCreator = actionCreatorFactory("SIDEBAR");
 
 export const activateTab = actionCreator<TabId>("ACTIVATE");
+export const collapse = actionCreator("COLLAPSE");
+export const expand = actionCreator("EXPAND");
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(
     activateTab,
     (original: Sidebar, activeTabId: TabId) => ({ ...original, activeTabId }),
+  ).case(
+    collapse,
+    (original: Sidebar) => ({ ...original, expanded: false }),
+  ).case(
+    expand,
+    (original: Sidebar) => ({ ...original, expanded: true }),
   ).build();
 
 export const activeTabSelector = createSelector(
