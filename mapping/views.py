@@ -184,6 +184,11 @@ def avg_per_thousand_households(lender: Institution, metro: Geo) -> float:
 
 def single_page_app(request):
     """This page is managed almost exclusively by React"""
+    years = Year.objects\
+        .order_by('-hmda_year')\
+        .distinct('hmda_year')\
+        .values_list('hmda_year', flat=True)
+    config = dict(years=list(years), **settings.SPA_CONFIG)
     return render(request, 'new-map.html', {
-        'SPA_CONFIG': json.dumps(settings.SPA_CONFIG),
+        'SPA_CONFIG': json.dumps(config),
     })

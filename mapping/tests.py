@@ -1,4 +1,5 @@
 import json
+from unittest.mock import Mock
 from urllib.parse import unquote
 
 import pytest
@@ -9,9 +10,8 @@ from model_mommy import mommy
 from censusdata.models import Census2010Households
 from geo.models import Geo
 from hmda.models import HMDARecord, Year
+from mapping import views
 from mapping.models import Category, Layer
-from mapping.views import (add_county_attrs, add_layer_attrs,
-                           avg_per_thousand_households, make_download_url)
 from respondents.models import Institution
 
 
@@ -62,14 +62,14 @@ class ViewTest(TestCase):
         self.assertEqual(
             "https://api.consumerfinance.gov/data/hmda/slice/hmda_lar.csv?"
             "%24where=&%24limit=0",
-            make_download_url(None, None),
+            views.make_download_url(None, None),
         )
-        url = make_download_url(self.respondent, None)
+        url = views.make_download_url(self.respondent, None)
         self.assertTrue('22-333' in url)
         self.assertTrue('1' in url)
         self.assertFalse('msamd' in url)
 
-        url = make_download_url(self.respondent, self.metro)
+        url = views.make_download_url(self.respondent, self.metro)
         self.assertTrue('msamd="12345"' in unquote(url))
 
         div1 = Geo.objects.create(
@@ -83,7 +83,7 @@ class ViewTest(TestCase):
             minlon=0.22, maxlat=1.33, maxlon=1.44, centlat=45.4545,
             centlon=67.6767, cbsa='12345', metdiv='78787', year='2012')
 
-        url = make_download_url(self.respondent, self.metro)
+        url = views.make_download_url(self.respondent, self.metro)
         self.assertFalse('12121' in url)
         self.assertTrue(
             'msamd+IN+("78787","98989")' in unquote(url)
@@ -116,7 +116,7 @@ def test_add_layer_attrs():
                active_years=(2000, None), short_name='bg2')
 
     context = {}
-    add_layer_attrs(context, 2010)
+    views.add_layer_attrs(context, 2010)
 
     assert [c['name'] for c in context['layer_categories']] == [
         'Fruit', 'Veggie']  # Grain is missing as it has no relevant layers
@@ -164,7 +164,7 @@ def test_avg_per_thousand_households():
     mommy.make(HMDARecord, geo=in_metro_wrong_year, institution=lender2,
                _quantity=37)
 
-    assert avg_per_thousand_households(lender1, metro) == (
+    assert views.avg_per_thousand_households(lender1, metro) == (
         1000 * (11 + 17) / (1000 + 3000)
     )
 
@@ -175,7 +175,7 @@ def test_add_county_context_one():
                         centlat=1, centlon=2)
     mommy.make(Geo, geo_type=Geo.COUNTY_TYPE)
     context = {}
-    add_county_attrs(context, county.pk)
+    views.add_county_attrs(context, county.pk)
 
     assert context['geography_names'] == 'Somewhere'
     assert context['map_center'] == {'centlat': 1, 'centlon': 2}
@@ -189,8 +189,20 @@ def test_add_county_context_multiple():
                          centlat=3, centlon=4)
     mommy.make(Geo, geo_type=Geo.COUNTY_TYPE)
     context = {}
-    add_county_attrs(context, f'{county1.pk},{county2.pk}')
+    views.add_county_attrs(context, f'{county1.pk},{county2.pk}')
 
     assert context['geography_names'] == 'Else, Somewhere'
     assert context['map_center'] == {
         'centlat': (1 + 3) / 2, 'centlon': (2 + 4) / 2}
+
+
+@pytest.mark.django_db
+def test_spa_contains_years(monkeypatch):
+    monkeypatch.setattr(views, "render", Mock())
+    mommy.make(Year, hmda_year=2010, _quantity=3)
+    mommy.make(Year, hmda_year=2011)
+    mommy.make(Year, hmda_year=2013)
+
+    views.single_page_app(Mock())
+    context = views.render.call_args[0][2]
+    assert json.loads(context['SPA_CONFIG'])['years'] == [2013, 2011, 2010]
