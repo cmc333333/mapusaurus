@@ -19,6 +19,10 @@ export class Tab {
   constructor(initParams: Partial<Tab>) {
     Object.assign(this, initParams);
   }
+
+  public matches(other: Tab): boolean {
+    return this.id === other.id;
+  }
 }
 
 export default [
