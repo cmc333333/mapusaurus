@@ -35,14 +35,21 @@ export class FilterEntity {
 export default interface LARLayer {
   filters: FilterEntity[];
   lar: LARPoint[];
+  year: number;
+  years: number[];
 }
 
 export const SAFE_INIT: LARLayer = {
   filters: [],
   lar: [],
+  year: NaN,
+  years: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
+
+export const setYear = actionCreator<number>("SET_YEAR");
+
 const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
 export function orderedUnion(
@@ -100,6 +107,19 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
       ...original,
       lar: result,
     }),
+  ).case(
+    setYear,
+    (original: LARLayer, year: number) => {
+      if (year === original.year) {
+        return original;
+      }
+      return {
+        ...original,
+        year,
+        filters: [],
+        lar: [],
+      };
+    },
   ).build();
 
 export function toScatterPlot({

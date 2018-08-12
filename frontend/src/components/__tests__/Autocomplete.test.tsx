@@ -15,7 +15,7 @@ describe("<Autocomplete />", () => {
     expect(result.find("Autosuggest")).toHaveLength(1);
   });
 
-  it("fetches data and caches the result", async () => {
+  it("fetches data", async () => {
     const fetchFn = jest.fn(() => [1, 2, 3, 4]);
     const result = shallow(
       <Autocomplete
@@ -29,16 +29,8 @@ describe("<Autocomplete />", () => {
       .prop("onSuggestionsFetchRequested");
 
     await makeRequest({ value: "some input" });
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-
+    expect(fetchFn).toHaveBeenCalled();
     expect(result.state("suggestions")).toEqual([1, 2, 3, 4]);
-
-    await makeRequest({ value: "some input" });
-    // Cached, so not called again
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-
-    await makeRequest({ value: "other input" });
-    expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
   it("can be cleared", () => {

@@ -5,41 +5,41 @@ import * as React from "react";
 import * as Autosuggest from "react-autosuggest";
 
 import {
-  border,
+  borderWidth,
   largeSpace,
   mediumSpace,
   smallSpace,
   softBorder,
+  textBg,
   typography,
 } from "../theme";
+import { inputStyle } from "./FormInput";
 import Loading from "./Loading";
 
 const autosuggestTheme = {
-  input: css({
-    border,
-    paddingBottom: smallSpace,
-    paddingLeft: mediumSpace,
-    paddingRight: typography.rhythm(2),
-    paddingTop: smallSpace,
-    width: "100%",
+  input: css(inputStyle, {
+    paddingRight: typography.rhythm(1.5),
+    width: "150px",
   }).toString(),
   suggestion: css({
     borderBottom: softBorder,
     margin: 0,
     padding: mediumSpace,
-    width: "100%",
   }).toString(),
   suggestionHighlighted: css({
     fontWeight: "bold",
   }).toString(),
   suggestionsList: css({
-    borderBottom: softBorder,
-    borderLeft: softBorder,
-    borderRight: softBorder,
+    backgroundColor: textBg,
+    border: softBorder,
     listStyle: "none",
-    margin: 0,
+    marginTop: `-${borderWidth}px`,
     maxHeight: typography.rhythm(10),
+    overflowX: "display",
     overflowY: "auto",
+    position: "absolute",
+    right: largeSpace,
+    width: typography.rhythm(10.5),
   }).toString(),
 };
 
@@ -50,7 +50,6 @@ interface Props<T> {
 }
 
 interface State<T> {
-  cache: Map<string, T[]>;
   loading: boolean;
   suggestions: T[];
   value: string;
@@ -62,7 +61,6 @@ export default class Autocomplete<T>
   constructor(props: Props<T>) {
     super(props);
     this.state = {
-      cache: Map<string, T[]>(),
       loading: false,
       suggestions: [],
       value: "",
@@ -75,15 +73,9 @@ export default class Autocomplete<T>
 
   public fetchRequested = async ({ value }): Promise<void> => {
     this.setState({ loading: true });
-    if (!this.state.cache.has(value)) {
-      const result = await this.props.fetchFn(value);
-      this.setState({ cache: this.state.cache.set(value, result) });
-    }
+    const result = await this.props.fetchFn(value);
 
-    this.setState({
-      loading: false,
-      suggestions: this.state.cache.get(value) || [],
-    });
+    this.setState({ loading: false, suggestions: result });
   }
 
   public render() {
@@ -94,7 +86,14 @@ export default class Autocomplete<T>
     const onSuggestionSelected = (ev, { suggestion }) =>
       this.props.setValue(suggestion);
     return (
-      <glamorous.Div position="relative">
+      <glamorous.Div display="inline-block">
+        <glamorous.Div
+          paddingTop={smallSpace}
+          position="absolute"
+          right={typography.rhythm(1.25)}
+        >
+          {this.state.loading ? <Loading size={largeSpace} /> : null}
+        </glamorous.Div>
         <Autosuggest
           getSuggestionValue={this.props.toValue}
           inputProps={inputProps}
@@ -105,9 +104,6 @@ export default class Autocomplete<T>
           suggestions={this.state.suggestions}
           theme={autosuggestTheme}
         />
-        <glamorous.Div position="absolute" right={smallSpace} top={smallSpace}>
-          {this.state.loading ? <Loading size={largeSpace} /> : null}
-        </glamorous.Div>
       </glamorous.Div>
     );
   }

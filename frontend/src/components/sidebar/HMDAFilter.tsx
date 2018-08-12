@@ -10,9 +10,10 @@ import {
   largeSpace,
   mediumSpace,
   smallSpace,
-  xSmallHeading,
+  typography,
 } from "../../theme";
 import Autocomplete from "../Autocomplete";
+import FormInput from "../FormInput";
 
 export function ExistingFilter({ filter, removeFn }) {
   const removeClick = ev => {
@@ -27,20 +28,18 @@ export function ExistingFilter({ filter, removeFn }) {
       paddingLeft={smallSpace}
       paddingRight={largeSpace}
       paddingTop={smallSpace}
-      position="relative"
       textAlign="center"
     >
-      {filter.name}
       <glamorous.A
+        float="right"
         href="#"
+        marginRight={typography.rhythm(-.75)}
         onClick={removeClick}
-        position="absolute"
-        right={smallSpace}
         title="Remove"
-        top={smallSpace}
       >
         <FontAwesomeIcon icon={faTimesCircle} />
       </glamorous.A>
+      {filter.name}
     </glamorous.Li>
   );
 }
@@ -51,9 +50,10 @@ export function HMDAFilter({
   removeFn,
   searchFn,
   title,
+  year,
 }) {
   const props = {
-    fetchFn: (value: string) => searchFn(value, 2016),
+    fetchFn: (value: string) => searchFn(value, year),
     setValue: addFn,
     toValue: input => input.name || "",
   };
@@ -61,11 +61,10 @@ export function HMDAFilter({
     item => <ExistingFilter filter={item} key={item.id} removeFn={removeFn} />,
   );
   return (
-    <glamorous.Div margin={largeSpace}>
-      <glamorous.H3 {...xSmallHeading} marginBottom={mediumSpace}>
-        {title}
-      </glamorous.H3>
-      <Autocomplete {...props} />
+    <glamorous.Div marginBottom={largeSpace} marginTop={largeSpace}>
+      <FormInput name={title}>
+        <Autocomplete {...props} />
+      </FormInput>
       <glamorous.Ul listStyle="none" margin={0} marginTop={mediumSpace}>
         {lis}
       </glamorous.Ul>
@@ -74,7 +73,7 @@ export function HMDAFilter({
 }
 
 export default connect(
-  null,
+  ({ larLayer: { year } }) => ({ year }),
   dispatch => ({
     addFn: (filter: FilterEntity) => dispatch(addFilters.action([filter])),
     removeFn: (filter: FilterEntity) => dispatch(removeFilter.action(filter)),

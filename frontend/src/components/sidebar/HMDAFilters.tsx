@@ -1,12 +1,15 @@
+import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
 import { searchMetros } from "../../apis/geography";
 import { searchLenders } from "../../apis/lenders";
 import State from "../../store/State";
+import { largeSpace } from "../../theme";
 import HMDAFilter from "./HMDAFilter";
+import YearSelector from "./YearSelector";
 
-export function HMDAFilters({ lenders, metros, showLenders }) {
+export function HMDAFilters({ lenders, metros, showLenders, year, years }) {
   let lendersEl: JSX.Element | null = null;
   if (showLenders) {
     lendersEl = (
@@ -14,10 +17,13 @@ export function HMDAFilters({ lenders, metros, showLenders }) {
     );
   }
   return (
-    <>
+    <glamorous.Div margin={largeSpace}>
+      <YearSelector />
+      <hr />
       <HMDAFilter items={metros} searchFn={searchMetros} title="Metros" />
+      <hr />
       {lendersEl}
-    </>
+    </glamorous.Div>
   );
 }
 

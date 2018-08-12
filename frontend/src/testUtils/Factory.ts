@@ -44,6 +44,7 @@ export const MetroFactory = new Factory(FilterEntity).attrs({
 export const LARLayerFactory = new Factory().attrs({
   filters: () => [CountyFactory.build(), LenderFactory.build()],
   lar: () => [],
+  year: () => random.integer(2010, 2018),
 });
 
 export const ConfigFactory = new Factory().attrs({
