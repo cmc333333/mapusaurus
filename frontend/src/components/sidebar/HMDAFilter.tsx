@@ -50,9 +50,10 @@ export function HMDAFilter({
   removeFn,
   searchFn,
   title,
+  year,
 }) {
   const props = {
-    fetchFn: (value: string) => searchFn(value, 2016),
+    fetchFn: (value: string) => searchFn(value, year),
     setValue: addFn,
     toValue: input => input.name || "",
   };
@@ -72,7 +73,7 @@ export function HMDAFilter({
 }
 
 export default connect(
-  null,
+  ({ larLayer: { year } }) => ({ year }),
   dispatch => ({
     addFn: (filter: FilterEntity) => dispatch(addFilters.action([filter])),
     removeFn: (filter: FilterEntity) => dispatch(removeFilter.action(filter)),

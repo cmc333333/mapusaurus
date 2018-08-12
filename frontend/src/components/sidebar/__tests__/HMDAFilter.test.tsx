@@ -27,16 +27,17 @@ describe("<ExistingFilter />", () => {
 
 describe("<HMDAFilter />", () => {
   it("includes the title", () => {
-    const titleEl = shallow(
+    const formEl = shallow(
       <HMDAFilter
         addFn={jest.fn()}
         items={[]}
         removeFn={jest.fn()}
         searchFn={jest.fn()}
         title="Some Title"
+        year={2010}
       />,
-    ).find(glamorous.H3);
-    expect(titleEl.children().text()).toMatch("Some Title");
+    ).find("FormInput");
+    expect(formEl.prop("name")).toBe("Some Title");
   });
 
   it("includes an Autocomplete", () => {
@@ -49,10 +50,11 @@ describe("<HMDAFilter />", () => {
         removeFn={jest.fn()}
         searchFn={searchFn}
         title="Title Here"
+        year={2011}
       />,
     ).find("Autocomplete");
     const props = autocomplete.props() as any;
-    expect(props.fetchFn("input")).toEqual(["input", 2016]);
+    expect(props.fetchFn("input")).toEqual(["input", 2011]);
     expect(props.setValue).toBe(addFn);
     expect(props.toValue({ name: "eman" })).toBe("eman");
     expect(props.toValue({})).toBe("");
@@ -72,6 +74,7 @@ describe("<HMDAFilter />", () => {
         removeFn={removeFn}
         searchFn={jest.fn()}
         title="Title Here"
+        year={2012}
       />,
     ).find(ExistingFilter);
     expect(lis).toHaveLength(3);
