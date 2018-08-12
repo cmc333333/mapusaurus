@@ -16,6 +16,7 @@ export const softDividerColor = "#666";
 export const smallSpace = typography.rhythm(.25);
 export const mediumSpace = typography.rhythm(.5);
 export const largeSpace = typography.rhythm(1);
+export const xLargeSpace = typography.rhythm(1.5);
 
 export const xSmallHeading = typography.scale(.25);
 export const smallHeading = typography.scale(.5);
