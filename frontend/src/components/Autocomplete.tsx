@@ -50,7 +50,6 @@ interface Props<T> {
 }
 
 interface State<T> {
-  cache: Map<string, T[]>;
   loading: boolean;
   suggestions: T[];
   value: string;
@@ -62,7 +61,6 @@ export default class Autocomplete<T>
   constructor(props: Props<T>) {
     super(props);
     this.state = {
-      cache: Map<string, T[]>(),
       loading: false,
       suggestions: [],
       value: "",
@@ -75,15 +73,9 @@ export default class Autocomplete<T>
 
   public fetchRequested = async ({ value }): Promise<void> => {
     this.setState({ loading: true });
-    if (!this.state.cache.has(value)) {
-      const result = await this.props.fetchFn(value);
-      this.setState({ cache: this.state.cache.set(value, result) });
-    }
+    const result = await this.props.fetchFn(value);
 
-    this.setState({
-      loading: false,
-      suggestions: this.state.cache.get(value) || [],
-    });
+    this.setState({ loading: false, suggestions: result });
   }
 
   public render() {
