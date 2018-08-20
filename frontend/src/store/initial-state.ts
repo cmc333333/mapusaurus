@@ -20,7 +20,7 @@ export function deriveLARLayer(hash: string, years: number[]): LARLayer {
     .map(id => new FilterEntity({ entityType: "metro", id: `${id}` }));
   return {
     ...larInit,
-    years,
+    available: { years },
     filters: [...counties, ...lenders, ...metros],
     year: parseInt(parsed.year, 10) || (years.length ? years[0] : NaN),
   };

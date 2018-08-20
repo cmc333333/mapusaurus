@@ -33,17 +33,19 @@ export class FilterEntity {
 }
 
 export default interface LARLayer {
+  available: {
+    years: number[];
+  };
   filters: FilterEntity[];
   lar: LARPoint[];
   year: number;
-  years: number[];
 }
 
 export const SAFE_INIT: LARLayer = {
+  available: { years: [] },
   filters: [],
   lar: [],
   year: NaN,
-  years: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");

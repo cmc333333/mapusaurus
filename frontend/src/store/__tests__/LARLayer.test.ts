@@ -99,16 +99,18 @@ describe("reducer()", () => {
 
   describe("setting year", () => {
     const larLayer = LARLayerFactory.build({
+      available: {
+        years: [2012, 2010, 2008],
+      },
       filters: LenderFactory.buildList(3),
       lar: LARPointFactory.buildList(10),
       year: 2010,
-      years: [2012, 2010, 2008],
     });
     const result = reducer(larLayer, setYear(2008));
     expect(result.filters).toEqual([]);
     expect(result.lar).toEqual([]);
     expect(result.year).toBe(2008);
-    expect(result.years).toEqual([2012, 2010, 2008]);
+    expect(result.available.years).toEqual([2012, 2010, 2008]);
   });
 });
 

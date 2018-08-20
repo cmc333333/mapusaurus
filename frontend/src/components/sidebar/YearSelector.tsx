@@ -23,6 +23,6 @@ export function mapDispatchToProps(dispatch) {
 }
 
 export default connect(
-  ({ larLayer: { year, years } }: State) => ({ year, years }),
+  ({ larLayer: { available: { years }, year } }: State) => ({ year, years }),
   mapDispatchToProps,
 )(YearSelector);
