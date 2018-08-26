@@ -6,10 +6,11 @@ import { searchMetros } from "../../apis/geography";
 import { searchLenders } from "../../apis/lenders";
 import State from "../../store/State";
 import { largeSpace } from "../../theme";
+import CountySelector from "./CountySelector";
 import HMDAFilter from "./HMDAFilter";
 import YearSelector from "./YearSelector";
 
-export function HMDAFilters({ lenders, metros, showLenders, year, years }) {
+export function HMDAFilters({ lenders, metros, showLenders }) {
   let lendersEl: JSX.Element | null = null;
   if (showLenders) {
     lendersEl = (
@@ -21,6 +22,8 @@ export function HMDAFilters({ lenders, metros, showLenders, year, years }) {
       <YearSelector />
       <hr />
       <HMDAFilter items={metros} searchFn={searchMetros} title="Metros" />
+      <hr />
+      <CountySelector />
       <hr />
       {lendersEl}
     </glamorous.Div>

@@ -8,6 +8,7 @@ from django.db import connection
 from django.db.models.query import Prefetch, QuerySet
 from django.forms.models import model_to_dict
 from django.shortcuts import render
+from us import STATES_AND_TERRITORIES
 
 from geo.models import Geo
 from hmda.models import Year
@@ -188,7 +189,13 @@ def single_page_app(request):
         .order_by('-hmda_year')\
         .distinct('hmda_year')\
         .values_list('hmda_year', flat=True)
-    config = dict(years=list(years), **settings.SPA_CONFIG)
+    config = dict(
+        states=[{"abbr": s.abbr, "fips": s.fips, "name": s.name}
+                for s in STATES_AND_TERRITORIES
+                if s.fips],
+        years=list(years),
+        **settings.SPA_CONFIG,
+    )
     return render(request, 'new-map.html', {
         'SPA_CONFIG': json.dumps(config),
     })

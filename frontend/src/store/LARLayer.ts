@@ -32,22 +32,34 @@ export class FilterEntity {
   }
 }
 
+export interface USState {
+  abbr: string;
+  fips: string;
+  name: string;
+}
+
 export default interface LARLayer {
+  available: {
+    states: USState[];
+    years: number[];
+  };
   filters: FilterEntity[];
   lar: LARPoint[];
+  stateFips: string;
   year: number;
-  years: number[];
 }
 
 export const SAFE_INIT: LARLayer = {
+  available: { states: [], years: [] },
   filters: [],
   lar: [],
+  stateFips: "",
   year: NaN,
-  years: [],
 };
 
 const actionCreator = actionCreatorFactory("LAR_LAYER");
 
+export const setStateFips = actionCreator<string>("SET_STATE_FIPS");
 export const setYear = actionCreator<number>("SET_YEAR");
 
 const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
@@ -120,6 +132,12 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
         lar: [],
       };
     },
+  ).case(
+    setStateFips,
+    (original: LARLayer, stateFips: string) => ({
+      ...original,
+      stateFips,
+    }),
   ).build();
 
 export function toScatterPlot({
