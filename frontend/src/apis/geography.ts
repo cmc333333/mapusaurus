@@ -31,3 +31,12 @@ export async function searchMetros(
   );
   return response.data.geos.map(convert);
 }
+
+export const makeCountySearch =
+  (state: string) => async (text: string, year: number) => {
+    const response = await axios.get(
+      "/shapes/search/county/",
+      { params: { state, year, q: text } },
+    );
+    return response.data.geos.map(convert);
+  };
