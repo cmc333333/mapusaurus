@@ -41,12 +41,20 @@ export const MetroFactory = new Factory(FilterEntity).attrs({
   name: () => random.string(32),
 });
 
+export const USStateFactory = new Factory().attrs({
+  abbr: () => random.string(2, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+  fips: () => random.string(2, "0123456789"),
+  name: () => random.string(32),
+});
+
 export const LARLayerFactory = new Factory().attrs({
   available: () => ({
+    states: () => USStateFactory.buildList(10),
     years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
   }),
   filters: () => [CountyFactory.build(), LenderFactory.build()],
   lar: () => [],
+  stateFips: () => random.string(2, "0123456789"),
   year: () => random.integer(2010, 2018),
 });
 

@@ -1,9 +1,11 @@
+import { USStateFactory } from "../../testUtils/Factory";
 import { deriveLARLayer, deriveViewport } from "../initial-state";
 
 describe("deriveLARLayer()", () => {
   it("loads county, lender, and metro", () => {
     const result = deriveLARLayer(
       "counties[]=123&lenders[]=456&metros[]=789",
+      [],
       [2009],
     );
     expect(result.filters).toEqual([
@@ -13,13 +15,14 @@ describe("deriveLARLayer()", () => {
     ]);
   });
   it("defaults to empty values", () => {
-    const result = deriveLARLayer("", [2009, 2008]);
+    const result = deriveLARLayer("", [], [2009, 2008]);
     expect(result.filters).toEqual([]);
     expect(result.year).toBe(2009);
   });
   it("loads multiple", () => {
     const result = deriveLARLayer(
       "metros[]=123&metros[]=456&metros[]=789",
+      [],
       [2009],
     );
     expect(result.filters).toEqual([
@@ -29,8 +32,14 @@ describe("deriveLARLayer()", () => {
     ]);
   });
   it("loads year", () => {
-    const result = deriveLARLayer("year=2012", [2014, 2013, 2012, 2010]);
+    const result = deriveLARLayer("year=2012", [], [2014, 2013, 2012, 2010]);
     expect(result.year).toBe(2012);
+  });
+  it("adds the available states and years", () => {
+    const states = USStateFactory.buildList(3);
+    const years = [2001, 2008];
+    const result = deriveLARLayer("", states, years);
+    expect(result.available).toEqual({ states, years });
   });
 });
 
