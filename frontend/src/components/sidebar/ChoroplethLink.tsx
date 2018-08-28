@@ -27,26 +27,27 @@ const MenuA = glamorous.a<{ active?: boolean }>(
   },
 );
 
-export function ChoroplethLink({ isVisible, layer, selectChoropleth }) {
-  const clickChoropleth = ev => {
-    ev.preventDefault();
-    selectChoropleth();
-  };
+export function ChoroplethLink({ isVisible, name, onClick }) {
   return (
     <MenuLi>
-      <MenuA active={isVisible} href="#" onClick={clickChoropleth}>
-        {layer.name}
+      <MenuA active={isVisible} href="#" onClick={onClick}>
+        {name}
       </MenuA>
     </MenuLi>
   );
 }
 
-export function mapStateToProps({ mapbox }: State, { layer }) {
-  return { isVisible: mapbox.visible.has(layer.id) };
+export function mapStateToProps({ mapbox }: State, { layerId }) {
+  return { isVisible: mapbox.visible.has(layerId) };
 }
 
-export function mapDispatchToProps(dispatch, { layer }) {
-  return { selectChoropleth: () => dispatch(selectChoropleth(layer.id)) };
+export function mapDispatchToProps(dispatch, { layerId }) {
+  return {
+    onClick: ev => {
+      ev.preventDefault();
+      dispatch(selectChoropleth(layerId));
+    },
+  };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoroplethLink);

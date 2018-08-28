@@ -1,32 +1,11 @@
 import { shallow } from "enzyme";
 import * as React from "react";
 
-import {
-  ConfigFactory,
-  MapboxStyleFactory,
-  ViewportFactory,
-} from "../../testUtils/Factory";
+import mapStyle from "../../mapStyle";
+import { ViewportFactory } from "../../testUtils/Factory";
 import { Map } from "../Map";
 
 describe("<Map />", () => {
-  it("displays nothing when there is no style", () => {
-    const changeViewport = () => null;
-    const result = shallow(
-      <Map
-        changeViewport={changeViewport}
-        height={10}
-        mapStyle={undefined}
-        mapboxApiAccessToken=""
-        scatterPlot={[]}
-        viewport={ViewportFactory.build()}
-        width={10}
-      />,
-    );
-
-    expect(result.name()).toBe("div");
-    expect(result.text()).toBe("Loading...");
-  });
-
   it("passed correct properties on the resulting ReactMapGL", () => {
     const changeViewport = () => null;
     const viewport = {
@@ -38,7 +17,7 @@ describe("<Map />", () => {
       <Map
         changeViewport={changeViewport}
         height={10}
-        mapStyle={MapboxStyleFactory.build()}
+        mapStyle={mapStyle}
         mapboxApiAccessToken="A Token!"
         scatterPlot={[]}
         viewport={viewport}
@@ -64,7 +43,7 @@ describe("<Map />", () => {
       <Map
         changeViewport={changeViewport}
         height={10}
-        mapStyle={MapboxStyleFactory.build()}
+        mapStyle={mapStyle}
         mapboxApiAccessToken=""
         scatterPlot={scatterPlot}
         viewport={ViewportFactory.build()}

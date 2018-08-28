@@ -3,6 +3,7 @@ import {
   faHome,
   faLayerGroup,
 } from "@fortawesome/free-solid-svg-icons";
+import * as React from "react";
 
 import ChoroplethSelection from "./components/sidebar/ChoroplethSelection";
 import FeatureSelection from "./components/sidebar/FeatureSelection";
@@ -11,7 +12,7 @@ import HMDAFilters from "./components/sidebar/HMDAFilters";
 export type TabId = "layers" | "features" | "lar";
 
 export class Tab {
-  public Component: JSX.Element;
+  public Component: React.ReactNode;
   public icon: any;
   public id: TabId;
   public title: string;

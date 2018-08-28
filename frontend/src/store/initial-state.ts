@@ -36,28 +36,20 @@ export function deriveLARLayer(
 }
 
 export function deriveMapbox(windowConfig): Mapbox {
-  const { choropleths, features, styleName, token } = windowConfig;
-  features.forEach(feature => {
-    feature.ids = Set(feature.ids);
-  });
+  const { token } = windowConfig;
   return {
     ...mapboxInit,
-    config: {
-      choropleths,
-      features,
-      styleName,
-      token,
-    },
+    token,
   };
 }
 
 export function deriveViewport(hash: string): Viewport {
   const parsed = qs.parse(hash);
+  const { latitude, longitude, zoom } = viewportInit;
   return {
-    ...viewportInit,
-    latitude: parseFloat(parsed.latitude),
-    longitude: parseFloat(parsed.longitude),
-    zoom: parseFloat(parsed.zoom),
+    latitude: parseFloat(parsed.latitude) || latitude,
+    longitude: parseFloat(parsed.longitude) || longitude,
+    zoom: parseFloat(parsed.zoom) || zoom,
   };
 }
 

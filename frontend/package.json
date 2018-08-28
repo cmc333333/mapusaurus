@@ -3,18 +3,18 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Browser-based interactive mapping application that displays home mortgage application data.",
   "author": {
-    "name": "Consumer Financial Protection Bureau",
-    "url": "http://cfpb.github.io/"
+    "name": "CM Lubinski",
+    "url": "https://cmlubinski.info/"
   },
-  "homepage": "https://github.com/cfpb/mapusaurus",
+  "homepage": "https://github.com/cmc333333/mapusaurus",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cfpb/mapusaurus.git"
+    "url": "https://github.com/cmc333333/mapusaurus.git"
   },
-  "license": "https://github.com/cfpb/mapusaurus/blob/master/TERMS.md",
+  "license": "https://github.com/cmc333333/mapusaurus/blob/master/TERMS.md",
   "devDependencies": {
     "@types/enzyme": "^3.1.10",
     "@types/enzyme-adapter-react-16": "^1.0.2",

@@ -58,21 +58,8 @@ export const LARLayerFactory = new Factory().attrs({
   year: () => random.integer(2010, 2018),
 });
 
-export const ConfigFactory = new Factory().attrs({
-  choropleths: () => [],
-  features: () => [],
-  styleName: () => random.string(32),
-  token: () => random.string(32),
-});
-
-export const MapboxStyleFactory = new Factory().attrs({
-  center: () => [randLon(), randLat()],
-  layers: () => [],
-  zoom: randZoom,
-});
-
 export const MapboxFactory = new Factory().attrs({
-  config: () => ConfigFactory.build(),
+  token: () => random.string(32),
   visible: Set<string>(),
 });
 
