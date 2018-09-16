@@ -16,8 +16,8 @@ describe("<Sidebar />", () => {
 
   it("includes the active tab's content", () => {
     const rendered = shallow(<Sidebar activeTab={tabs[1]} expanded={true} />);
-    expect(rendered.find(tabs[0].Component)).toHaveLength(0);
-    expect(rendered.find(tabs[1].Component)).toHaveLength(1);
+    expect(rendered.find(tabs[0].Component as any)).toHaveLength(0);
+    expect(rendered.find(tabs[1].Component as any)).toHaveLength(1);
   });
 
   it("includes an Expander component", () => {

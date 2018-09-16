@@ -51,10 +51,10 @@ describe("deriveViewport()", () => {
     expect(result.zoom).toBe(3);
   });
 
-  it("defaults viewport to NaNs", () => {
+  it("defaults viewport to Chicago", () => {
     const result = deriveViewport("");
-    expect(result.latitude).toBe(NaN);
-    expect(result.longitude).toBe(NaN);
-    expect(result.zoom).toBe(NaN);
+    expect(result.latitude).toBe(41.88);
+    expect(result.longitude).toBe(-87.64);
+    expect(result.zoom).toBe(13);
   });
 });

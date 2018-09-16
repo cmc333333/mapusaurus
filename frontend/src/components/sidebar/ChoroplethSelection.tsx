@@ -1,17 +1,13 @@
 import glamorous from "glamorous";
 import * as React from "react";
-import { connect } from "react-redux";
 
-import State from "../../store/State";
+import { choropleths } from "../../mapStyle";
 import ChoroplethLink from "./ChoroplethLink";
 
-export function ChoroplethSelection({ choropleths }) {
-  return (
-    <glamorous.Ul margin="0">
-      {choropleths.map(layer => <ChoroplethLink key={layer.id} layer={layer} />)}
-    </glamorous.Ul>
-  );
+export default function ChoroplethSelection() {
+  const links = choropleths.entrySeq().toArray()
+    .map(([layerId, name]) =>
+      <ChoroplethLink layerId={layerId} key={layerId} name={name} />,
+    );
+  return <glamorous.Ul margin="0">{links}</glamorous.Ul>;
 }
-export default connect(
-  ({ mapbox: { config: { choropleths } } }: State) => ({ choropleths }),
-)(ChoroplethSelection);

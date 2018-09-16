@@ -6,7 +6,7 @@ import { addLayers, removeLayers } from "../../store/Mapbox";
 import State from "../../store/State";
 import { largeSpace, mediumSpace, smallSpace } from "../../theme";
 
-export function FeatureCheckbox({ addLayers, checked, feature, removeLayers }) {
+export function FeatureCheckbox({ checked, name, onChange }) {
   return (
     <glamorous.Li margin="0">
       <glamorous.Label
@@ -19,24 +19,28 @@ export function FeatureCheckbox({ addLayers, checked, feature, removeLayers }) {
         <glamorous.Input
           checked={checked}
           marginRight={mediumSpace}
-          onChange={checked ? removeLayers : addLayers}
+          onChange={onChange}
           type="checkbox"
         />
-        {feature.name}
+        {name}
       </glamorous.Label>
     </glamorous.Li>
   );
 }
 
-export function mapStateToProps({ mapbox }: State, { feature }) {
-  return { checked: !mapbox.visible.intersect(feature.ids).isEmpty() };
-}
-
-export function mapDispatchToProps(dispatch, { feature }) {
+export function mergeProps({ mapbox }, { dispatch }, { layerIds, name }) {
+  const checked = !mapbox.visible.intersect(layerIds).isEmpty();
   return {
-    addLayers: () => dispatch(addLayers(feature.ids)),
-    removeLayers: () => dispatch(removeLayers(feature.ids)),
+    checked,
+    name,
+    onChange: () => dispatch(
+      checked ?  removeLayers(layerIds) : addLayers(layerIds),
+    ),
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(FeatureCheckbox);
+export default connect(
+  ({ mapbox }) => ({ mapbox }),
+  dispatch => ({ dispatch }),
+  mergeProps,
+)(FeatureCheckbox);

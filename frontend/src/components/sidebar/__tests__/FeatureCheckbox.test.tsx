@@ -5,111 +5,55 @@ import * as React from "react";
 
 import { addLayers, removeLayers } from "../../../store/Mapbox";
 import { MapboxFactory, StateFactory } from "../../../testUtils/Factory";
-import {
-  FeatureCheckbox,
-  mapDispatchToProps,
-  mapStateToProps,
-} from "../FeatureCheckbox";
+import { FeatureCheckbox, mergeProps } from "../FeatureCheckbox";
 
 describe("<FeatureCheckbox />", () => {
   it("includes the feature name", () => {
     const result = mount(
-      <FeatureCheckbox
-        addLayers={jest.fn()}
-        checked={true}
-        feature={{ name: "A Name" }}
-        removeLayers={jest.fn()}
-      />,
+      <FeatureCheckbox checked={true} name="A Name" onChange={jest.fn()} />,
     );
     expect(result.text()).toBe("A Name");
   });
 
   it("checks the wrapped input if the container is", () => {
     const result = shallow(
-      <FeatureCheckbox
-        addLayers={jest.fn()}
-        checked={true}
-        feature={{ name: "A Name" }}
-        removeLayers={jest.fn()}
-      />,
+      <FeatureCheckbox checked={true} name="" onChange={jest.fn()} />,
     );
     expect(result.find(glamorous.Input).prop("checked")).toBe(true);
   });
 
   it("doesn't check the wrapped input if the container is not", () => {
     const result = shallow(
-      <FeatureCheckbox
-        addLayers={jest.fn()}
-        checked={false}
-        feature={{ name: "A Name" }}
-        removeLayers={jest.fn()}
-      />,
+      <FeatureCheckbox checked={false} name="" onChange={jest.fn()} />,
     );
     expect(result.find(glamorous.Input).prop("checked")).toBe(false);
   });
+});
+
+describe("mergeProps()", () => {
+  it("derives 'checked' based on overlap; triggers a remove", () => {
+    const dispatch = jest.fn();
+    const layerIds = Set(["bbb", "ddd", "eee"]);
+    const result = mergeProps(
+      { mapbox: { visible: Set(["aaa", "bbb", "ccc", "ddd"]) } },
+      { dispatch },
+      { layerIds, name: "" },
+    );
+    expect(result.checked).toBe(true);
+    result.onChange();
+    expect(dispatch).toHaveBeenCalledWith(removeLayers(layerIds));
+  });
 
   it("triggers an add if not checked", () => {
-    const addLayers = jest.fn();
-    const removeLayers = jest.fn();
-    const result = shallow(
-      <FeatureCheckbox
-        addLayers={addLayers}
-        checked={false}
-        feature={{ name: "A Name" }}
-        removeLayers={removeLayers}
-      />,
-    );
-    result.find(glamorous.Input).simulate("change");
-    expect(addLayers).toHaveBeenCalled();
-    expect(removeLayers).not.toHaveBeenCalled();
-  });
-
-  it("triggers a remove if checked", () => {
-    const addLayers = jest.fn();
-    const removeLayers = jest.fn();
-    const result = shallow(
-      <FeatureCheckbox
-        addLayers={addLayers}
-        checked={true}
-        feature={{ name: "A Name" }}
-        removeLayers={removeLayers}
-      />,
-    );
-    result.find(glamorous.Input).simulate("change");
-    expect(addLayers).not.toHaveBeenCalled();
-    expect(removeLayers).toHaveBeenCalled();
-  });
-});
-
-test("mapStateToProps() set checked based on the visible set", () => {
-  const store = StateFactory.build({
-    mapbox: MapboxFactory.build({
-      visible: Set<string>(["aaa", "bbb", "ccc"]),
-    }),
-  });
-  const visibleFeature = { ids: Set<string>(["bbb", "111"]) };
-  const hiddenFeature = { ids: Set<string>(["111", "222", "333"]) };
-  expect(mapStateToProps(store, { feature: visibleFeature })).toEqual({
-    checked: true,
-  });
-  expect(mapStateToProps(store, { feature: hiddenFeature })).toEqual({
-    checked: false,
-  });
-});
-
-describe("mapDispatchToProps()", () => {
-  const feature = { ids: Set<string>(["aaa", "bbb", "ccc"]) };
-  it("dispatches addLayers", () => {
     const dispatch = jest.fn();
-    const props = mapDispatchToProps(dispatch, { feature });
-    props.addLayers();
-    expect(dispatch).toHaveBeenCalledWith(addLayers(feature.ids));
-  });
-
-  it("dispatches removeLayers", () => {
-    const dispatch = jest.fn();
-    const props = mapDispatchToProps(dispatch, { feature });
-    props.removeLayers();
-    expect(dispatch).toHaveBeenCalledWith(removeLayers(feature.ids));
+    const layerIds = Set(["zzz", "yyy"]);
+    const result = mergeProps(
+      { mapbox: { visible: Set(["aaa", "bbb", "ccc", "ddd"]) } },
+      { dispatch },
+      { layerIds, name: "" },
+    );
+    expect(result.checked).toBe(false);
+    result.onChange();
+    expect(dispatch).toHaveBeenCalledWith(addLayers(layerIds));
   });
 });

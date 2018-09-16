@@ -13,50 +13,33 @@ import {
 describe("<ChoroplethLink />", () => {
   it("includes the layer name", () => {
     const result = mount(
-      <ChoroplethLink
-        isVisible={true}
-        layer={{ name: "A Name" }}
-        selectChoropleth={jest.fn()}
-      />,
+      <ChoroplethLink isVisible={true} name="A Name" onClick={jest.fn()} />,
     );
     expect(result.text()).toBe("A Name");
   });
 
   it("is active when visible", () => {
     const result = shallow(
-      <ChoroplethLink
-        isVisible={true}
-        layer={{ name: "A Name" }}
-        selectChoropleth={jest.fn()}
-      />,
+      <ChoroplethLink isVisible={true} name="A Name" onClick={jest.fn()} />,
     );
     expect(result.find("glamorous(a)").prop("active")).toBe(true);
   });
 
   it("is not active when hidden", () => {
     const result = shallow(
-      <ChoroplethLink
-        isVisible={false}
-        layer={{ name: "A Name" }}
-        selectChoropleth={jest.fn()}
-      />,
+      <ChoroplethLink isVisible={false} name="A Name" onClick={jest.fn()} />,
     );
     expect(result.find("glamorous(a)").prop("active")).toBe(false);
   });
 
-  it("triggers the selectChoropleth", () => {
-    const selectChoropleth = jest.fn();
-    const preventDefault = jest.fn();
+  it("triggers the onClick", () => {
+    const onClick = jest.fn();
     const result = shallow(
-      <ChoroplethLink
-        isVisible={false}
-        layer={{ name: "A Name" }}
-        selectChoropleth={selectChoropleth}
-      />,
+      <ChoroplethLink isVisible={false} name="A Name" onClick={onClick} />,
     );
-    expect(selectChoropleth).not.toHaveBeenCalled();
-    result.find("glamorous(a)").simulate("click", { preventDefault });
-    expect(selectChoropleth).toHaveBeenCalled();
+    expect(onClick).not.toHaveBeenCalled();
+    result.find("glamorous(a)").simulate("click");
+    expect(onClick).toHaveBeenCalled();
   });
 });
 
@@ -66,17 +49,17 @@ test("mapStateToProps() set isVisible based on the visible set", () => {
       visible: Set<string>(["aaa", "bbb", "ccc"]),
     }),
   });
-  expect(mapStateToProps(state, { layer: { id: "bbb" } })).toEqual({
+  expect(mapStateToProps(state, { layerId: "bbb" })).toEqual({
     isVisible: true,
   });
-  expect(mapStateToProps(state, { layer: { id: "111" } })).toEqual({
+  expect(mapStateToProps(state, { layerId: "111" })).toEqual({
     isVisible: false,
   });
 });
 
-test("mapDispatchToProps() dispatches selectChoropleth", () => {
+test("mapDispatchToProps() dispatches onClick", () => {
   const dispatch = jest.fn();
-  const props = mapDispatchToProps(dispatch, { layer: { id: "aaa" } });
-  props.selectChoropleth();
+  const props = mapDispatchToProps(dispatch, { layerId: "aaa" });
+  props.onClick({ preventDefault: jest.fn() });
   expect(dispatch).toHaveBeenCalledWith(selectChoropleth("aaa"));
 });

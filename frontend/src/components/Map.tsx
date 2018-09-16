@@ -20,10 +20,6 @@ export function Map({
   viewport,
   width,
 }) {
-  if (!mapStyle) {
-    return <div>Loading...</div>;
-  }
-
   const layers = [
     new ScatterplotLayer({
       data: scatterPlot,
@@ -61,7 +57,7 @@ export default connect(
   (state: State) => ({
     height: state.window.height,
     mapStyle: currentStyleSelector(state.mapbox),
-    mapboxApiAccessToken: state.mapbox.config.token,
+    mapboxApiAccessToken: state.mapbox.token,
     scatterPlot: scatterPlotSelector(state.larLayer),
     viewport: state.viewport,
     width: state.window.width,

@@ -1,17 +1,14 @@
 import glamorous from "glamorous";
 import * as React from "react";
-import { connect } from "react-redux";
 
-import State from "../../store/State";
+import { features } from "../../mapStyle";
 import FeatureCheckbox from "./FeatureCheckbox";
 
-export function FeatureSelection({ features }) {
-  return (
-    <glamorous.Ul margin="0">
-      {features.map(f => <FeatureCheckbox key={f.name} feature={f} />)}
-    </glamorous.Ul>
-  );
+export default function FeatureSelection() {
+  const checkBoxes = features.entrySeq().toArray()
+    .map((pair: [string, Set<string>]) => {
+      const [name, layerIds] = pair;
+      return <FeatureCheckbox key={name} layerIds={layerIds} name={name} />;
+    });
+  return <glamorous.Ul margin="0">{checkBoxes}</glamorous.Ul>;
 }
-export default connect(
-  ({ mapbox: { config: { features } } }: State) => ({ features }),
-)(FeatureSelection);

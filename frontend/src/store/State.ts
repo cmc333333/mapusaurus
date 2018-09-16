@@ -3,9 +3,8 @@ import { asyncFactory } from "typescript-fsa-redux-thunk";
 
 import { fetchGeos } from "../apis/geography";
 import { fetchLenders } from "../apis/lenders";
-import { fetchStyle } from "../apis/styles";
 import LARLayer, { addFilters } from "./LARLayer";
-import Mapbox, { setStyle } from "./Mapbox";
+import Mapbox from "./Mapbox";
 import Sidebar from "./Sidebar";
 import Viewport from "./Viewport";
 import Window from "./Window";
@@ -32,14 +31,13 @@ export const initCalls = asyncActionCreator<State, void>(
       .filter(e => e.entityType === "lender").map(e => e.id);
     const metroIds = state.larLayer.filters
       .filter(e => e.entityType === "metro").map(e => e.id);
-    const { styleName, token } = state.mapbox.config;
+    const { token } = state.mapbox;
 
     await Promise.all([
       fetchGeos(countyIds.concat(metroIds))
         .then(geos => dispatch(addFilters.action(geos))),
       fetchLenders(lenderIds)
         .then(lenders => dispatch(addFilters.action(lenders))),
-      fetchStyle(styleName, token).then(style => dispatch(setStyle(style))),
     ]);
   },
 );

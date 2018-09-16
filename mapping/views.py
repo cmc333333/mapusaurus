@@ -193,8 +193,8 @@ def single_page_app(request):
         states=[{"abbr": s.abbr, "fips": s.fips, "name": s.name}
                 for s in STATES_AND_TERRITORIES
                 if s.fips],
+        token=settings.MAPBOX_TOKEN,
         years=list(years),
-        **settings.SPA_CONFIG,
     )
     return render(request, 'new-map.html', {
         'SPA_CONFIG': json.dumps(config),
