@@ -58,6 +58,17 @@ export const LARLayerFactory = new Factory().attrs({
   year: () => random.integer(2010, 2018),
 });
 
+export const LARFilterFactory = new Factory().attrs({
+  lienStatus:
+    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
+  loanPurpose:
+    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
+  ownerOccupancy:
+    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
+  propertyType:
+    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
+});
+
 export const MapboxFactory = new Factory().attrs({
   token: () => random.string(32),
   visible: Set<string>(),
@@ -69,6 +80,7 @@ export const SidebarFactory = new Factory().attrs({
 });
 
 export const StateFactory = new Factory().attrs({
+  larFilters: () => LARFilterFactory.build(),
   larLayer: () => LARLayerFactory.build(),
   mapbox: () => MapboxFactory.build(),
   sidebar: () => SidebarFactory.build(),
