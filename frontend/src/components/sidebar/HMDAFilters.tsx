@@ -14,14 +14,24 @@ export function HMDAFilters({ lenders, metros, showLenders }) {
   let lendersEl: JSX.Element | null = null;
   if (showLenders) {
     lendersEl = (
-      <HMDAFilter items={lenders} searchFn={searchLenders} title="Lenders" />
+      <HMDAFilter
+        filterName="lender"
+        items={lenders}
+        searchFn={searchLenders}
+        title="Lenders"
+      />
     );
   }
   return (
     <glamorous.Div margin={largeSpace}>
       <YearSelector />
       <hr />
-      <HMDAFilter items={metros} searchFn={searchMetros} title="Metros" />
+      <HMDAFilter
+        filterName="metro"
+        items={metros}
+        searchFn={searchMetros}
+        title="Metros"
+      />
       <hr />
       <CountySelector />
       <hr />
@@ -32,8 +42,11 @@ export function HMDAFilters({ lenders, metros, showLenders }) {
 
 export default connect(
   ({ larLayer: { filters } }: State) => ({
-    lenders: filters.filter(e => e.name && e.entityType === "lender"),
-    metros: filters.filter(e => e.name && e.entityType === "metro"),
-    showLenders: filters.length > 0,
+    lenders: filters.lender.filter(l => l.name),
+    metros: filters.metro.filter(m => m.name),
+    showLenders:
+      filters.county.length > 0
+      || filters.lender.length > 0
+      || filters.metro.length > 0,
   }),
 )(HMDAFilters);

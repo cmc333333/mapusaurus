@@ -3,7 +3,7 @@ import * as qs from "qs";
 
 import LARFilters, { SAFE_INIT as larFiltersInit } from "./LARFilters";
 import LARLayer, {
-  FilterEntity,
+  FilterValue,
   SAFE_INIT as larInit,
   USState,
 } from "./LARLayer";
@@ -18,19 +18,19 @@ export function deriveLARLayer(
   years: number[],
 ): LARLayer {
   const parsed = qs.parse(hash);
-  const counties =
-    (Array.isArray(parsed.counties) ? parsed.counties : [])
-    .map(id => new FilterEntity({ entityType: "county", id: `${id}` }));
-  const lenders =
-    (Array.isArray(parsed.lenders) ? parsed.lenders : [])
-    .map(id => new FilterEntity({ entityType: "lender", id: `${id}` }));
-  const metros =
-    (Array.isArray(parsed.metros) ? parsed.metros : [])
-    .map(id => new FilterEntity({ entityType: "metro", id: `${id}` }));
+  const filters = {
+    ...larInit.filters,
+    county: (Array.isArray(parsed.counties) ? parsed.counties : [])
+      .map(id => new FilterValue({ id: `${id}` })),
+    lender: (Array.isArray(parsed.lenders) ? parsed.lenders : [])
+      .map(id => new FilterValue({ id: `${id}` })),
+    metro: (Array.isArray(parsed.metros) ? parsed.metros : [])
+      .map(id => new FilterValue({ id: `${id}` })),
+  };
   return {
     ...larInit,
+    filters,
     available: { states, years },
-    filters: [...counties, ...lenders, ...metros],
     stateFips: states.length ? states[0].fips : "",
     year: parseInt(parsed.year, 10) || (years.length ? years[0] : NaN),
   };

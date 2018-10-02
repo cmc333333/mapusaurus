@@ -5,10 +5,9 @@ import * as React from "react";
 import { makeCountySearch } from "../../../apis/geography";
 import { setStateFips } from "../../../store/LARLayer";
 import {
-  CountyFactory,
+  FiltersFactory,
+  FilterValueFactory,
   LARLayerFactory,
-  LenderFactory,
-  MetroFactory,
   StateFactory,
 } from "../../../testUtils/Factory";
 import {
@@ -91,18 +90,17 @@ describe("<CountySelector />", () => {
 
 describe("mapStateToProps()", () => {
   it("filters to the counties", () => {
-    const counties = CountyFactory.buildList(2);
-    const lenders = LenderFactory.buildList(4);
-    const metros = MetroFactory.buildList(3);
+    const county = FilterValueFactory.buildList(2);
+    const lender = FilterValueFactory.buildList(4);
+    const metro = FilterValueFactory.buildList(3);
     const state = StateFactory.build({
       larLayer: LARLayerFactory.build({
-        filters: [...counties, ...lenders, ...metros],
+        filters: FiltersFactory.build({ county, lender, metro }),
       }),
     });
 
     const result = mapStateToProps(state);
     expect(result.counties).toHaveLength(2);
-    expect(result.counties.map(c => c.entityType)).toEqual(["county", "county"]);
   });
 
   it("creates a search fn by active state", () => {

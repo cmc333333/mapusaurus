@@ -1,16 +1,12 @@
 import axios from "axios";
 
-import { FilterEntity } from "../store/LARLayer";
+import { FilterValue } from "../store/LARLayer";
 
-function convert({ geoid, geo_type, name }): FilterEntity {
-  return new FilterEntity({
-    name,
-    entityType: geo_type === 2 ? "county" : "metro",
-    id: geoid,
-  });
+function convert({ geoid, geo_type, name }): FilterValue {
+  return new FilterValue({ name, id: geoid });
 }
 
-export async function fetchGeos(ids: string[]): Promise<FilterEntity[]> {
+export async function fetchGeos(ids: string[]): Promise<FilterValue[]> {
   if (ids.length) {
     const response = await axios.get(
       "/api/geo/",
@@ -24,7 +20,7 @@ export async function fetchGeos(ids: string[]): Promise<FilterEntity[]> {
 export async function searchMetros(
   text: string,
   year: number,
-): Promise<FilterEntity[]> {
+): Promise<FilterValue[]> {
   const response = await axios.get(
     "/shapes/search/metro/",
     { params: { year, q: text } },

@@ -2,10 +2,9 @@ import { Set } from "immutable";
 import * as qs from "qs";
 
 import {
-  CountyFactory,
+  FiltersFactory,
+  LARFilterFactory,
   LARLayerFactory,
-  LenderFactory,
-  MetroFactory,
   StateFactory,
   ViewportFactory,
 } from "../../testUtils/Factory";
@@ -14,7 +13,14 @@ import serialize, { setupSerialization } from "../serialize";
 describe("serialize()", () => {
   it("serializes the viewport, ignoring other args", () => {
     const result = serialize(StateFactory.build({
-      larLayer: LARLayerFactory.build({ filters: [], year: 2002 }),
+      larLayer: LARLayerFactory.build({
+        filters: FiltersFactory.build({
+          county: [],
+          lender: [],
+          metro: [],
+        }),
+        year: 2002,
+      }),
       viewport: ViewportFactory.build({
         latitude: 44,
         longitude: 55.55,
@@ -33,14 +39,18 @@ describe("serialize()", () => {
   it("serializes lar config", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
-        filters: [
-          CountyFactory.build({ id: "aaa" }),
-          CountyFactory.build({ id: "bbb" }),
-          CountyFactory.build({ id: "ccc" }),
-          LenderFactory.build({ id: "12" }),
-          LenderFactory.build({ id: "34" }),
-          MetroFactory.build({ id: "Z" }),
-        ],
+        filters: FiltersFactory.build({
+          county: [
+            LARFilterFactory.build({ id: "aaa" }),
+            LARFilterFactory.build({ id: "bbb" }),
+            LARFilterFactory.build({ id: "ccc" }),
+          ],
+          lender: [
+            LARFilterFactory.build({ id: "12" }),
+            LARFilterFactory.build({ id: "34" }),
+          ],
+          metro: [LARFilterFactory.build({ id: "Z" })],
+        }),
         year: 2004,
       }),
     }));

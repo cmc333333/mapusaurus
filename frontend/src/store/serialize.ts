@@ -7,9 +7,9 @@ import State from "./State";
  */
 export default function serialize(state: State): string {
   const { filters, year } = state.larLayer;
-  const counties = filters.filter(f => f.entityType === "county").map(f => f.id);
-  const lenders = filters.filter(f => f.entityType === "lender").map(f => f.id);
-  const metros = filters.filter(f => f.entityType === "metro").map(f => f.id);
+  const counties = filters.county.map(f => f.id);
+  const lenders = filters.lender.map(f => f.id);
+  const metros = filters.metro.map(f => f.id);
   return qs.stringify(
     {
       ...state.viewport,

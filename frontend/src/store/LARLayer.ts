@@ -13,21 +13,15 @@ export interface LARPoint {
   longitude: number;
 }
 
-export type EntityType = "county" | "lender" | "metro";
-export class FilterEntity {
-  public entityType: EntityType;
+export class FilterValue {
   public id: string;
   public name?: string;
 
-  constructor(initParams: Partial<FilterEntity>) {
+  constructor(initParams: Partial<FilterValue>) {
     Object.assign(this, initParams);
   }
 
-  public sameAs(other: FilterEntity): boolean {
-    return this.id === other.id && this.entityType === other.entityType;
-  }
-
-  public compareNameWith(other: FilterEntity): number {
+  public compareNameWith(other: FilterValue): number {
     return (this.name || "").localeCompare(other.name || "");
   }
 }
@@ -38,12 +32,18 @@ export interface USState {
   name: string;
 }
 
+interface LARFilters {
+  county: FilterValue[];
+  lender: FilterValue[];
+  metro: FilterValue[];
+}
+
 export default interface LARLayer {
   available: {
     states: USState[];
     years: number[];
   };
-  filters: FilterEntity[];
+  filters: LARFilters;
   lar: LARPoint[];
   stateFips: string;
   year: number;
@@ -51,7 +51,11 @@ export default interface LARLayer {
 
 export const SAFE_INIT: LARLayer = {
   available: { states: [], years: [] },
-  filters: [],
+  filters: {
+    county: [],
+    lender: [],
+    metro: [],
+  },
   lar: [],
   stateFips: "",
   year: NaN,
@@ -65,52 +69,68 @@ export const setYear = actionCreator<number>("SET_YEAR");
 const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
 export function orderedUnion(
-  oldEntries: FilterEntity[],
-  toAdd: FilterEntity[],
-): FilterEntity[] {
+  oldEntries: FilterValue[],
+  toAdd: FilterValue[],
+): FilterValue[] {
   const removed = oldEntries.filter(
-    existing => !toAdd.some(added => added.sameAs(existing)),
+    existing => !toAdd.some(added => added.id === existing.id),
   );
   // Ensure order is preserved
   return [...removed, ...toAdd].sort((l, r) => l.compareNameWith(r));
 }
 
-function filtersToLar(entities: FilterEntity[]) {
-  return fetchLar(
-    entities.filter(e => e.entityType === "county").map(e => e.id),
-    entities.filter(e => e.entityType === "lender").map(e => e.id),
-    entities.filter(e => e.entityType === "metro").map(e => e.id),
+function filtersToLar(
+  filters: LARFilters,
+  filterName: keyof LARFilters,
+  replacement: FilterValue[],
+) {
+  const asIds: any = {};
+  Object.keys(filters).forEach(
+    key => asIds[key] = filters[key].map(f => f.id),
   );
+  asIds[filterName] = replacement.map(f => f.id);
+  return fetchLar(asIds);
 }
 
-export const addFilters = asyncActionCreator<FilterEntity[], LARPoint[]>(
-  "ADD_FILTERS",
-  (entities: FilterEntity[], dispatch, getState: () => any) => {
-    const updated = orderedUnion(getState().larLayer.filters, entities);
-    return filtersToLar(updated);
-  },
-);
-export const removeFilter = asyncActionCreator<FilterEntity, LARPoint[]>(
-  "REMOVE_FITLER",
-  (entity: FilterEntity, dispatch, getState: () => any) => {
-    const removed = getState().larLayer.filters.filter(e => !e.sameAs(entity));
-    return filtersToLar(removed);
-  },
-);
+export const addFilters =
+  asyncActionCreator<[keyof LARFilters, FilterValue[]], LARPoint[]>(
+    "ADD_FILTERS",
+    ([filterName, values], dispatch, getState: () => any) => filtersToLar(
+      getState().larLayer.filters,
+      filterName,
+      orderedUnion(getState().larLayer.filters[filterName], values),
+    ),
+  );
+export const removeFilter =
+  asyncActionCreator<[keyof LARFilters, string], LARPoint[]>(
+    "REMOVE_FITLER",
+    ([filterName, filterId], dispatch, getState: () => any) => filtersToLar(
+      getState().larLayer.filters,
+      filterName,
+      getState().larLayer.filters[filterName].filter(f => f.id !== filterId),
+    ),
+  );
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(
     addFilters.async.started,
-    (original: LARLayer, toAdd: FilterEntity[]) => ({
+    (original: LARLayer, [filterName, values]) => ({
       ...original,
-      filters: orderedUnion(original.filters, toAdd),
+      filters: {
+        ...original.filters,
+        [filterName]: orderedUnion(original.filters[filterName], values),
+      },
       lar: [],
     }),
   ).case(
     removeFilter.async.started,
-    (original: LARLayer, toRemove: FilterEntity) => ({
+    (original: LARLayer, [filterName, filterId]) => ({
       ...original,
-      filters: original.filters.filter(e => !e.sameAs(toRemove)),
+      filters: {
+        ...original.filters,
+        [filterName]: original.filters[filterName]
+          .filter(e => e.id !== filterId),
+      },
       lar: [],
     }),
   ).cases(
@@ -128,7 +148,11 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
       return {
         ...original,
         year,
-        filters: [],
+        filters: {
+          county: [],
+          lender: [],
+          metro: [],
+        },
         lar: [],
       };
     },

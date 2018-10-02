@@ -27,19 +27,15 @@ export const initCalls = asyncActionCreator<State, void>(
    * Kickoff fetch/load of data from the API.
    */
   async (state: State, dispatch: any) => {
-    const countyIds = state.larLayer.filters
-      .filter(e => e.entityType === "county").map(e => e.id);
-    const lenderIds = state.larLayer.filters
-      .filter(e => e.entityType === "lender").map(e => e.id);
-    const metroIds = state.larLayer.filters
-      .filter(e => e.entityType === "metro").map(e => e.id);
     const { token } = state.mapbox;
 
     await Promise.all([
-      fetchGeos(countyIds.concat(metroIds))
-        .then(geos => dispatch(addFilters.action(geos))),
-      fetchLenders(lenderIds)
-        .then(lenders => dispatch(addFilters.action(lenders))),
+      fetchGeos(state.larLayer.filters.county.map(c => c.id))
+        .then(geos => dispatch(addFilters.action(["county", geos]))),
+      fetchLenders(state.larLayer.filters.lender.map(l => l.id))
+        .then(lenders => dispatch(addFilters.action(["lender", lenders]))),
+      fetchGeos(state.larLayer.filters.metro.map(m => m.id))
+        .then(geos => dispatch(addFilters.action(["metro", geos]))),
     ]);
   },
 );

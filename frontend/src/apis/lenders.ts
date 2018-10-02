@@ -1,16 +1,12 @@
 import axios from "axios";
 
-import { FilterEntity } from "../store/LARLayer";
+import { FilterValue } from "../store/LARLayer";
 
-function convert({ institution_id, name }): FilterEntity {
-  return new FilterEntity({
-    name,
-    entityType: "lender",
-    id: institution_id,
-  });
+function convert({ institution_id, name }): FilterValue {
+  return new FilterValue({ name, id: institution_id });
 }
 
-export async function fetchLenders(ids: string[]): Promise<FilterEntity[]> {
+export async function fetchLenders(ids: string[]): Promise<FilterValue[]> {
   if (ids.length) {
     const response = await axios.get(
       "/api/respondents/",
@@ -24,7 +20,7 @@ export async function fetchLenders(ids: string[]): Promise<FilterEntity[]> {
 export async function searchLenders(
   text: string,
   year: number,
-): Promise<FilterEntity[]> {
+): Promise<FilterValue[]> {
   const response = await axios.get(
     "/institutions/search/",
     { params: { year, auto: 1, q: text } },
