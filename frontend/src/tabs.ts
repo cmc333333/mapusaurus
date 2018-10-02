@@ -2,14 +2,16 @@ import {
   faGlobe,
   faHome,
   faLayerGroup,
+  faSlidersH,
 } from "@fortawesome/free-solid-svg-icons";
 import * as React from "react";
 
 import ChoroplethSelection from "./components/sidebar/ChoroplethSelection";
 import FeatureSelection from "./components/sidebar/FeatureSelection";
+import Filters from "./components/sidebar/Filters";
 import HMDAFilters from "./components/sidebar/HMDAFilters";
 
-export type TabId = "layers" | "features" | "lar";
+export type TabId = "layers" | "features" | "lar" | "filters";
 
 export class Tab {
   public Component: React.ReactNode;
@@ -44,5 +46,11 @@ export default [
     icon: faHome,
     id: "lar",
     title: "HMDA Selection",
+  }),
+  new Tab({
+    Component: Filters,
+    icon: faSlidersH,
+    id: "filters",
+    title: "Filters",
   }),
 ];

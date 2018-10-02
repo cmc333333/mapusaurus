@@ -21,17 +21,18 @@ export const inputStyle = css({
   paddingTop: smallSpace,
 });
 
-export default function FormInput({ children, name }) {
+export default function FormInput({ children, fullWidth = false, name }) {
   return (
     <glamorous.Label
       display="block"
-      height={xLargeSpace}
+      height={fullWidth ? "inherit" : xLargeSpace}
       marginBottom={mediumSpace}
-      textAlign="right"
+      textAlign={fullWidth ? "left" : "right"}
     >
       <glamorous.Span
         {...xSmallHeading}
-        float="left"
+        display={fullWidth ? "block" : "inline"}
+        float={fullWidth ? "none" : "left"}
         lineHeight={xLargeSpace}
       >
         {name}

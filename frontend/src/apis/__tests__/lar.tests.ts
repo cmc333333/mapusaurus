@@ -11,7 +11,7 @@ afterEach(getMock.mockReset);
 describe("fetchLar()", () => {
   it("hits the right endpoint", async () => {
     getMock.mockImplementationOnce(() => ({ data: [] }));
-    await fetchLar([], ["2012abcd123"], ["333"]);
+    await fetchLar({ lender: ["2012abcd123"], metro: ["333"] });
     expect(getMock).toHaveBeenCalled();
     const options = getMock.mock.calls[0][1];
     expect(options.params).toEqual({
@@ -22,13 +22,13 @@ describe("fetchLar()", () => {
   });
 
   it("handles non-hmda displays", async () => {
-    const result = await fetchLar([], [], []);
+    const result = await fetchLar({});
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 
   it("requires a geo", async () => {
-    const result = await fetchLar([], ["1"], []);
+    const result = await fetchLar({ lender: ["1"] });
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
@@ -57,7 +57,7 @@ describe("fetchLar()", () => {
         },
       ],
     }));
-    const lar = await fetchLar(["1"], ["2"], ["3"]);
+    const lar = await fetchLar({ county: ["1"], lender: ["2"], metro: ["3"] });
 
     // Ensure a consistent order
     lar.sort((l, r) => l.loanCount - r.loanCount);

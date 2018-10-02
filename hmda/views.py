@@ -9,7 +9,10 @@ from webargs.djangoparser import parser as webargs_parser
 
 from geo.models import Geo
 from geo.views import TractFilters
-from hmda.models import ACTION_TAKEN_CHOICES, HMDARecord
+from hmda.models import (
+    ACTION_TAKEN_CHOICES, HMDARecord, LIEN_STATUS_CHOICES,
+    LOAN_PURPOSE_CHOICES, OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
+)
 from respondents.models import Institution
 
 
@@ -25,6 +28,14 @@ class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
 
 class LARFilters(django_filters.FilterSet):
     action_taken = ChoiceInFilter(choices=ACTION_TAKEN_CHOICES,
+                                  lookup_expr='in')
+    lien_status = ChoiceInFilter(choices=LIEN_STATUS_CHOICES,
+                                 lookup_expr='in')
+    loan_purpose = ChoiceInFilter(choices=LOAN_PURPOSE_CHOICES,
+                                  lookup_expr='in')
+    owner_occupancy = ChoiceInFilter(choices=OWNER_OCCUPANCY_CHOICES,
+                                  lookup_expr='in')
+    property_type = ChoiceInFilter(choices=PROPERTY_TYPE_CHOICES,
                                   lookup_expr='in')
 
     class Meta:

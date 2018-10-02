@@ -32,7 +32,7 @@ const headingStyle = css({
 });
 
 export function Sidebar({ activeTab, expanded }) {
-  const tabSize = Math.floor(sidebarWidth / 3);
+  const tabSize = Math.floor(sidebarWidth / 4);
   const contentHeight = expanded
     ? `calc(100% - ${tabHeight + 2 * headingHeight + 2 * borderWidth}px)`
     : "0";

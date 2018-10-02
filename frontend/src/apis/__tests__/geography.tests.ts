@@ -25,17 +25,4 @@ describe("fetchGeos()", () => {
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
-
-  it("creates an action in the right format", async () => {
-    getMock.mockImplementationOnce(() => ({ data: { results: [
-      { geo_type: 4, geoid: "abc", name: "AAA" },
-      { geo_type: 2, geoid: "def", name: "BBB" },
-    ]}}));
-    const result = await fetchGeos(["2012abcd123"]);
-
-    expect(result).toEqual([
-      { entityType: "metro", id: "abc", name: "AAA" },
-      { entityType: "county", id: "def", name: "BBB" },
-    ]);
-  });
 });

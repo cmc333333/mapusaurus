@@ -4,7 +4,7 @@ import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { addFilters, FilterEntity, removeFilter } from "../../store/LARLayer";
+import { addFilters, FilterValue, removeFilter } from "../../store/LARLayer";
 import {
   inverted,
   largeSpace,
@@ -74,8 +74,10 @@ export function HMDAFilter({
 
 export default connect(
   ({ larLayer: { year } }) => ({ year }),
-  dispatch => ({
-    addFn: (filter: FilterEntity) => dispatch(addFilters.action([filter])),
-    removeFn: (filter: FilterEntity) => dispatch(removeFilter.action(filter)),
+  (dispatch, { filterName }) => ({
+    addFn: (filter: FilterValue) =>
+      dispatch(addFilters.action([filterName, [filter]])),
+    removeFn: (filter: FilterValue) =>
+      dispatch(removeFilter.action([filterName, filter.id])),
   }),
 )(HMDAFilter);

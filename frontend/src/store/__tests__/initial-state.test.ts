@@ -1,3 +1,4 @@
+import { filterChoices } from "../../store/LARLayer";
 import { USStateFactory } from "../../testUtils/Factory";
 import { deriveLARLayer, deriveViewport } from "../initial-state";
 
@@ -8,15 +9,21 @@ describe("deriveLARLayer()", () => {
       [],
       [2009],
     );
-    expect(result.filters).toEqual([
-      { entityType: "county", id: "123" },
-      { entityType: "lender", id: "456" },
-      { entityType: "metro", id: "789" },
-    ]);
+    expect(result.filters.county).toEqual([{ id: "123" }]);
+    expect(result.filters.lender).toEqual([{ id: "456" }]);
+    expect(result.filters.metro).toEqual([{ id: "789" }]);
   });
   it("defaults to empty values", () => {
     const result = deriveLARLayer("", [], [2009, 2008]);
-    expect(result.filters).toEqual([]);
+    expect(result.filters).toEqual({
+      county: [],
+      lender: [],
+      lienStatus: filterChoices.get("lienStatus").choices,
+      loanPurpose: filterChoices.get("loanPurpose").choices,
+      metro: [],
+      ownerOccupancy: filterChoices.get("ownerOccupancy").choices,
+      propertyType: filterChoices.get("propertyType").choices,
+    });
     expect(result.year).toBe(2009);
   });
   it("loads multiple", () => {
@@ -25,10 +32,10 @@ describe("deriveLARLayer()", () => {
       [],
       [2009],
     );
-    expect(result.filters).toEqual([
-      { entityType: "metro", id: "123" },
-      { entityType: "metro", id: "456" },
-      { entityType: "metro", id: "789" },
+    expect(result.filters.metro).toEqual([
+      { id: "123" },
+      { id: "456" },
+      { id: "789" },
     ]);
   });
   it("loads year", () => {

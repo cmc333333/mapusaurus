@@ -34,8 +34,8 @@ describe("fetchLenders()", () => {
     const result = await fetchLenders(["2012abcd123"]);
 
     expect(result).toEqual([
-      { entityType: "lender", id: "abc", name: "AAA" },
-      { entityType: "lender", id: "def", name: "BBB" },
+      { id: "abc", name: "AAA" },
+      { id: "def", name: "BBB" },
     ]);
   });
 });
@@ -62,8 +62,8 @@ describe("searchLenders()", () => {
     const result = await searchLenders("1234", 2000);
 
     expect(result).toEqual([
-      { entityType: "lender", id: "abc", name: "AAA" },
-      { entityType: "lender", id: "def", name: "BBB" },
+      { id: "abc", name: "AAA" },
+      { id: "def", name: "BBB" },
     ]);
   });
 });

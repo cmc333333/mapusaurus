@@ -5,25 +5,14 @@ import { LARPoint } from "../store/LARLayer";
 /*
  * Fetch loan data from the API and convert to LARPoint objects.
  */
-export async function fetchLar(
-  countyIds: string[],
-  lenderIds: string[],
-  metroIds: string[],
-): Promise<LARPoint[]> {
+export async function fetchLar(arrayParams): Promise<LARPoint[]> {
   const params: any = {
     action_taken: "1,2,3,4,5",
   };
-  if (countyIds.length) {
-    params.county = countyIds.join(",");
-  }
-  if (lenderIds.length) {
-    params.lender = lenderIds.join(",");
-  }
-  if (metroIds.length) {
-    params.metro = metroIds.join(",");
-  }
+  Object.keys(arrayParams)
+    .forEach(key => params[key] = arrayParams[key].join(","));
 
-  if (lenderIds.length && (countyIds.length || metroIds.length)) {
+  if (params.lender && (params.county || params.metro)) {
     const response = await axios.get("/api/lar/", { params });
     // Convert between API format and ours
     return response.data.map(obj => ({

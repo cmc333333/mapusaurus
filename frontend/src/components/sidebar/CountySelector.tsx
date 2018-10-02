@@ -37,7 +37,7 @@ export function mapStateToProps({ larLayer }: State) {
   return {
     stateFips,
     states,
-    counties: filters.filter(e => e.name && e.entityType === "county"),
+    counties: filters.county.filter(e => e.name),
     searchCounties: makeCountySearch(stateFips),
   };
 }

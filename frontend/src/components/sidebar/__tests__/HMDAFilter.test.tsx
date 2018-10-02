@@ -2,12 +2,12 @@ import { shallow } from "enzyme";
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { LenderFactory } from "../../../testUtils/Factory";
+import { FilterValueFactory } from "../../../testUtils/Factory";
 import { ExistingFilter, HMDAFilter } from "../HMDAFilter";
 
 describe("<ExistingFilter />", () => {
   it("renders the correct name", () => {
-    const filter = LenderFactory.build({ name: "NameName" });
+    const filter = FilterValueFactory.build({ name: "NameName" });
     const rendered = shallow(
       <ExistingFilter filter={filter} removeFn={jest.fn()} />,
     );
@@ -16,7 +16,7 @@ describe("<ExistingFilter />", () => {
 
   it("calls the remove fn when clicked", () => {
     const removeFn = jest.fn();
-    const filter = LenderFactory.build();
+    const filter = FilterValueFactory.build();
     const rendered = shallow(
       <ExistingFilter filter={filter} removeFn={removeFn} />,
     ).find(glamorous.A);
@@ -62,9 +62,9 @@ describe("<HMDAFilter />", () => {
 
   it("includes an ExistingFilter per item", () => {
     const items = [
-      LenderFactory.build(),
-      LenderFactory.build(),
-      LenderFactory.build({ name: "zZz" }),
+      FilterValueFactory.build(),
+      FilterValueFactory.build(),
+      FilterValueFactory.build({ name: "zZz" }),
     ];
     const removeFn = jest.fn();
     const lis = shallow(
