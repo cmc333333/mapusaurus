@@ -1,3 +1,4 @@
+import { filterChoices } from "../../store/LARLayer";
 import { USStateFactory } from "../../testUtils/Factory";
 import { deriveLARLayer, deriveViewport } from "../initial-state";
 
@@ -17,7 +18,11 @@ describe("deriveLARLayer()", () => {
     expect(result.filters).toEqual({
       county: [],
       lender: [],
+      lienStatus: filterChoices.get("lienStatus").choices,
+      loanPurpose: filterChoices.get("loanPurpose").choices,
       metro: [],
+      ownerOccupancy: filterChoices.get("ownerOccupancy").choices,
+      propertyType: filterChoices.get("propertyType").choices,
     });
     expect(result.year).toBe(2009);
   });

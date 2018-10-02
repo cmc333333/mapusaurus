@@ -3,7 +3,7 @@ import glamorous from "glamorous";
 import { OrderedMap, Set } from "immutable";
 import * as React from "react";
 
-import { FilterValue, setFilters } from "../../../store/LARFilters";
+import { filterChoices, FilterValue, setFilters } from "../../../store/LARLayer";
 import { StateFactory } from "../../../testUtils/Factory";
 import {
   FilterSelector,
@@ -13,11 +13,11 @@ import {
 
 describe("<FilterSelector />", () => {
   const filterConfig = {
-    choices: OrderedMap([
-      ["1", "Stuff"],
-      ["2", "Other"],
-      ["3", "Things"],
-    ]),
+    choices: [
+      new FilterValue({ id: "1", name: "Stuff" }),
+      new FilterValue({ id: "2", name: "Other" }),
+      new FilterValue({ id: "3", name: "Things" }),
+    ],
     fieldName: "some_stuff",
     name: "Some Stuff",
   };
@@ -26,7 +26,7 @@ describe("<FilterSelector />", () => {
     <FilterSelector
       filterConfig={filterConfig}
       onChange={onChange}
-      value={Set(["1", "3"])}
+      value={["1", "3"]}
     />,
   );
 
@@ -54,32 +54,14 @@ describe("<FilterSelector />", () => {
 
 test("mapStateToProps() pulls the associated filter configs", () => {
   const state = StateFactory.build();
-  state.larFilters.ownerOccupancy = Set(["2", "3"]);
+  state.larLayer.filters.ownerOccupancy = [
+    filterChoices.get("ownerOccupancy").choices[1],
+    filterChoices.get("ownerOccupancy").choices[2],
+  ];
 
   const result = mapStateToProps(state, { filterId: "ownerOccupancy" });
-  expect(result.filterConfig.choices.toArray()).toEqual([
-    "Owner-occupied",
-    "Not Owner-occupied",
-    "N/A",
-  ]);
+  expect(result.filterConfig.choices)
+    .toEqual(filterChoices.get("ownerOccupancy").choices);
   expect(result.filterConfig.fieldName).toBe("owner_occupancy");
-  expect(Set(result.value)).toEqual(Set(["2", "3"]));
-});
-
-test("mapDispatchToProps() generates an onChange that sets filters", () => {
-  const dispatch = jest.fn();
-  const result = mapDispatchToProps(dispatch, { filterId: "loanPurpose" });
-  const ev = {
-    target: {
-      options: [
-        { selected: true, value: "1" },
-        { selected: false, value: "2" },
-        { selected: false, value: "3" },
-      ],
-    },
-  };
-  result.onChange(ev);
-  expect(dispatch).toHaveBeenCalledWith(
-    setFilters(["loanPurpose", Set<FilterValue>(["1"])]),
-  );
+  expect(result.value).toEqual(["2", "3"]);
 });

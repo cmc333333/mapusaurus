@@ -1,7 +1,7 @@
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { filterChoices } from "../../store/LARFilters";
+import { filterChoices } from "../../store/LARLayer";
 import { largeSpace } from "../../theme";
 import FilterSelector from "./FilterSelector";
 

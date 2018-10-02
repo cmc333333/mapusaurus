@@ -1,7 +1,6 @@
 import { Set } from "immutable";
 import * as qs from "qs";
 
-import LARFilters, { SAFE_INIT as larFiltersInit } from "./LARFilters";
 import LARLayer, {
   FilterValue,
   SAFE_INIT as larInit,
@@ -65,7 +64,6 @@ export default function initialState(window): State {
   );
   return {
     larLayer,
-    larFilters: larFiltersInit,
     mapbox: deriveMapbox(window[configField]),
     sidebar: sidebarInit,
     viewport: deriveViewport(hash),

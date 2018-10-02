@@ -1,3 +1,4 @@
+import { OrderedMap } from "immutable";
 import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
@@ -26,6 +27,12 @@ export class FilterValue {
   }
 }
 
+export interface LARFilterConfig {
+  choices: FilterValue[];
+  fieldName: string;
+  name: string;
+}
+
 export interface USState {
   abbr: string;
   fips: string;
@@ -35,8 +42,52 @@ export interface USState {
 interface LARFilters {
   county: FilterValue[];
   lender: FilterValue[];
+  lienStatus: FilterValue[];
+  loanPurpose: FilterValue[];
   metro: FilterValue[];
+  ownerOccupancy: FilterValue[];
+  propertyType: FilterValue[];
 }
+
+export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
+  ["lienStatus", {
+    choices: [
+      new FilterValue({ id: "1", name: "First" }),
+      new FilterValue({ id: "2", name: "Subordinate" }),
+      new FilterValue({ id: "3", name: "No Lien" }),
+      new FilterValue({ id: "4", name: "N/A" }),
+    ],
+    fieldName: "lien_status",
+    name: "Lien Status",
+  }],
+  ["loanPurpose", {
+    choices: [
+      new FilterValue({ id: "1", name: "Home Purchase" }),
+      new FilterValue({ id: "2", name: "Home Improvement" }),
+      new FilterValue({ id: "3", name: "Refinance" }),
+    ],
+    fieldName: "loan_purpose",
+    name: "Loan Purpose",
+  }],
+  ["ownerOccupancy", {
+    choices: [
+      new FilterValue({ id: "1", name: "Owner-occupied" }),
+      new FilterValue({ id: "2", name: "Not Owner-occupied" }),
+      new FilterValue({ id: "3", name: "N/A" }),
+    ],
+    fieldName: "owner_occupancy",
+    name: "Ownership",
+  }],
+  ["propertyType", {
+    choices: [
+      new FilterValue({ id: "1", name: "One to Four-family" }),
+      new FilterValue({ id: "2", name: "Manufactured" }),
+      new FilterValue({ id: "3", name: "Multi-family" }),
+    ],
+    fieldName: "property_type",
+    name: "Property Type",
+  }],
+]);
 
 export default interface LARLayer {
   available: {
@@ -54,7 +105,11 @@ export const SAFE_INIT: LARLayer = {
   filters: {
     county: [],
     lender: [],
+    lienStatus: filterChoices.get("lienStatus").choices,
+    loanPurpose: filterChoices.get("loanPurpose").choices,
     metro: [],
+    ownerOccupancy: filterChoices.get("ownerOccupancy").choices,
+    propertyType: filterChoices.get("propertyType").choices,
   },
   lar: [],
   stateFips: "",
@@ -89,6 +144,12 @@ function filtersToLar(
     key => asIds[key] = filters[key].map(f => f.id),
   );
   asIds[filterName] = replacement.map(f => f.id);
+  filterChoices.forEach((config, filterName) => {
+    if (config && filterName) {
+      asIds[config.fieldName] = asIds[filterName];
+      delete asIds[filterName];
+    }
+  });
   return fetchLar(asIds);
 }
 
@@ -108,6 +169,15 @@ export const removeFilter =
       getState().larLayer.filters,
       filterName,
       getState().larLayer.filters[filterName].filter(f => f.id !== filterId),
+    ),
+  );
+export const setFilters =
+  asyncActionCreator<[keyof LARFilters, FilterValue[]], LARPoint[]>(
+    "SET_FILTERS",
+    ([filterName, values], dispatch, getState: () => any) => filtersToLar(
+      getState().larLayer.filters,
+      filterName,
+      values,
     ),
   );
 
@@ -133,8 +203,18 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
       },
       lar: [],
     }),
+  ).case(
+    setFilters.async.started,
+    (original: LARLayer, [filterName, values]) => ({
+      ...original,
+      filters: {
+        ...original.filters,
+        [filterName]: values,
+      },
+      lar: [],
+    }),
   ).cases(
-    [addFilters.async.done, removeFilter.async.done],
+    [addFilters.async.done, removeFilter.async.done, setFilters.async.done],
     (original: LARLayer, { result }) => ({
       ...original,
       lar: result,
@@ -149,6 +229,7 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
         ...original,
         year,
         filters: {
+          ...original.filters,
           county: [],
           lender: [],
           metro: [],

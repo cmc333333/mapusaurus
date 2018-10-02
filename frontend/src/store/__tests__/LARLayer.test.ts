@@ -13,6 +13,7 @@ import LARLayer, {
   reducer,
   removeFilter,
   scatterPlotSelector,
+  setFilters,
   setStateFips,
   setYear,
 } from "../LARLayer";
@@ -128,6 +129,40 @@ describe("reducer()", () => {
     const larLayer = LARLayerFactory.build({ stateFips: "22" });
     const result = reducer(larLayer, setStateFips("31"));
     expect(result.stateFips).toEqual("31");
+  });
+
+  describe("setting filters", () => {
+    it("clears lar", () => {
+      const layer = LARLayerFactory.build({
+        lar: LARPointFactory.buildList(2),
+      });
+      const result = reducer(layer, (setFilters.async.started as any)([
+        "lender",
+        FilterValueFactory.buildList(3),
+      ]));
+      expect(result.lar).toEqual([]);
+    });
+
+    it("sets the filters", () => {
+      const layer = LARLayerFactory.build({
+        filters: FiltersFactory.build({
+          lender: [
+            FilterValueFactory.build({ id: "aaa", name: "AAA" }),
+            FilterValueFactory.build({ id: "ccc", name: "CCC" }),
+          ],
+        }),
+      });
+      const result = reducer(layer, (setFilters.async.started as any)([
+        "lender",
+        [
+          FilterValueFactory.build({ id: "bbb", name: "BBB" }),
+          FilterValueFactory.build({ id: "ccc", name: "CCC Prime" }),
+          FilterValueFactory.build({ id: "ddd", name: "DDD" }),
+        ],
+      ]));
+      expect(result.filters.lender.map(f => f.name))
+        .toEqual(["BBB", "CCC Prime", "DDD"]);
+    });
   });
 });
 

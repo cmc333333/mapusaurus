@@ -3,7 +3,6 @@ import { asyncFactory } from "typescript-fsa-redux-thunk";
 
 import { fetchGeos } from "../apis/geography";
 import { fetchLenders } from "../apis/lenders";
-import LARFilters from "./LARFilters";
 import LARLayer, { addFilters } from "./LARLayer";
 import Mapbox from "./Mapbox";
 import Sidebar from "./Sidebar";
@@ -11,7 +10,6 @@ import Viewport from "./Viewport";
 import Window from "./Window";
 
 export default interface State {
-  larFilters: LARFilters;
   larLayer: LARLayer;
   mapbox: Mapbox;
   sidebar: Sidebar;
