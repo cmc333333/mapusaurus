@@ -54,7 +54,7 @@ export const mapDispatchToProps = (dispatch, { filterId }) => ({
       .map(
         o => filterChoices.get(filterId).choices.find(f => f.id === o.value),
       );
-    return dispatch(setFilters.action([filterId, values]));
+    return dispatch(setFilters.action({ [filterId]: values }));
   },
 });
 

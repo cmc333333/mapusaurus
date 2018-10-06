@@ -13,16 +13,17 @@ describe("deriveLARLayer()", () => {
     expect(result.filters.lender).toEqual([{ id: "456" }]);
     expect(result.filters.metro).toEqual([{ id: "789" }]);
   });
-  it("defaults to empty values", () => {
+  it("defaults to reasonable, empty values", () => {
     const result = deriveLARLayer("", [], [2009, 2008]);
+    expect(result.filterGroup).toEqual("homePurchase");
     expect(result.filters).toEqual({
       county: [],
       lender: [],
-      lienStatus: filterChoices.get("lienStatus").choices,
-      loanPurpose: filterChoices.get("loanPurpose").choices,
+      lienStatus: [filterChoices.get("lienStatus").choices[0]],
+      loanPurpose: [filterChoices.get("loanPurpose").choices[0]],
       metro: [],
-      ownerOccupancy: filterChoices.get("ownerOccupancy").choices,
-      propertyType: filterChoices.get("propertyType").choices,
+      ownerOccupancy: [filterChoices.get("ownerOccupancy").choices[0]],
+      propertyType: [filterChoices.get("propertyType").choices[0]],
     });
     expect(result.year).toBe(2009);
   });

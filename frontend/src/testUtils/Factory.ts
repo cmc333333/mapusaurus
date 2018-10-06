@@ -45,6 +45,7 @@ export const LARLayerFactory = new Factory().attrs({
     states: () => USStateFactory.buildList(10),
     years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
   }),
+  filterGroup: () => random.pick(["homePurchase", "refinance", "custom"]),
   filters: () => FiltersFactory.build(),
   lar: () => [],
   stateFips: () => random.string(2, "0123456789"),
