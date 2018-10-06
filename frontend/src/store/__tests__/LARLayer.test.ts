@@ -10,9 +10,12 @@ import {
 } from "../../testUtils/Factory";
 import LARLayer, {
   addFilters,
+  homePurchase,
   reducer,
+  refinance,
   removeFilter,
   scatterPlotSelector,
+  setFilterGroup,
   setFilters,
   setStateFips,
   setYear,
@@ -160,6 +163,52 @@ describe("reducer()", () => {
       }));
       expect(result.filters.lender.map(f => f.name))
         .toEqual(["BBB", "CCC Prime", "DDD"]);
+    });
+  });
+
+  describe("setting filterGroup", () => {
+    it("immediately sets the filterGroup", () => {
+      const layer = LARLayerFactory.build({ filterGroup: "custom" });
+      const result = reducer(
+        layer,
+        (setFilterGroup.async.started as any)("refinance"),
+      );
+      expect(result.filterGroup).toBe("refinance");
+    });
+    it("also dispatches a call to setFilters for homePurchase", async () => {
+      const [outerDisp, innerDisp] = [jest.fn(), jest.fn()];
+      await setFilterGroup.action("homePurchase")(outerDisp, jest.fn(), {});
+      expect(outerDisp).toHaveBeenCalledTimes(3);
+
+      await outerDisp.mock.calls[1][0](
+        innerDisp,
+        () => StateFactory.build(),
+        {},
+      );
+      expect(innerDisp).toHaveBeenCalledTimes(2);
+      expect(innerDisp.mock.calls[0]).toEqual([
+        (setFilters.async.started as any)(homePurchase),
+      ]);
+    });
+    it("also dispatches a call to setFilters for refinance", async () => {
+      const [outerDisp, innerDisp] = [jest.fn(), jest.fn()];
+      await setFilterGroup.action("refinance")(outerDisp, jest.fn(), {});
+      expect(outerDisp).toHaveBeenCalledTimes(3);
+
+      await outerDisp.mock.calls[1][0](
+        innerDisp,
+        () => StateFactory.build(),
+        {},
+      );
+      expect(innerDisp).toHaveBeenCalledTimes(2);
+      expect(innerDisp.mock.calls[0]).toEqual([
+        (setFilters.async.started as any)(refinance),
+      ]);
+    });
+    it("also dispatches a call to setFilters for custom", async () => {
+      const dispatch = jest.fn();
+      await setFilterGroup.action("custom")(dispatch, jest.fn(), {});
+      expect(dispatch).toHaveBeenCalledTimes(2);
     });
   });
 });

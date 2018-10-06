@@ -50,16 +50,6 @@ interface LARFilters {
 }
 
 export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
-  ["lienStatus", {
-    choices: [
-      new FilterValue({ id: "1", name: "First" }),
-      new FilterValue({ id: "2", name: "Subordinate" }),
-      new FilterValue({ id: "3", name: "No Lien" }),
-      new FilterValue({ id: "4", name: "N/A" }),
-    ],
-    fieldName: "lien_status",
-    name: "Lien Status",
-  }],
   ["loanPurpose", {
     choices: [
       new FilterValue({ id: "1", name: "Home Purchase" }),
@@ -68,15 +58,6 @@ export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
     ],
     fieldName: "loan_purpose",
     name: "Loan Purpose",
-  }],
-  ["ownerOccupancy", {
-    choices: [
-      new FilterValue({ id: "1", name: "Owner-occupied" }),
-      new FilterValue({ id: "2", name: "Not Owner-occupied" }),
-      new FilterValue({ id: "3", name: "N/A" }),
-    ],
-    fieldName: "owner_occupancy",
-    name: "Ownership",
   }],
   ["propertyType", {
     choices: [
@@ -87,13 +68,45 @@ export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
     fieldName: "property_type",
     name: "Property Type",
   }],
+  ["ownerOccupancy", {
+    choices: [
+      new FilterValue({ id: "1", name: "Owner-occupied" }),
+      new FilterValue({ id: "2", name: "Not Owner-occupied" }),
+      new FilterValue({ id: "3", name: "N/A" }),
+    ],
+    fieldName: "owner_occupancy",
+    name: "Ownership",
+  }],
+  ["lienStatus", {
+    choices: [
+      new FilterValue({ id: "1", name: "First" }),
+      new FilterValue({ id: "2", name: "Subordinate" }),
+      new FilterValue({ id: "3", name: "No Lien" }),
+      new FilterValue({ id: "4", name: "N/A" }),
+    ],
+    fieldName: "lien_status",
+    name: "Lien Status",
+  }],
 ]);
+export const homePurchase = {
+  lienStatus: [filterChoices.get("lienStatus").choices[0]],
+  loanPurpose: [filterChoices.get("loanPurpose").choices[0]],
+  ownerOccupancy: [filterChoices.get("ownerOccupancy").choices[0]],
+  propertyType: [filterChoices.get("propertyType").choices[0]],
+};
+export const refinance = {
+  ...homePurchase,
+  loanPurpose: [filterChoices.get("loanPurpose").choices[2]],
+};
+
+type FilterGroup = "homePurchase" | "refinance" | "custom";
 
 export default interface LARLayer {
   available: {
     states: USState[];
     years: number[];
   };
+  filterGroup: FilterGroup;
   filters: LARFilters;
   lar: LARPoint[];
   stateFips: string;
@@ -102,14 +115,12 @@ export default interface LARLayer {
 
 export const SAFE_INIT: LARLayer = {
   available: { states: [], years: [] },
+  filterGroup: "homePurchase",
   filters: {
+    ...homePurchase,
     county: [],
     lender: [],
-    lienStatus: filterChoices.get("lienStatus").choices,
-    loanPurpose: filterChoices.get("loanPurpose").choices,
     metro: [],
-    ownerOccupancy: filterChoices.get("ownerOccupancy").choices,
-    propertyType: filterChoices.get("propertyType").choices,
   },
   lar: [],
   stateFips: "",
@@ -179,6 +190,17 @@ export const setFilters = asyncActionCreator<Partial<LARFilters>, LARPoint[]>(
     ),
   );
 
+export const setFilterGroup = asyncActionCreator<FilterGroup, void>(
+  "SET_FILTER_GROUP",
+  (filterGroup, dispatch) => {
+    if (filterGroup === "homePurchase") {
+      dispatch(setFilters.action(homePurchase));
+    } else if (filterGroup === "refinance") {
+      dispatch(setFilters.action(refinance));
+    }
+  },
+);
+
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(
     addFilters.async.started,
@@ -216,6 +238,12 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
     (original: LARLayer, { result }) => ({
       ...original,
       lar: result,
+    }),
+  ).case(
+    setFilterGroup.async.started,
+    (original: LARLayer, filterGroup: FilterGroup) => ({
+      ...original,
+      filterGroup,
     }),
   ).case(
     setYear,
