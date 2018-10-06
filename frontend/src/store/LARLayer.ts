@@ -134,16 +134,14 @@ export function orderedUnion(
   return [...removed, ...toAdd].sort((l, r) => l.compareNameWith(r));
 }
 
-function filtersToLar(
-  filters: LARFilters,
-  filterName: keyof LARFilters,
-  replacement: FilterValue[],
-) {
+function filtersToLar(original: LARFilters, overrides: Partial<LARFilters>) {
   const asIds: any = {};
-  Object.keys(filters).forEach(
-    key => asIds[key] = filters[key].map(f => f.id),
+  Object.keys(original).forEach(
+    key => asIds[key] = original[key].map(f => f.id),
   );
-  asIds[filterName] = replacement.map(f => f.id);
+  Object.keys(overrides).forEach(
+    key => asIds[key] = overrides[key].map(f => f.id),
+  );
   filterChoices.forEach((config, filterName) => {
     if (config && filterName) {
       asIds[config.fieldName] = asIds[filterName];
@@ -158,8 +156,9 @@ export const addFilters =
     "ADD_FILTERS",
     ([filterName, values], dispatch, getState: () => any) => filtersToLar(
       getState().larLayer.filters,
-      filterName,
-      orderedUnion(getState().larLayer.filters[filterName], values),
+      { [filterName]:
+          orderedUnion(getState().larLayer.filters[filterName], values),
+      },
     ),
   );
 export const removeFilter =
@@ -167,17 +166,16 @@ export const removeFilter =
     "REMOVE_FITLER",
     ([filterName, filterId], dispatch, getState: () => any) => filtersToLar(
       getState().larLayer.filters,
-      filterName,
-      getState().larLayer.filters[filterName].filter(f => f.id !== filterId),
+      { [filterName]:
+          getState().larLayer.filters[filterName].filter(f => f.id !== filterId),
+      },
     ),
   );
-export const setFilters =
-  asyncActionCreator<[keyof LARFilters, FilterValue[]], LARPoint[]>(
+export const setFilters = asyncActionCreator<Partial<LARFilters>, LARPoint[]>(
     "SET_FILTERS",
-    ([filterName, values], dispatch, getState: () => any) => filtersToLar(
+    (overrides, dispatch, getState: () => any) => filtersToLar(
       getState().larLayer.filters,
-      filterName,
-      values,
+      overrides,
     ),
   );
 
@@ -205,11 +203,11 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
     }),
   ).case(
     setFilters.async.started,
-    (original: LARLayer, [filterName, values]) => ({
+    (original: LARLayer, overrides) => ({
       ...original,
       filters: {
         ...original.filters,
-        [filterName]: values,
+        ...overrides,
       },
       lar: [],
     }),
