@@ -1,7 +1,7 @@
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { filterChoices } from "../../store/LARLayer";
+import { choiceLookup } from "../../store/LARLayer";
 import { largeSpace, xSmallHeading } from "../../theme";
 import FilterGroup from "./FilterGroup";
 import FilterSelector from "./FilterSelector";
@@ -9,7 +9,7 @@ import FilterSelector from "./FilterSelector";
 const H3 = glamorous.h3(xSmallHeading);
 
 export default function Filters() {
-  const selectors = filterChoices.keySeq()
+  const selectors = Object.keys(choiceLookup)
     .map(filterId => <FilterSelector key={filterId} filterId={filterId} />);
   return (
     <glamorous.Div margin={largeSpace}>

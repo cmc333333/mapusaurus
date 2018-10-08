@@ -39,7 +39,7 @@ export interface USState {
   name: string;
 }
 
-interface LARFilters {
+export interface LARFilters {
   county: FilterValue[];
   lender: FilterValue[];
   lienStatus: FilterValue[];
@@ -88,18 +88,41 @@ export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
     name: "Lien Status",
   }],
 ]);
+export const choiceLookup = {
+  lienStatus: {
+    1: filterChoices.get("lienStatus").choices[0],
+    2: filterChoices.get("lienStatus").choices[1],
+    3: filterChoices.get("lienStatus").choices[2],
+    4: filterChoices.get("lienStatus").choices[3],
+  },
+  loanPurpose: {
+    1: filterChoices.get("loanPurpose").choices[0],
+    2: filterChoices.get("loanPurpose").choices[1],
+    3: filterChoices.get("loanPurpose").choices[2],
+  },
+  ownerOccupancy: {
+    1: filterChoices.get("ownerOccupancy").choices[0],
+    2: filterChoices.get("ownerOccupancy").choices[1],
+    3: filterChoices.get("ownerOccupancy").choices[2],
+  },
+  propertyType: {
+    1: filterChoices.get("propertyType").choices[0],
+    2: filterChoices.get("propertyType").choices[1],
+    3: filterChoices.get("propertyType").choices[2],
+  },
+};
 export const homePurchase = {
-  lienStatus: [filterChoices.get("lienStatus").choices[0]],
-  loanPurpose: [filterChoices.get("loanPurpose").choices[0]],
-  ownerOccupancy: [filterChoices.get("ownerOccupancy").choices[0]],
-  propertyType: [filterChoices.get("propertyType").choices[0]],
+  lienStatus: [choiceLookup.lienStatus["1"]],
+  loanPurpose: [choiceLookup.loanPurpose["1"]],
+  ownerOccupancy: [choiceLookup.ownerOccupancy["1"]],
+  propertyType: [choiceLookup.propertyType["1"]],
 };
 export const refinance = {
   ...homePurchase,
-  loanPurpose: [filterChoices.get("loanPurpose").choices[2]],
+  loanPurpose: [choiceLookup.loanPurpose["3"]],
 };
 
-type FilterGroup = "homePurchase" | "refinance" | "custom";
+export type FilterGroup = "homePurchase" | "refinance" | "custom";
 
 export default interface LARLayer {
   available: {

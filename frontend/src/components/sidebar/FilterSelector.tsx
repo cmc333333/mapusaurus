@@ -4,7 +4,12 @@ import { Set } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { filterChoices, FilterValue, setFilters } from "../../store/LARLayer";
+import {
+  choiceLookup,
+  filterChoices,
+  FilterValue,
+  setFilters,
+} from "../../store/LARLayer";
 import State from "../../store/State";
 import { border, smallSpace, xLargeSpace } from "../../theme";
 import FormInput, { inputStyle } from "../FormInput";
@@ -51,9 +56,7 @@ export const mapDispatchToProps = (dispatch, { filterId }) => ({
   onChange: ev => {
     const values: FilterValue[] = Array.apply(null, ev.target.options)
       .filter(o => o.selected)
-      .map(
-        o => filterChoices.get(filterId).choices.find(f => f.id === o.value),
-      );
+      .map(o => filterChoices[filterId][o.value]);
     return dispatch(setFilters.action({ [filterId]: values }));
   },
 });

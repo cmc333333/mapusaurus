@@ -7,18 +7,16 @@ import State from "./State";
  */
 export default function serialize(state: State): string {
   const { filters, year } = state.larLayer;
-  const counties = filters.county.map(f => f.id);
-  const lenders = filters.lender.map(f => f.id);
-  const metros = filters.metro.map(f => f.id);
+  const filterValues: any = {};
+  Object.keys(filters).forEach(key => {
+    const asStr = filters[key].map(f => f.id).join(",");
+    if (asStr) {
+      filterValues[key] = asStr;
+    }
+  });
   return qs.stringify(
-    {
-      ...state.viewport,
-      counties,
-      lenders,
-      metros,
-      year,
-    },
-    { arrayFormat: "brackets" },
+    { ...state.viewport, ...filterValues, year },
+    { encode: false, skipNulls: true },
   );
 }
 
