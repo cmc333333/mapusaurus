@@ -54,12 +54,9 @@ describe("serialize()", () => {
         year: 2004,
       }),
     }));
-    expect(result).toMatch(/\bcounties%5B%5D=aaa\b/);
-    expect(result).toMatch(/\bcounties%5B%5D=bbb\b/);
-    expect(result).toMatch(/\bcounties%5B%5D=ccc\b/);
-    expect(result).toMatch(/\blenders%5B%5D=12\b/);
-    expect(result).toMatch(/\blenders%5B%5D=34\b/);
-    expect(result).toMatch(/\bmetros%5B%5D=Z\b/);
+    expect(result).toMatch(/\bcounty=aaa,bbb,ccc\b/);
+    expect(result).toMatch(/\blender=12,34\b/);
+    expect(result).toMatch(/\bmetro=Z\b/);
     expect(result).toMatch(/\byear=2004\b/);
   });
 });
