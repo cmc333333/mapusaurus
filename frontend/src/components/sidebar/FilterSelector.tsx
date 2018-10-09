@@ -56,7 +56,7 @@ export const mapDispatchToProps = (dispatch, { filterId }) => ({
   onChange: ev => {
     const values: FilterValue[] = Array.apply(null, ev.target.options)
       .filter(o => o.selected)
-      .map(o => filterChoices[filterId][o.value]);
+      .map(o => choiceLookup[filterId][o.value]);
     return dispatch(setFilters.action({ [filterId]: values }));
   },
 });
