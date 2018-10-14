@@ -7,19 +7,40 @@ import { searchLenders } from "../../apis/lenders";
 import State from "../../store/State";
 import { largeSpace } from "../../theme";
 import CountySelector from "./CountySelector";
-import HMDAFilter from "./HMDAFilter";
+import HMDAFilter, { makeProps } from "./HMDAFilter";
 import YearSelector from "./YearSelector";
+
+const LenderFilter = connect(
+  ({ larLayer }) => ({ larLayer }),
+  dispatch => ({ dispatch }),
+  ({ larLayer }, { dispatch }) => makeProps(
+    "lender",
+    larLayer,
+    searchLenders,
+    dispatch,
+  ),
+)(HMDAFilter);
+const MetroFilter = connect(
+  ({ larLayer }) => ({ larLayer }),
+  dispatch => ({ dispatch }),
+  ({ larLayer }, { dispatch }) => makeProps(
+    "metro",
+    larLayer,
+    searchMetros,
+    dispatch,
+  ),
+)(HMDAFilter);
 
 export function HMDAFilters({ showLenders }) {
   return (
     <glamorous.Div margin={largeSpace}>
       <YearSelector />
       <hr />
-      <HMDAFilter filterName="metro" searchFn={searchMetros} />
+      <MetroFilter />
       <hr />
       <CountySelector />
       <hr />
-      {showLenders && <HMDAFilter filterName="lender" searchFn={searchLenders} />}
+      {showLenders && <LenderFilter />}
     </glamorous.Div>
   );
 }

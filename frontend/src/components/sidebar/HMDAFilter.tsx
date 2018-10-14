@@ -5,7 +5,13 @@ import { Map } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { addOptions, FilterConfig, selectFilters } from "../../store/LARLayer";
+import { Geo } from "../../apis/geography";
+import LARLayer, {
+  addOptions,
+  FilterConfig,
+  LARFilters,
+  selectFilters,
+} from "../../store/LARLayer";
 import {
   inverted,
   largeSpace,
@@ -41,13 +47,20 @@ export function ExistingFilter({ name, onClick }) {
   );
 }
 
-export function HMDAFilter({
+export interface HMDAFilterPropTypes<T> {
+  existing: { id: string, name: string, onClick: (ev) => void }[];
+  fetchFn: (str: string) => Promise<[string, T][]>;
+  label: string;
+  setValue: (input: [string, T]) => void;
+}
+
+export default function HMDAFilter<T>({
   existing,
   fetchFn,
   label,
   setValue,
-  toValue,
-}) {
+}: HMDAFilterPropTypes<T>) {
+  const toString = ([id, value]) => `${value}`;
   const lis = existing.map(({ id, name, onClick }) =>
     <ExistingFilter key={id} name={name} onClick={onClick} />,
   );
@@ -55,7 +68,7 @@ export function HMDAFilter({
   return (
     <glamorous.Div marginBottom={largeSpace} marginTop={largeSpace}>
       <FormInput name={label}>
-        <Autocomplete fetchFn={fetchFn} setValue={setValue} toValue={toValue} />
+        <Autocomplete fetchFn={fetchFn} setValue={setValue} toString={toString} />
       </FormInput>
       <glamorous.Ul listStyle="none" margin={0} marginTop={mediumSpace}>
         {lis}
@@ -64,14 +77,19 @@ export function HMDAFilter({
   );
 }
 
-export function mergeProps({ larLayer }, { dispatch }, { filterName, searchFn }) {
-  const config: FilterConfig<string> = larLayer.filters[filterName];
+export function makeProps<T extends (Geo | string)>(
+  filterName: keyof LARFilters,
+  larLayer: LARLayer,
+  searchFn: (term: string, year: number) => Promise<Map<string, T>>,
+  dispatch,
+): HMDAFilterPropTypes<T> {
+  const config: FilterConfig<Geo | string> = larLayer.filters[filterName];
   const { label } = config;
   const existing = config.selected.toArray()
     .filter(id => config.options.has(id))
     .map(id => ({
       id,
-      name: config.options.get(id),
+      name: `${config.options.get(id)}`,
       onClick: ev => {
         ev.preventDefault();
         dispatch(selectFilters.action({
@@ -81,22 +99,15 @@ export function mergeProps({ larLayer }, { dispatch }, { filterName, searchFn })
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
   const fetchFn = async (str: string) => {
-    const result = await searchFn(str, larLayer.year);
-    return result.entrySeq().toArray();
+    const result: Map<string, T> = await searchFn(str, larLayer.year);
+    return result.entrySeq().toArray() as [string, T][];
   };
-  const setValue = ([id, name]) => {
-    dispatch(addOptions({ [filterName]: Map([[id, name]]) }));
+  const setValue = ([id, value]) => {
+    dispatch(addOptions({ [filterName]: Map([[id, value]]) }));
     dispatch(selectFilters.action({
       [filterName]: config.selected.add(id),
     }));
   };
-  const toValue = ([id, name]) => name;
 
-  return { existing, fetchFn, label, setValue, toValue };
+  return { existing, fetchFn, label, setValue };
 }
-
-export default connect(
-  ({ larLayer }) => ({ larLayer }),
-  dispatch => ({ dispatch }),
-  mergeProps,
-)(HMDAFilter);

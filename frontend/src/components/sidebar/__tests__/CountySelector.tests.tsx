@@ -10,7 +10,6 @@ import {
   mapDispatchToProps,
   mapStateToProps,
 } from "../CountySelector";
-import HMDAFilter from "../HMDAFilter";
 
 jest.mock("../../../apis/geography");
 const makeCountySearchMock = makeCountySearch as jest.Mock;
@@ -26,7 +25,7 @@ describe("<CountySelector />", () => {
       />,
     );
     expect(rendered.find(glamorous.Select)).toHaveLength(1);
-    expect(rendered.find(HMDAFilter)).toHaveLength(1);
+    expect(rendered.find("Connect(HMDAFilter)")).toHaveLength(1);
   });
 
   it("includes an option per state", () => {

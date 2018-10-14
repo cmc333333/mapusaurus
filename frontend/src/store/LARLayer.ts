@@ -4,6 +4,7 @@ import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 import { asyncFactory } from "typescript-fsa-redux-thunk";
 
+import { Geo } from "../apis/geography";
 import { fetchLar } from "../apis/lar";
 
 export interface LARPoint {
@@ -32,11 +33,11 @@ export interface FilterConfig<V> {
   selected: Set<string>;
 }
 export interface LARFilters {
-  county: FilterConfig<string>;
+  county: FilterConfig<Geo>;
   lender: FilterConfig<string>;
   lienStatus: FilterConfig<string>;
   loanPurpose: FilterConfig<string>;
-  metro: FilterConfig<string>;
+  metro: FilterConfig<Geo>;
   ownerOccupancy: FilterConfig<string>;
   propertyType: FilterConfig<string>;
 }
@@ -50,9 +51,9 @@ export interface FilterSelection {
   propertyType?: Set<string>;
 }
 export interface FilterOptions {
-  county?: Map<string, string>;
+  county?: Map<string, Geo>;
   lender?: Map<string, string>;
-  metro?: Map<string, string>;
+  metro?: Map<string, Geo>;
 }
 
 export interface USState {
@@ -79,7 +80,7 @@ export const SAFE_INIT: LARLayer = {
   filters: {
     county: {
       label: "County",
-      options: Map<string, string>(),
+      options: Map<string, Geo>(),
       selected: Set<string>(),
     },
     lender: {
@@ -103,7 +104,7 @@ export const SAFE_INIT: LARLayer = {
     },
     metro: {
       label: "Metro",
-      options: Map<string, string>(),
+      options: Map<string, Geo>(),
       selected: Set<string>(),
     },
     ownerOccupancy: {

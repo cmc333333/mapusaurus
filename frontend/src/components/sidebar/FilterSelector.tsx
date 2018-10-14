@@ -23,7 +23,7 @@ export function FilterSelector({ filterConfig, onChange }) {
     ([id, name]) => <Option key={id} value={id}>{name}</Option>,
   );
   return (
-    <FormInput fullWidth={true} name={filterConfig.name}>
+    <FormInput fullWidth={true} name={filterConfig.label}>
       <glamorous.Select
         border={border}
         height="6rem"

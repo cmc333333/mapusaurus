@@ -61,6 +61,5 @@ test("mapStateToProps() pulls the associated filter configs", () => {
   const result = mapStateToProps(state, { filterId: "ownerOccupancy" });
   expect(result.filterConfig.options)
     .toEqual(SAFE_INIT.filters.ownerOccupancy.options);
-  expect(result.filterConfig.fieldName).toBe("owner_occupancy");
   expect(result.filterConfig.selected).toEqual(Set(["2", "3"]));
 });

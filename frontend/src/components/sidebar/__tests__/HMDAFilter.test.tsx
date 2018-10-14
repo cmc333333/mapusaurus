@@ -8,7 +8,7 @@ import {
   LARLayerFactory,
   StateFactory,
 } from "../../../testUtils/Factory";
-import { ExistingFilter, HMDAFilter, mergeProps } from "../HMDAFilter";
+import HMDAFilter, { ExistingFilter, makeProps } from "../HMDAFilter";
 
 describe("<ExistingFilter />", () => {
   it("renders the correct name", () => {
@@ -36,7 +36,6 @@ describe("<HMDAFilter />", () => {
         fetchFn={jest.fn()}
         label="Some Title"
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     ).find("FormInput");
     expect(formEl.prop("name")).toBe("Some Title");
@@ -44,20 +43,18 @@ describe("<HMDAFilter />", () => {
 
   it("includes an Autocomplete", () => {
     const fetchFn = jest.fn(str => [str, str]);
-    const [setValue, toValue] = [jest.fn(), jest.fn()];
+    const setValue = jest.fn();
     const autocomplete = shallow(
       <HMDAFilter
         existing={[]}
         fetchFn={fetchFn}
         label="Title Here"
         setValue={setValue}
-        toValue={toValue}
       />,
     ).find("Autocomplete");
     const props = autocomplete.props() as any;
     expect(props.fetchFn("input")).toEqual(["input", "input"]);
     expect(props.setValue).toBe(setValue);
-    expect(props.toValue).toBe(toValue);
   });
 
   it("includes an ExistingFilter per item", () => {
@@ -73,7 +70,6 @@ describe("<HMDAFilter />", () => {
         fetchFn={jest.fn()}
         label="Title Here"
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     ).find(ExistingFilter);
     expect(lis).toHaveLength(3);
@@ -83,29 +79,23 @@ describe("<HMDAFilter />", () => {
   });
 });
 
-describe("mergeProps()", () => {
+describe("makeProps()", () => {
   it("transforms the existing filters", () => {
-    const state = StateFactory.build({
-      larLayer: LARLayerFactory.build({
-        filters: LARFiltersFactory.build({}, {
-          lenderSet: {
-            options: Map([
-              ["111", "OneOneOne"],
-              ["222", "TwoTwoTwo"],
-              ["333", "ThreeThreeThree"],
-              ["444", "FourFourFour"],
-            ]),
-            selected: Set(["111", "333", "444"]),
-          },
-        }),
+    const larLayer = LARLayerFactory.build({
+      filters: LARFiltersFactory.build({}, {
+        lenderSet: {
+          options: Map([
+            ["111", "OneOneOne"],
+            ["222", "TwoTwoTwo"],
+            ["333", "ThreeThreeThree"],
+            ["444", "FourFourFour"],
+          ]),
+          selected: Set(["111", "333", "444"]),
+        },
       }),
     });
 
-    const { existing } = mergeProps(
-      state,
-      { dispatch: jest.fn() },
-      { filterName: "lender", searchFn: jest.fn() },
-    );
+    const { existing } = makeProps("lender", larLayer, jest.fn(), jest.fn());
 
     expect(existing).toHaveLength(3);
     expect(existing[0]).toMatchObject({ id: "444", name: "FourFourFour" });
@@ -114,26 +104,21 @@ describe("mergeProps()", () => {
   });
 
   it("creates an appropriate fetchFn", () => {
-    const state = StateFactory.build({
-      larLayer: LARLayerFactory.build({ year: 2004 }),
-    });
-    const searchFn = jest.fn();
+    const larLayer = LARLayerFactory.build({ year: 2004 });
+    const searchFn = jest.fn(() => Map<string, string>());
 
-    const { fetchFn } = mergeProps(
-      state,
-      { dispatch: jest.fn() },
-      { searchFn, filterName: "county" },
-    );
+    const { fetchFn } = makeProps("county", larLayer, searchFn, jest.fn());
     fetchFn("some text");
 
     expect(searchFn).toHaveBeenCalledWith("some text", 2004);
   });
 
   it("sets an approproate label", () => {
-    const { label } = mergeProps(
-      StateFactory.build(),
-      { dispatch: jest.fn() },
-      { filterName: "metro", searchFn: jest.fn() },
+    const { label } = makeProps(
+      "metro",
+      LARLayerFactory.build(),
+      jest.fn(),
+      jest.fn(),
     );
     expect(label).toBe("Metro");
   });
