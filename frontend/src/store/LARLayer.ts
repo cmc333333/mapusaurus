@@ -3,9 +3,11 @@ import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 import { asyncFactory } from "typescript-fsa-redux-thunk";
+import { fitBounds } from "viewport-mercator-project";
 
 import { Geo } from "../apis/geography";
 import { fetchLar } from "../apis/lar";
+import { setViewport } from "./Viewport";
 
 export interface LARPoint {
   geoid: string;
@@ -155,6 +157,39 @@ export const setFilterGroup = asyncActionCreator<FilterGroup, void>(
       dispatch(selectFilters.action(homePurchase));
     } else if (filterGroup === "refinance") {
       dispatch(selectFilters.action(refinance));
+    }
+  },
+);
+export const zoomToGeos = asyncActionCreator<void, void>(
+  "ZOOM_TO_GEOS",
+  (_, dispatch, getState: () => any) => {
+    const { larLayer, window: { height, width } } = getState();
+    const { filters } = larLayer;
+    const countyGeos: Geo[] = filters.county.selected.toArray().map(
+      id => filters.county.options.get(id),
+    );
+    const metroGeos: Geo[] = filters.metro.selected.toArray().map(
+      id => filters.metro.options.get(id),
+    );
+    const geos = countyGeos.concat(metroGeos);
+    if (geos.length) {
+      const bounds = [
+        [
+          Math.max(...geos.map(g => g.maxlon)),
+          Math.min(...geos.map(g => g.minlat)),
+        ],
+        [
+          Math.min(...geos.map(g => g.minlon)),
+          Math.max(...geos.map(g => g.maxlat)),
+        ],
+      ];
+
+      const { latitude, longitude, zoom } = fitBounds({
+        bounds,
+        height,
+        width,
+      });
+      dispatch(setViewport({ latitude, longitude, zoom }));
     }
   },
 );

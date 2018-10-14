@@ -1,5 +1,6 @@
 import { Map, Set } from "immutable";
 
+import { Geo } from "../../apis/geography";
 import { fetchLar } from "../../apis/lar";
 import {
   LARFiltersFactory,
@@ -16,7 +17,9 @@ import LARLayer, {
   setFilterGroup,
   setStateFips,
   setYear,
+  zoomToGeos,
 } from "../LARLayer";
+import { setViewport } from "../Viewport";
 
 jest.mock("../../apis/lar");
 
@@ -123,10 +126,104 @@ describe("reducer()", () => {
         (selectFilters.async.started as any)(refinance),
       ]);
     });
-    it("also dispatches a call to setFilters for custom", async () => {
+    it("does not dispatches a call to setFilters for custom", async () => {
       const dispatch = jest.fn();
       await setFilterGroup.action("custom")(dispatch, jest.fn(), {});
       expect(dispatch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("zoomToGeos", () => {
+    it("does nothing if no geos are present", async () => {
+      const dispatch = jest.fn();
+      const getState = () => StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          filters: LARFiltersFactory.build({}, {
+            countySet: { options: Map<string, Geo>(), selected: Set<string>() },
+            metroSet: { options: Map<string, Geo>(), selected: Set<string>() },
+          }),
+        }),
+      });
+      await zoomToGeos.action()(dispatch, getState, {});
+      // only called twice (async start, end); no setViewport
+      expect(dispatch).toHaveBeenCalledTimes(2);
+    });
+
+    it("works on a single geo", async () => {
+      const dispatch = jest.fn();
+      const getState = () => StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          filters: LARFiltersFactory.build({}, {
+            countySet: {
+              options: Map([["1234", new Geo("name", -60, -40, 20, 30)]]),
+              selected: Set(["1234"]),
+            },
+            metroSet: { options: Map<string, Geo>(), selected: Set<string>() },
+          }),
+        }),
+        window: { height: 100, width: 100 },
+      });
+      await zoomToGeos.action()(dispatch, getState, {});
+      expect(dispatch).toHaveBeenCalledTimes(3);
+      const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
+      expect(latitude).toBeCloseTo(25, 0);
+      expect(longitude).toBeCloseTo(-50, 0);
+      expect(zoom).toBeCloseTo(2, 0);
+    });
+
+    it("works for multiple geos", async () => {
+      const dispatch = jest.fn();
+      const getState = () => StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          filters: LARFiltersFactory.build({}, {
+            countySet: {
+              options: Map([
+                ["1234", new Geo("name", -60, -41, 20, 29)],
+                ["2345", new Geo("other", -59, -40, 21, 29)],
+              ]),
+              selected: Set(["1234", "2345"]),
+            },
+            metroSet: {
+              options: Map([
+                ["3456", new Geo("another", -59, -41, 21, 30)],
+              ]),
+              selected: Set(["3456"]),
+            },
+          }),
+        }),
+        window: { height: 100, width: 100 },
+      });
+      await zoomToGeos.action()(dispatch, getState, {});
+      expect(dispatch).toHaveBeenCalledTimes(3);
+      const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
+      expect(latitude).toBeCloseTo(25, 0);
+      expect(longitude).toBeCloseTo(-50, 0);
+      expect(zoom).toBeCloseTo(2, 0);
+    });
+
+    it("only cares about selected geos", async () => {
+      const dispatch = jest.fn();
+      const getState = () => StateFactory.build({
+        larLayer: LARLayerFactory.build({
+          filters: LARFiltersFactory.build({}, {
+            countySet: {
+              options: Map([
+                ["1234", new Geo("name", -60, -40, 30, 20)],
+                ["2345", new Geo("ignored", -80, 0, 80, 0)],
+              ]),
+              selected: Set(["1234"]),
+            },
+            metroSet: { options: Map<string, Geo>(), selected: Set<string>() },
+          }),
+        }),
+        window: { height: 100, width: 100 },
+      });
+      await zoomToGeos.action()(dispatch, getState, {});
+      expect(dispatch).toHaveBeenCalledTimes(3);
+      const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
+      expect(latitude).toBeCloseTo(25, 0);
+      expect(longitude).toBeCloseTo(-50, 0);
+      expect(zoom).toBeCloseTo(2, 0);
     });
   });
 });

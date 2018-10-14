@@ -11,6 +11,7 @@ import LARLayer, {
   FilterConfig,
   LARFilters,
   selectFilters,
+  zoomToGeos,
 } from "../../store/LARLayer";
 import {
   inverted,
@@ -107,6 +108,9 @@ export function makeProps<T extends (Geo | string)>(
     dispatch(selectFilters.action({
       [filterName]: config.selected.add(id),
     }));
+    if (filterName !== "lender") {
+      dispatch(zoomToGeos.action());
+    }
   };
 
   return { existing, fetchFn, label, setValue };

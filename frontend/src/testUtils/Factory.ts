@@ -15,6 +15,11 @@ export const ViewportFactory = new Factory().attrs({
   zoom: randZoom,
 });
 
+export const WindowFactory = new Factory().attrs({
+  height: () => random.integer(300, 2000),
+  width: () => random.integer(300, 2000),
+});
+
 export const LARPointFactory = new Factory().attrs({
   geoid: () => random.string(15, "0123456789"),
   houseCount: () => random.integer(1, 10000),
@@ -110,4 +115,5 @@ export const StateFactory = new Factory().attrs({
   mapbox: () => MapboxFactory.build(),
   sidebar: () => SidebarFactory.build(),
   viewport: () => ViewportFactory.build(),
+  window: () => WindowFactory.build(),
 });
