@@ -9,7 +9,7 @@ export default function serialize(state: State): string {
   const { filters, year } = state.larLayer;
   const filterValues: any = {};
   Object.keys(filters).forEach(key => {
-    const asStr = filters[key].map(f => f.id).join(",");
+    const asStr = filters[key].selected.join(",");
     if (asStr) {
       filterValues[key] = asStr;
     }

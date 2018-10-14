@@ -5,32 +5,22 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import {
-  choiceLookup,
-  filterChoices,
-  FilterValue,
-  setFilters,
+  FilterConfig,
+  selectFilters,
 } from "../../store/LARLayer";
 import State from "../../store/State";
 import { border, smallSpace, xLargeSpace } from "../../theme";
 import FormInput, { inputStyle } from "../FormInput";
 
-const optionStyle = css(inputStyle, {
+const Option = glamorous.option(inputStyle, {
   border: "none",
   paddingBottom: smallSpace,
   paddingTop: smallSpace,
 });
 
-export function FilterSelector({ filterConfig, onChange, value }) {
-  const choices = filterConfig.choices.map(
-    filterValue => (
-      <glamorous.Option
-        css={optionStyle}
-        key={filterValue.id}
-        value={filterValue.id}
-      >
-        {filterValue.name}
-      </glamorous.Option>
-    ),
+export function FilterSelector({ filterConfig, onChange }) {
+  const choices = filterConfig.options.entrySeq().toArray().map(
+    ([id, name]) => <Option key={id} value={id}>{name}</Option>,
   );
   return (
     <FormInput fullWidth={true} name={filterConfig.name}>
@@ -39,7 +29,7 @@ export function FilterSelector({ filterConfig, onChange, value }) {
         height="6rem"
         multiple={true}
         onChange={onChange}
-        value={value}
+        value={filterConfig.selected.toArray()}
         width="100%"
       >
         {choices}
@@ -49,15 +39,14 @@ export function FilterSelector({ filterConfig, onChange, value }) {
 }
 
 export const mapStateToProps = ({ larLayer }: State, { filterId }) => ({
-  filterConfig: filterChoices.get(filterId),
-  value: larLayer.filters[filterId].map(f => f.id),
+  filterConfig: larLayer.filters[filterId],
 });
 export const mapDispatchToProps = (dispatch, { filterId }) => ({
   onChange: ev => {
-    const values: FilterValue[] = Array.apply(null, ev.target.options)
+    const values: string[] = Array.apply(null, ev.target.options)
       .filter(o => o.selected)
-      .map(o => choiceLookup[filterId][o.value]);
-    return dispatch(setFilters.action({ [filterId]: values }));
+      .map(o => o.value);
+    return dispatch(selectFilters.action({ [filterId]: Set(values) }));
   },
 });
 

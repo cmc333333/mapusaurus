@@ -3,7 +3,7 @@ import { asyncFactory } from "typescript-fsa-redux-thunk";
 
 import { fetchGeos } from "../apis/geography";
 import { fetchLenders } from "../apis/lenders";
-import LARLayer, { addFilters } from "./LARLayer";
+import LARLayer, { addOptions, FilterSelection, selectFilters } from "./LARLayer";
 import Mapbox from "./Mapbox";
 import Sidebar from "./Sidebar";
 import Viewport from "./Viewport";
@@ -27,13 +27,20 @@ export const initCalls = asyncActionCreator<State, void>(
   async (state: State, dispatch: any) => {
     const { token } = state.mapbox;
 
+    const asIds: FilterSelection = {};
+    const { larLayer: { filters } }  = state;
+    Object.keys(filters).forEach(filterName => {
+      asIds[filterName] = filters[filterName].selected;
+    });
+    dispatch(selectFilters.action(asIds));
+
     await Promise.all([
-      fetchGeos(state.larLayer.filters.county.map(c => c.id))
-        .then(geos => dispatch(addFilters.action(["county", geos]))),
-      fetchLenders(state.larLayer.filters.lender.map(l => l.id))
-        .then(lenders => dispatch(addFilters.action(["lender", lenders]))),
-      fetchGeos(state.larLayer.filters.metro.map(m => m.id))
-        .then(geos => dispatch(addFilters.action(["metro", geos]))),
+      fetchGeos(state.larLayer.filters.county.selected)
+        .then(geos => dispatch(addOptions({ county: geos }))),
+      fetchLenders(state.larLayer.filters.lender.selected)
+        .then(lenders => dispatch(addOptions({ lender: lenders }))),
+      fetchGeos(state.larLayer.filters.metro.selected)
+        .then(geos => dispatch(addOptions({ metro: geos }))),
     ]);
   },
 );

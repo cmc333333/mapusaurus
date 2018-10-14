@@ -9,7 +9,6 @@ import FormInput, { inputStyle } from "../FormInput";
 import HMDAFilter from "./HMDAFilter";
 
 export function CountySelector({
-  counties,
   onChange,
   searchCounties,
   stateFips,
@@ -27,7 +26,7 @@ export function CountySelector({
           {states.map(s => <option key={s.fips} value={s.fips}>{s.name}</option>)}
         </glamorous.Select>
       </FormInput>
-      <HMDAFilter items={counties} searchFn={searchCounties} title="County" />
+      <HMDAFilter filterName="county" searchFn={searchCounties} />
     </>
   );
 }
@@ -37,7 +36,6 @@ export function mapStateToProps({ larLayer }: State) {
   return {
     stateFips,
     states,
-    counties: filters.county.filter(e => e.name),
     searchCounties: makeCountySearch(stateFips),
   };
 }

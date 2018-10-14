@@ -1,31 +1,32 @@
 import axios from "axios";
+import { Map, Set } from "immutable";
 
-import { FilterValue } from "../store/LARLayer";
-
-function convert({ geoid, geo_type, name }): FilterValue {
-  return new FilterValue({ name, id: geoid });
-}
-
-export async function fetchGeos(ids: string[]): Promise<FilterValue[]> {
-  if (ids.length) {
+export async function fetchGeos(ids: Set<string>): Promise<Map<string, string>> {
+  if (ids.size) {
     const response = await axios.get(
       "/api/geo/",
       { params: { geoid__in: ids.join(",") } },
     );
-    return response.data.results.map(convert);
+    return response.data.results.reduce(
+      (soFar, { geoid, name }) => soFar.set(geoid, name),
+      Map<string, string>(),
+    );
   }
-  return [];
+  return Map<string, string>();
 }
 
 export async function searchMetros(
   text: string,
   year: number,
-): Promise<FilterValue[]> {
+): Promise<Map<string, string>> {
   const response = await axios.get(
     "/shapes/search/metro/",
     { params: { year, q: text } },
   );
-  return response.data.geos.map(convert);
+  return response.data.geos.reduce(
+    (soFar, { geoid, name }) => soFar.set(geoid, name),
+    Map<string, string>(),
+  );
 }
 
 export const makeCountySearch =
@@ -34,5 +35,8 @@ export const makeCountySearch =
       "/shapes/search/county/",
       { params: { state, year, q: text } },
     );
-    return response.data.geos.map(convert);
+    return response.data.geos.reduce(
+      (soFar, { geoid, name }) => soFar.set(geoid, name),
+      Map<string, string>(),
+    );
   };

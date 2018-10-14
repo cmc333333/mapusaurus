@@ -1,14 +1,14 @@
-import { choiceLookup, filterChoices, FilterValue } from "../../store/LARLayer";
+import { Set } from "immutable";
+
 import {
-  FilterValueFactory,
-  LARFilterFactory,
+  LARFiltersFactory,
   USStateFactory,
 } from "../../testUtils/Factory";
 import {
   deriveLARLayer,
   deriveViewport,
   toFilterGroup,
-  toFilterValues,
+  toSelected,
 } from "../initial-state";
 
 describe("deriveLARLayer()", () => {
@@ -18,31 +18,25 @@ describe("deriveLARLayer()", () => {
       [],
       [2009],
     );
-    expect(result.filters.county).toEqual([{ id: "123" }]);
-    expect(result.filters.lender).toEqual([{ id: "456" }]);
-    expect(result.filters.metro).toEqual([{ id: "789" }]);
+    expect(result.filters.county.selected).toEqual(Set(["123"]));
+    expect(result.filters.lender.selected).toEqual(Set(["456"]));
+    expect(result.filters.metro.selected).toEqual(Set(["789"]));
   });
   it("defaults to reasonable, empty values", () => {
     const result = deriveLARLayer("", [], [2009, 2008]);
     expect(result.filterGroup).toEqual("homePurchase");
-    expect(result.filters).toEqual({
-      county: [],
-      lender: [],
-      lienStatus: [filterChoices.get("lienStatus").choices[0]],
-      loanPurpose: [filterChoices.get("loanPurpose").choices[0]],
-      metro: [],
-      ownerOccupancy: [filterChoices.get("ownerOccupancy").choices[0]],
-      propertyType: [filterChoices.get("propertyType").choices[0]],
-    });
+    expect(result.filters.county.selected).toEqual(Set<string>());
+    expect(result.filters.lender.selected).toEqual(Set<string>());
+    expect(result.filters.lienStatus.selected).toEqual(Set(["1"]));
+    expect(result.filters.loanPurpose.selected).toEqual(Set(["1"]));
+    expect(result.filters.metro.selected).toEqual(Set<string>());
+    expect(result.filters.ownerOccupancy.selected).toEqual(Set(["1"]));
+    expect(result.filters.propertyType.selected).toEqual(Set(["1"]));
     expect(result.year).toBe(2009);
   });
   it("loads multiple", () => {
     const result = deriveLARLayer("metro=123,456,789", [], [2009]);
-    expect(result.filters.metro).toEqual([
-      { id: "123" },
-      { id: "456" },
-      { id: "789" },
-    ]);
+    expect(result.filters.metro.selected).toEqual(Set(["123", "456", "789"]));
   });
   it("loads year", () => {
     const result = deriveLARLayer("year=2012", [], [2014, 2013, 2012, 2010]);
@@ -74,57 +68,43 @@ describe("deriveViewport()", () => {
 
 describe("toFilterGroup()", () => {
   it("can derive homePurchase", () => {
-    const filters = LARFilterFactory.build({
-      lienStatus: [choiceLookup.lienStatus["1"]],
-      loanPurpose: [choiceLookup.loanPurpose["1"]],
-      ownerOccupancy: [choiceLookup.ownerOccupancy["1"]],
-      propertyType: [choiceLookup.propertyType["1"]],
+    const filters = LARFiltersFactory.build({}, {
+      lienStatusSet: Set(["1"]),
+      loanPurposeSet: Set(["1"]),
+      ownerOccupancySet: Set(["1"]),
+      propertyTypeSet: Set(["1"]),
     });
     expect(toFilterGroup(filters)).toBe("homePurchase");
   });
 
   it("can derive refinance", () => {
-    const filters = LARFilterFactory.build({
-      lienStatus: [choiceLookup.lienStatus["1"]],
-      loanPurpose: [choiceLookup.loanPurpose["3"]],
-      ownerOccupancy: [choiceLookup.ownerOccupancy["1"]],
-      propertyType: [choiceLookup.propertyType["1"]],
+    const filters = LARFiltersFactory.build({}, {
+      lienStatusSet: Set(["1"]),
+      loanPurposeSet: Set(["3"]),
+      ownerOccupancySet: Set(["1"]),
+      propertyTypeSet: Set(["1"]),
     });
     expect(toFilterGroup(filters)).toBe("refinance");
   });
 
   it("defaults to custom", () => {
-    const filters = LARFilterFactory.build({ loanPurpose: [] });
+    const filters = LARFiltersFactory.build({}, {
+      loanPurposeSet: Set<string>(),
+    });
     expect(toFilterGroup(filters)).toBe("custom");
   });
 });
 
-describe("toFilterValues()", () => {
+describe("toSelected()", () => {
   it("handles undefined", () => {
-    expect(toFilterValues(undefined, undefined)).toEqual([]);
+    expect(toSelected(undefined)).toEqual(Set<string>());
   });
 
   it("handles empty strings", () => {
-    expect(toFilterValues("", undefined)).toEqual([]);
+    expect(toSelected("")).toEqual(Set<string>());
   });
 
   it("splits on commas", () => {
-    expect(toFilterValues("1,4,7", undefined)).toEqual([
-      new FilterValue({ id: "1" }),
-      new FilterValue({ id: "4" }),
-      new FilterValue({ id: "7" }),
-    ]);
-  });
-
-  it("will look values up", () => {
-    const filterTwo = FilterValueFactory.build({ id: "2" });
-    const filterThree = FilterValueFactory.build({ id: "3" });
-    const lookup = { 2: filterTwo, 3: filterThree };
-    expect(toFilterValues("1,2,3,4", lookup)).toEqual([
-      new FilterValue({ id: "1" }),
-      filterTwo,
-      filterThree,
-      new FilterValue({ id: "4" }),
-    ]);
+    expect(toSelected("1,4,7")).toEqual(Set(["1", "4", "7"]));
   });
 });
