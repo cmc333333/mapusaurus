@@ -11,6 +11,10 @@ class GeoSerializer(serializers.ModelSerializer):
             'centlon',
             'geo_type',
             'geoid',
+            'maxlat',
+            'maxlon',
+            'minlat',
+            'minlon',
             'name',
             'year',
         )

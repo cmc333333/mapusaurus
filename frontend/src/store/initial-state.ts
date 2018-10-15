@@ -2,10 +2,7 @@ import { Set } from "immutable";
 import * as qs from "qs";
 
 import LARLayer, {
-  choiceLookup,
-  filterChoices,
   FilterGroup,
-  FilterValue,
   LARFilters,
   SAFE_INIT as larInit,
   USState,
@@ -19,28 +16,25 @@ import Viewport, { SAFE_INIT as viewportInit } from "./Viewport";
  * Convert the string (or array) we received from the url into a FilterValue,
  * potentially looking it up in a provided list.
  */
-export function toFilterValues(value: any, options: any): FilterValue[] {
-  const asFilterValues = `${value || ""}`
+export function toSelected(value: any): Set<string> {
+  return Set(
+    `${value || ""}`
     .split(",")
-    .filter(s => s.length)
-    .map(id => new FilterValue({ id }));
-  return asFilterValues.map(fv => (options || {})[fv.id] || fv);
+    .filter(s => s.length),
+  );
 }
 
 /*
  * Inspects the LARFilters to derive a FilterGroup, defaulting to "custom"
  */
 export function toFilterGroup(filters: LARFilters): FilterGroup {
-  const lienStatus = filters.lienStatus.map(f => f.id).join(",");
-  const loanPurpose = filters.loanPurpose.map(f => f.id).join(",");
-  const ownerOccupancy = filters.ownerOccupancy.map(f => f.id).join(",");
-  const propertyType = filters.propertyType.map(f => f.id).join(",");
-
-  if (lienStatus === "1" && ownerOccupancy === "1" && propertyType === "1") {
-    if (loanPurpose === "1") {
+  if (filters.lienStatus.selected.equals(Set(["1"]))
+      && filters.ownerOccupancy.selected.equals(Set(["1"]))
+      && filters.propertyType.selected.equals(Set(["1"]))) {
+    if (filters.loanPurpose.selected.equals(Set(["1"]))) {
       return "homePurchase";
     }
-    if (loanPurpose === "3") {
+    if (filters.loanPurpose.selected.equals(Set(["3"]))) {
       return "refinance";
     }
   }
@@ -58,10 +52,12 @@ export function deriveLARLayer(
   });
 
   const filters = { ...larInit.filters };
-  Object.keys(filters).forEach(name => {
-    const values = toFilterValues(parsed[name], choiceLookup[name]);
-    if (values.length) {
-      filters[name] = values;
+  Object.keys(filters).forEach(filterName => {
+    if (parsed[filterName]) {
+      filters[filterName] = {
+        ...filters[filterName],
+        selected: toSelected(parsed[filterName]),
+      };
     }
   });
 
@@ -85,11 +81,11 @@ export function deriveMapbox(windowConfig): Mapbox {
 
 export function deriveViewport(hash: string): Viewport {
   const parsed = qs.parse(hash);
-  const { latitude, longitude, zoom } = viewportInit;
   return {
-    latitude: parseFloat(parsed.latitude) || latitude,
-    longitude: parseFloat(parsed.longitude) || longitude,
-    zoom: parseFloat(parsed.zoom) || zoom,
+    ...viewportInit,
+    latitude: parseFloat(parsed.latitude) || viewportInit.latitude,
+    longitude: parseFloat(parsed.longitude) || viewportInit.longitude,
+    zoom: parseFloat(parsed.zoom) || viewportInit.zoom,
   };
 }
 

@@ -46,7 +46,7 @@ const autosuggestTheme = {
 interface Props<T> {
   fetchFn(value: string): Promise<T[]>;
   setValue(input: T): void;
-  toValue(input: T): string;
+  toString(value: T): string;
 }
 
 interface State<T> {
@@ -95,7 +95,7 @@ export default class Autocomplete<T>
           {this.state.loading ? <Loading size={largeSpace} /> : null}
         </glamorous.Div>
         <Autosuggest
-          getSuggestionValue={this.props.toValue}
+          getSuggestionValue={this.getSuggestionValue}
           inputProps={inputProps}
           onSuggestionsClearRequested={this.clear}
           onSuggestionSelected={onSuggestionSelected}
@@ -109,5 +109,7 @@ export default class Autocomplete<T>
   }
 
   public renderSuggestion =
-    (suggestion: T) => <>{this.props.toValue(suggestion)}</>
+    (suggestion: T) => <>{this.getSuggestionValue(suggestion)}</>
+  public getSuggestionValue =
+    (suggestion: T) => this.props.toString(suggestion)
 }

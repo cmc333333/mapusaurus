@@ -1,29 +1,30 @@
 import axios from "axios";
+import { OrderedMap, Set } from "immutable";
 
-import { FilterValue } from "../store/LARLayer";
-
-function convert({ institution_id, name }): FilterValue {
-  return new FilterValue({ name, id: institution_id });
-}
-
-export async function fetchLenders(ids: string[]): Promise<FilterValue[]> {
-  if (ids.length) {
+export async function fetchLenders(ids: Set<string>): Promise<OrderedMap<string, string>> {
+  if (ids.size) {
     const response = await axios.get(
       "/api/respondents/",
       { params: { institution_id__in: ids.join(",") } },
     );
-    return response.data.results.map(convert);
+    return response.data.results.reduce(
+      (soFar, { institution_id, name }) => soFar.set(institution_id, name),
+      OrderedMap<string, string>(),
+    );
   }
-  return [];
+  return OrderedMap<string, string>();
 }
 
 export async function searchLenders(
   text: string,
   year: number,
-): Promise<FilterValue[]> {
+): Promise<OrderedMap<string, string>> {
   const response = await axios.get(
     "/institutions/search/",
     { params: { year, auto: 1, q: text } },
   );
-  return response.data.institutions.map(convert);
+  return response.data.institutions.reduce(
+    (soFar, { institution_id, name }) => soFar.set(institution_id, name),
+    OrderedMap<string, string>(),
+  );
 }

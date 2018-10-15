@@ -4,18 +4,12 @@ import * as React from "react";
 
 import { makeCountySearch } from "../../../apis/geography";
 import { setStateFips } from "../../../store/LARLayer";
-import {
-  FiltersFactory,
-  FilterValueFactory,
-  LARLayerFactory,
-  StateFactory,
-} from "../../../testUtils/Factory";
+import { LARLayerFactory, StateFactory } from "../../../testUtils/Factory";
 import {
   CountySelector,
   mapDispatchToProps,
   mapStateToProps,
 } from "../CountySelector";
-import HMDAFilter from "../HMDAFilter";
 
 jest.mock("../../../apis/geography");
 const makeCountySearchMock = makeCountySearch as jest.Mock;
@@ -24,7 +18,6 @@ describe("<CountySelector />", () => {
   it("includes both a state and county selector", () => {
     const rendered = shallow(
       <CountySelector
-        counties={[]}
         onChange={jest.fn()}
         searchCounties={jest.fn()}
         stateFips="01"
@@ -32,7 +25,7 @@ describe("<CountySelector />", () => {
       />,
     );
     expect(rendered.find(glamorous.Select)).toHaveLength(1);
-    expect(rendered.find(HMDAFilter)).toHaveLength(1);
+    expect(rendered.find("Connect(HMDAFilter)")).toHaveLength(1);
   });
 
   it("includes an option per state", () => {
@@ -43,7 +36,6 @@ describe("<CountySelector />", () => {
     ];
     const rendered = shallow(
       <CountySelector
-        counties={[]}
         onChange={jest.fn()}
         searchCounties={jest.fn()}
         stateFips="01"
@@ -61,7 +53,6 @@ describe("<CountySelector />", () => {
     ];
     const rendered = shallow(
       <CountySelector
-        counties={[]}
         onChange={jest.fn()}
         searchCounties={jest.fn()}
         stateFips="02"
@@ -75,7 +66,6 @@ describe("<CountySelector />", () => {
     const onChange = jest.fn();
     const rendered = shallow(
       <CountySelector
-        counties={[]}
         onChange={onChange}
         searchCounties={jest.fn()}
         stateFips="02"
@@ -89,20 +79,6 @@ describe("<CountySelector />", () => {
 });
 
 describe("mapStateToProps()", () => {
-  it("filters to the counties", () => {
-    const county = FilterValueFactory.buildList(2);
-    const lender = FilterValueFactory.buildList(4);
-    const metro = FilterValueFactory.buildList(3);
-    const state = StateFactory.build({
-      larLayer: LARLayerFactory.build({
-        filters: FiltersFactory.build({ county, lender, metro }),
-      }),
-    });
-
-    const result = mapStateToProps(state);
-    expect(result.counties).toHaveLength(2);
-  });
-
   it("creates a search fn by active state", () => {
     const state = StateFactory.build({
       larLayer: LARLayerFactory.build({ stateFips: "12" }),

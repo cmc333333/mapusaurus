@@ -1,31 +1,50 @@
 import axios from "axios";
+import { OrderedMap, Set } from "immutable";
 
-import { FilterValue } from "../store/LARLayer";
+export class Geo {
+  constructor(
+    readonly name: string,
+    readonly minlon: number,
+    readonly maxlon: number,
+    readonly minlat: number,
+    readonly maxlat: number,
+  ) {}
 
-function convert({ geoid, geo_type, name }): FilterValue {
-  return new FilterValue({ name, id: geoid });
+  public toString(): string {
+    return this.name;
+  }
 }
 
-export async function fetchGeos(ids: string[]): Promise<FilterValue[]> {
-  if (ids.length) {
+function geoReducer(
+  soFar: OrderedMap<string, Geo>,
+  { geoid, maxlat, maxlon, minlat, minlon, name },
+): OrderedMap<string, Geo> {
+  return soFar.set(
+    geoid,
+    new Geo(name, minlon, maxlon, minlat, maxlat),
+  );
+}
+
+export async function fetchGeos(ids: Set<string>): Promise<OrderedMap<string, Geo>> {
+  if (ids.size) {
     const response = await axios.get(
       "/api/geo/",
       { params: { geoid__in: ids.join(",") } },
     );
-    return response.data.results.map(convert);
+    return response.data.results.reduce(geoReducer, OrderedMap<string, Geo>());
   }
-  return [];
+  return OrderedMap<string, Geo>();
 }
 
 export async function searchMetros(
   text: string,
   year: number,
-): Promise<FilterValue[]> {
+): Promise<OrderedMap<string, string>> {
   const response = await axios.get(
     "/shapes/search/metro/",
     { params: { year, q: text } },
   );
-  return response.data.geos.map(convert);
+  return response.data.geos.reduce(geoReducer, OrderedMap<string, Geo>());
 }
 
 export const makeCountySearch =
@@ -34,5 +53,5 @@ export const makeCountySearch =
       "/shapes/search/county/",
       { params: { state, year, q: text } },
     );
-    return response.data.geos.map(convert);
+    return response.data.geos.reduce(geoReducer, OrderedMap<string, Geo>());
   };

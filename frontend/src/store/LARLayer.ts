@@ -1,10 +1,13 @@
-import { OrderedMap } from "immutable";
+import { Map, OrderedMap, Set } from "immutable";
 import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 import { asyncFactory } from "typescript-fsa-redux-thunk";
+import { fitBounds } from "viewport-mercator-project";
 
+import { Geo } from "../apis/geography";
 import { fetchLar } from "../apis/lar";
+import { transitionViewport } from "./Viewport";
 
 export interface LARPoint {
   geoid: string;
@@ -14,23 +17,45 @@ export interface LARPoint {
   longitude: number;
 }
 
-export class FilterValue {
-  public id: string;
-  public name?: string;
+export type FilterGroup = "homePurchase" | "refinance" | "custom";
+export const homePurchase = {
+  lienStatus: Set(["1"]),
+  loanPurpose: Set(["1"]),
+  ownerOccupancy: Set(["1"]),
+  propertyType: Set(["1"]),
+};
+export const refinance = {
+  ...homePurchase,
+  loanPurpose: Set(["3"]),
+};
 
-  constructor(initParams: Partial<FilterValue>) {
-    Object.assign(this, initParams);
-  }
-
-  public compareNameWith(other: FilterValue): number {
-    return (this.name || "").localeCompare(other.name || "");
-  }
+export interface FilterConfig<V> {
+  label: string;
+  options: Map<string, V>;
+  selected: Set<string>;
 }
-
-export interface LARFilterConfig {
-  choices: FilterValue[];
-  fieldName: string;
-  name: string;
+export interface LARFilters {
+  county: FilterConfig<Geo>;
+  lender: FilterConfig<string>;
+  lienStatus: FilterConfig<string>;
+  loanPurpose: FilterConfig<string>;
+  metro: FilterConfig<Geo>;
+  ownerOccupancy: FilterConfig<string>;
+  propertyType: FilterConfig<string>;
+}
+export interface FilterSelection {
+  county?: Set<string>;
+  lender?: Set<string>;
+  lienStatus?: Set<string>;
+  loanPurpose?: Set<string>;
+  metro?: Set<string>;
+  ownerOccupancy?: Set<string>;
+  propertyType?: Set<string>;
+}
+export interface FilterOptions {
+  county?: Map<string, Geo>;
+  lender?: Map<string, string>;
+  metro?: Map<string, Geo>;
 }
 
 export interface USState {
@@ -38,91 +63,6 @@ export interface USState {
   fips: string;
   name: string;
 }
-
-export interface LARFilters {
-  county: FilterValue[];
-  lender: FilterValue[];
-  lienStatus: FilterValue[];
-  loanPurpose: FilterValue[];
-  metro: FilterValue[];
-  ownerOccupancy: FilterValue[];
-  propertyType: FilterValue[];
-}
-
-export const filterChoices = OrderedMap<keyof LARFilters, LARFilterConfig>([
-  ["loanPurpose", {
-    choices: [
-      new FilterValue({ id: "1", name: "Home Purchase" }),
-      new FilterValue({ id: "2", name: "Home Improvement" }),
-      new FilterValue({ id: "3", name: "Refinance" }),
-    ],
-    fieldName: "loan_purpose",
-    name: "Loan Purpose",
-  }],
-  ["propertyType", {
-    choices: [
-      new FilterValue({ id: "1", name: "One to Four-family" }),
-      new FilterValue({ id: "2", name: "Manufactured" }),
-      new FilterValue({ id: "3", name: "Multi-family" }),
-    ],
-    fieldName: "property_type",
-    name: "Property Type",
-  }],
-  ["ownerOccupancy", {
-    choices: [
-      new FilterValue({ id: "1", name: "Owner-occupied" }),
-      new FilterValue({ id: "2", name: "Not Owner-occupied" }),
-      new FilterValue({ id: "3", name: "N/A" }),
-    ],
-    fieldName: "owner_occupancy",
-    name: "Ownership",
-  }],
-  ["lienStatus", {
-    choices: [
-      new FilterValue({ id: "1", name: "First" }),
-      new FilterValue({ id: "2", name: "Subordinate" }),
-      new FilterValue({ id: "3", name: "No Lien" }),
-      new FilterValue({ id: "4", name: "N/A" }),
-    ],
-    fieldName: "lien_status",
-    name: "Lien Status",
-  }],
-]);
-export const choiceLookup = {
-  lienStatus: {
-    1: filterChoices.get("lienStatus").choices[0],
-    2: filterChoices.get("lienStatus").choices[1],
-    3: filterChoices.get("lienStatus").choices[2],
-    4: filterChoices.get("lienStatus").choices[3],
-  },
-  loanPurpose: {
-    1: filterChoices.get("loanPurpose").choices[0],
-    2: filterChoices.get("loanPurpose").choices[1],
-    3: filterChoices.get("loanPurpose").choices[2],
-  },
-  ownerOccupancy: {
-    1: filterChoices.get("ownerOccupancy").choices[0],
-    2: filterChoices.get("ownerOccupancy").choices[1],
-    3: filterChoices.get("ownerOccupancy").choices[2],
-  },
-  propertyType: {
-    1: filterChoices.get("propertyType").choices[0],
-    2: filterChoices.get("propertyType").choices[1],
-    3: filterChoices.get("propertyType").choices[2],
-  },
-};
-export const homePurchase = {
-  lienStatus: [choiceLookup.lienStatus["1"]],
-  loanPurpose: [choiceLookup.loanPurpose["1"]],
-  ownerOccupancy: [choiceLookup.ownerOccupancy["1"]],
-  propertyType: [choiceLookup.propertyType["1"]],
-};
-export const refinance = {
-  ...homePurchase,
-  loanPurpose: [choiceLookup.loanPurpose["3"]],
-};
-
-export type FilterGroup = "homePurchase" | "refinance" | "custom";
 
 export default interface LARLayer {
   available: {
@@ -140,10 +80,51 @@ export const SAFE_INIT: LARLayer = {
   available: { states: [], years: [] },
   filterGroup: "homePurchase",
   filters: {
-    ...homePurchase,
-    county: [],
-    lender: [],
-    metro: [],
+    county: {
+      label: "County",
+      options: Map<string, Geo>(),
+      selected: Set<string>(),
+    },
+    lender: {
+      label: "Lender",
+      options: Map<string, string>(),
+      selected: Set<string>(),
+    },
+    lienStatus: {
+      label: "Lien Status",
+      options: OrderedMap([
+        ["1", "First"], ["2", "Subordinate"], ["3", "No Lien"], ["4", "N/A"],
+      ]),
+      selected: homePurchase.lienStatus,
+    },
+    loanPurpose: {
+      label: "Loan Purpose",
+      options: OrderedMap([
+        ["1", "Home Purchase"], ["2", "Home Improvement"], ["3", "Refinance"],
+      ]),
+      selected: homePurchase.loanPurpose,
+    },
+    metro: {
+      label: "Metro",
+      options: Map<string, Geo>(),
+      selected: Set<string>(),
+    },
+    ownerOccupancy: {
+      label: "Owner Occupancy",
+      options: OrderedMap([
+        ["1", "Owner-occupied"], ["2", "Not Owner-occupied"], ["3", "N/A"],
+      ]),
+      selected: homePurchase.ownerOccupancy,
+    },
+    propertyType: {
+      label: "Property Type",
+      options: OrderedMap([
+        ["1", "One to Four-family"],
+        ["2", "Manufactured"],
+        ["3", "Multi-family"],
+      ]),
+      selected: homePurchase.propertyType,
+    },
   },
   lar: [],
   stateFips: "",
@@ -154,110 +135,102 @@ const actionCreator = actionCreatorFactory("LAR_LAYER");
 
 export const setStateFips = actionCreator<string>("SET_STATE_FIPS");
 export const setYear = actionCreator<number>("SET_YEAR");
+export const addOptions = actionCreator<FilterOptions>("ADD_OPTIONS");
 
 const asyncActionCreator = asyncFactory<LARLayer>(actionCreator);
 
-export function orderedUnion(
-  oldEntries: FilterValue[],
-  toAdd: FilterValue[],
-): FilterValue[] {
-  const removed = oldEntries.filter(
-    existing => !toAdd.some(added => added.id === existing.id),
-  );
-  // Ensure order is preserved
-  return [...removed, ...toAdd].sort((l, r) => l.compareNameWith(r));
-}
-
-function filtersToLar(original: LARFilters, overrides: Partial<LARFilters>) {
-  const asIds: any = {};
-  Object.keys(original).forEach(
-    key => asIds[key] = original[key].map(f => f.id),
-  );
-  Object.keys(overrides).forEach(
-    key => asIds[key] = overrides[key].map(f => f.id),
-  );
-  filterChoices.forEach((config, filterName) => {
-    if (config && filterName) {
-      asIds[config.fieldName] = asIds[filterName];
-      delete asIds[filterName];
-    }
-  });
-  return fetchLar(asIds);
-}
-
-export const addFilters =
-  asyncActionCreator<[keyof LARFilters, FilterValue[]], LARPoint[]>(
-    "ADD_FILTERS",
-    ([filterName, values], dispatch, getState: () => any) => filtersToLar(
-      getState().larLayer.filters,
-      { [filterName]:
-          orderedUnion(getState().larLayer.filters[filterName], values),
-      },
-    ),
-  );
-export const removeFilter =
-  asyncActionCreator<[keyof LARFilters, string], LARPoint[]>(
-    "REMOVE_FITLER",
-    ([filterName, filterId], dispatch, getState: () => any) => filtersToLar(
-      getState().larLayer.filters,
-      { [filterName]:
-          getState().larLayer.filters[filterName].filter(f => f.id !== filterId),
-      },
-    ),
-  );
-export const setFilters = asyncActionCreator<Partial<LARFilters>, LARPoint[]>(
-    "SET_FILTERS",
-    (overrides, dispatch, getState: () => any) => filtersToLar(
-      getState().larLayer.filters,
-      overrides,
-    ),
-  );
-
+export const selectFilters = asyncActionCreator<FilterSelection, LARPoint[]>(
+  "SELECT_FILTERS",
+  (selection, dispatch, getState: () => any) => {
+    const asIds: FilterSelection = {};
+    const { filters } = getState().larLayer;
+    Object.keys(filters).forEach(filterName => {
+      asIds[filterName] = selection[filterName] || filters[filterName].selected;
+    });
+    return fetchLar(asIds);
+  },
+);
 export const setFilterGroup = asyncActionCreator<FilterGroup, void>(
   "SET_FILTER_GROUP",
   (filterGroup, dispatch) => {
     if (filterGroup === "homePurchase") {
-      dispatch(setFilters.action(homePurchase));
+      dispatch(selectFilters.action(homePurchase));
     } else if (filterGroup === "refinance") {
-      dispatch(setFilters.action(refinance));
+      dispatch(selectFilters.action(refinance));
+    }
+  },
+);
+export const zoomToGeos = asyncActionCreator<void, void>(
+  "ZOOM_TO_GEOS",
+  (_, dispatch, getState: () => any) => {
+    const { larLayer, window: { height, width } } = getState();
+    const { filters } = larLayer;
+    const countyGeos: Geo[] = filters.county.selected.toArray().map(
+      id => filters.county.options.get(id),
+    );
+    const metroGeos: Geo[] = filters.metro.selected.toArray().map(
+      id => filters.metro.options.get(id),
+    );
+    const geos = countyGeos.concat(metroGeos);
+    if (geos.length) {
+      const bounds = [
+        [
+          Math.max(...geos.map(g => g.maxlon)),
+          Math.min(...geos.map(g => g.minlat)),
+        ],
+        [
+          Math.min(...geos.map(g => g.minlon)),
+          Math.max(...geos.map(g => g.maxlat)),
+        ],
+      ];
+
+      const { latitude, longitude, zoom } = fitBounds({
+        bounds,
+        height,
+        width,
+      });
+      dispatch(transitionViewport({ latitude, longitude, zoom }));
     }
   },
 );
 
+function mergeFilters(filters: LARFilters, selection: FilterSelection): LARFilters {
+  const result = { ...filters };
+  Object.keys(selection).forEach(filterName => {
+    result[filterName] = {
+      ...filters[filterName],
+      selected: selection[filterName],
+    };
+  });
+  return result;
+}
+function mergeOptions(filters: LARFilters, options: FilterOptions): LARFilters {
+  const result = { ...filters };
+  Object.keys(options).forEach(filterName => {
+    result[filterName] = {
+      ...filters[filterName],
+      options: filters[filterName].options.merge(options[filterName]),
+    };
+  });
+  return result;
+}
+
 export const reducer = reducerWithInitialState(SAFE_INIT)
   .case(
-    addFilters.async.started,
-    (original: LARLayer, [filterName, values]) => ({
+    addOptions,
+    (original: LARLayer, options: FilterOptions) => ({
       ...original,
-      filters: {
-        ...original.filters,
-        [filterName]: orderedUnion(original.filters[filterName], values),
-      },
+      filters: mergeOptions(original.filters, options),
+    }),
+  ).case(
+    selectFilters.async.started,
+    (original: LARLayer, selection) => ({
+      ...original,
+      filters: mergeFilters(original.filters, selection),
       lar: [],
     }),
   ).case(
-    removeFilter.async.started,
-    (original: LARLayer, [filterName, filterId]) => ({
-      ...original,
-      filters: {
-        ...original.filters,
-        [filterName]: original.filters[filterName]
-          .filter(e => e.id !== filterId),
-      },
-      lar: [],
-    }),
-  ).case(
-    setFilters.async.started,
-    (original: LARLayer, overrides) => ({
-      ...original,
-      filters: {
-        ...original.filters,
-        ...overrides,
-      },
-      lar: [],
-    }),
-  ).cases(
-    [addFilters.async.done, removeFilter.async.done, setFilters.async.done],
+    selectFilters.async.done,
     (original: LARLayer, { result }) => ({
       ...original,
       lar: result,
@@ -269,6 +242,12 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
       filterGroup,
     }),
   ).case(
+    setStateFips,
+    (original: LARLayer, stateFips: string) => ({
+      ...original,
+      stateFips,
+    }),
+  ).case(
     setYear,
     (original: LARLayer, year: number) => {
       if (year === original.year) {
@@ -277,21 +256,17 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
       return {
         ...original,
         year,
-        filters: {
-          ...original.filters,
-          county: [],
-          lender: [],
-          metro: [],
-        },
+        filters: mergeFilters(
+          original.filters,
+          {
+            county: Set<string>(),
+            lender: Set<string>(),
+            metro: Set<string>(),
+          },
+        ),
         lar: [],
       };
     },
-  ).case(
-    setStateFips,
-    (original: LARLayer, stateFips: string) => ({
-      ...original,
-      stateFips,
-    }),
   ).build();
 
 export function toScatterPlot({

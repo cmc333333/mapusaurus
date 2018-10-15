@@ -1,10 +1,14 @@
 import { shallow } from "enzyme";
 import glamorous from "glamorous";
-import { OrderedMap, Set } from "immutable";
+import { Map, Set } from "immutable";
 import * as React from "react";
 
-import { filterChoices, FilterValue, setFilters } from "../../../store/LARLayer";
-import { StateFactory } from "../../../testUtils/Factory";
+import { SAFE_INIT } from "../../../store/LARLayer";
+import {
+  LARFiltersFactory,
+  LARLayerFactory,
+  StateFactory,
+} from "../../../testUtils/Factory";
 import {
   FilterSelector,
   mapDispatchToProps,
@@ -13,25 +17,18 @@ import {
 
 describe("<FilterSelector />", () => {
   const filterConfig = {
-    choices: [
-      new FilterValue({ id: "1", name: "Stuff" }),
-      new FilterValue({ id: "2", name: "Other" }),
-      new FilterValue({ id: "3", name: "Things" }),
-    ],
     fieldName: "some_stuff",
-    name: "Some Stuff",
+    label: "Some Stuff",
+    options: Map([["1", "Stuff"], ["2", "Other"], ["3", "Things"]]),
+    selected: Set(["1", "3"]),
   };
   const onChange = jest.fn();
   const rendered = shallow(
-    <FilterSelector
-      filterConfig={filterConfig}
-      onChange={onChange}
-      value={["1", "3"]}
-    />,
+    <FilterSelector filterConfig={filterConfig} onChange={onChange} />,
   );
 
   it("includes an Option for only the associated filter configs", () => {
-    const options = rendered.find(glamorous.Option);
+    const options = rendered.find("glamorous(option)");
     expect(options).toHaveLength(3);
 
     expect(options.at(0).dive().text()).toBe("Stuff");
@@ -53,15 +50,16 @@ describe("<FilterSelector />", () => {
 });
 
 test("mapStateToProps() pulls the associated filter configs", () => {
-  const state = StateFactory.build();
-  state.larLayer.filters.ownerOccupancy = [
-    filterChoices.get("ownerOccupancy").choices[1],
-    filterChoices.get("ownerOccupancy").choices[2],
-  ];
+  const state = StateFactory.build({
+    larLayer: LARLayerFactory.build({
+      filters: LARFiltersFactory.build({}, {
+        ownerOccupancySet: Set(["2", "3"]),
+      }),
+    }),
+  });
 
   const result = mapStateToProps(state, { filterId: "ownerOccupancy" });
-  expect(result.filterConfig.choices)
-    .toEqual(filterChoices.get("ownerOccupancy").choices);
-  expect(result.filterConfig.fieldName).toBe("owner_occupancy");
-  expect(result.value).toEqual(["2", "3"]);
+  expect(result.filterConfig.options)
+    .toEqual(SAFE_INIT.filters.ownerOccupancy.options);
+  expect(result.filterConfig.selected).toEqual(Set(["2", "3"]));
 });

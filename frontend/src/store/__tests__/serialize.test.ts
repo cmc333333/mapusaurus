@@ -1,9 +1,8 @@
-import { Set } from "immutable";
+import { Map, Set } from "immutable";
 import * as qs from "qs";
 
 import {
-  FiltersFactory,
-  LARFilterFactory,
+  LARFiltersFactory,
   LARLayerFactory,
   StateFactory,
   ViewportFactory,
@@ -14,10 +13,23 @@ describe("serialize()", () => {
   it("serializes the viewport, ignoring other args", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
-        filters: FiltersFactory.build({
-          county: [],
-          lender: [],
-          metro: [],
+        filters: LARFiltersFactory.build({}, {
+          countySet: {
+            options: Map<string, string>(),
+            selected: Set<string>(),
+          },
+          lenderSet: {
+            options: Map<string, string>(),
+            selected: Set<string>(),
+          },
+          lienStatusSet: Set<string>(),
+          loanPurposeSet: Set<string>(),
+          metroSet: {
+            options: Map<string, string>(),
+            selected: Set<string>(),
+          },
+          ownerOccupancySet: Set<string>(),
+          propertyTypeSet: Set<string>(),
         }),
         year: 2002,
       }),
@@ -39,24 +51,16 @@ describe("serialize()", () => {
   it("serializes lar config", () => {
     const result = serialize(StateFactory.build({
       larLayer: LARLayerFactory.build({
-        filters: FiltersFactory.build({
-          county: [
-            LARFilterFactory.build({ id: "aaa" }),
-            LARFilterFactory.build({ id: "bbb" }),
-            LARFilterFactory.build({ id: "ccc" }),
-          ],
-          lender: [
-            LARFilterFactory.build({ id: "12" }),
-            LARFilterFactory.build({ id: "34" }),
-          ],
-          metro: [LARFilterFactory.build({ id: "Z" })],
+        filters: LARFiltersFactory.build({}, {
+          countySet: {
+            options: Map<string, string>(),
+            selected: Set(["aaa", "bbb"]),
+          },
         }),
         year: 2004,
       }),
     }));
-    expect(result).toMatch(/\bcounty=aaa,bbb,ccc\b/);
-    expect(result).toMatch(/\blender=12,34\b/);
-    expect(result).toMatch(/\bmetro=Z\b/);
+    expect(result).toMatch(/\bcounty=(aaa,bbb|bbb,aaa)\b/);
     expect(result).toMatch(/\byear=2004\b/);
   });
 });

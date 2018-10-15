@@ -1,7 +1,6 @@
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { choiceLookup } from "../../store/LARLayer";
 import { largeSpace, xSmallHeading } from "../../theme";
 import FilterGroup from "./FilterGroup";
 import FilterSelector from "./FilterSelector";
@@ -9,8 +8,6 @@ import FilterSelector from "./FilterSelector";
 const H3 = glamorous.h3(xSmallHeading);
 
 export default function Filters() {
-  const selectors = Object.keys(choiceLookup)
-    .map(filterId => <FilterSelector key={filterId} filterId={filterId} />);
   return (
     <glamorous.Div margin={largeSpace}>
       <FilterGroup name="Home Purchase" filterGroup="homePurchase">
@@ -22,7 +19,10 @@ export default function Filters() {
       </FilterGroup>
       <hr />
       <FilterGroup name="Custom" filterGroup="custom">
-        {selectors}
+        <FilterSelector filterId="loanPurpose" />
+        <FilterSelector filterId="propertyType" />
+        <FilterSelector filterId="ownerOccupancy" />
+        <FilterSelector filterId="lienStatus" />
       </FilterGroup>
     </glamorous.Div>
   );

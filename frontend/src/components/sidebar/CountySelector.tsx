@@ -6,10 +6,20 @@ import { makeCountySearch } from "../../apis/geography";
 import { setStateFips } from "../../store/LARLayer";
 import State from "../../store/State";
 import FormInput, { inputStyle } from "../FormInput";
-import HMDAFilter from "./HMDAFilter";
+import HMDAFilter, { makeProps } from "./HMDAFilter";
+
+const CountyAutocomplete = connect(
+  ({ larLayer }) => ({ larLayer }),
+  dispatch => ({ dispatch }),
+  ({ larLayer }, { dispatch }, { searchFn }) => makeProps(
+    "county",
+    larLayer,
+    searchFn,
+    dispatch,
+  ),
+)(HMDAFilter);
 
 export function CountySelector({
-  counties,
   onChange,
   searchCounties,
   stateFips,
@@ -27,7 +37,7 @@ export function CountySelector({
           {states.map(s => <option key={s.fips} value={s.fips}>{s.name}</option>)}
         </glamorous.Select>
       </FormInput>
-      <HMDAFilter items={counties} searchFn={searchCounties} title="County" />
+      <CountyAutocomplete searchFn={searchCounties} />
     </>
   );
 }
@@ -37,7 +47,6 @@ export function mapStateToProps({ larLayer }: State) {
   return {
     stateFips,
     states,
-    counties: filters.county.filter(e => e.name),
     searchCounties: makeCountySearch(stateFips),
   };
 }

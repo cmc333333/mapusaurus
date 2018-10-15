@@ -7,46 +7,47 @@ import { searchLenders } from "../../apis/lenders";
 import State from "../../store/State";
 import { largeSpace } from "../../theme";
 import CountySelector from "./CountySelector";
-import HMDAFilter from "./HMDAFilter";
+import HMDAFilter, { makeProps } from "./HMDAFilter";
 import YearSelector from "./YearSelector";
 
-export function HMDAFilters({ lenders, metros, showLenders }) {
-  let lendersEl: JSX.Element | null = null;
-  if (showLenders) {
-    lendersEl = (
-      <HMDAFilter
-        filterName="lender"
-        items={lenders}
-        searchFn={searchLenders}
-        title="Lenders"
-      />
-    );
-  }
+const LenderFilter = connect(
+  ({ larLayer }) => ({ larLayer }),
+  dispatch => ({ dispatch }),
+  ({ larLayer }, { dispatch }) => makeProps(
+    "lender",
+    larLayer,
+    searchLenders,
+    dispatch,
+  ),
+)(HMDAFilter);
+const MetroFilter = connect(
+  ({ larLayer }) => ({ larLayer }),
+  dispatch => ({ dispatch }),
+  ({ larLayer }, { dispatch }) => makeProps(
+    "metro",
+    larLayer,
+    searchMetros,
+    dispatch,
+  ),
+)(HMDAFilter);
+
+export function HMDAFilters({ showLenders }) {
   return (
     <glamorous.Div margin={largeSpace}>
       <YearSelector />
       <hr />
-      <HMDAFilter
-        filterName="metro"
-        items={metros}
-        searchFn={searchMetros}
-        title="Metros"
-      />
+      <MetroFilter />
       <hr />
       <CountySelector />
       <hr />
-      {lendersEl}
+      {showLenders && <LenderFilter />}
     </glamorous.Div>
   );
 }
 
 export default connect(
-  ({ larLayer: { filters } }: State) => ({
-    lenders: filters.lender.filter(l => l.name),
-    metros: filters.metro.filter(m => m.name),
+  ({ larLayer: { filters: { county, lender, metro } } }: State) => ({
     showLenders:
-      filters.county.length > 0
-      || filters.lender.length > 0
-      || filters.metro.length > 0,
+      county.selected.size + lender.selected.size + metro.selected.size > 0,
   }),
 )(HMDAFilters);

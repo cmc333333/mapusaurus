@@ -1,10 +1,18 @@
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import glamorous from "glamorous";
+import { OrderedMap } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { addFilters, FilterValue, removeFilter } from "../../store/LARLayer";
+import { Geo } from "../../apis/geography";
+import LARLayer, {
+  addOptions,
+  FilterConfig,
+  LARFilters,
+  selectFilters,
+  zoomToGeos,
+} from "../../store/LARLayer";
 import {
   inverted,
   largeSpace,
@@ -15,11 +23,7 @@ import {
 import Autocomplete from "../Autocomplete";
 import FormInput from "../FormInput";
 
-export function ExistingFilter({ filter, removeFn }) {
-  const removeClick = ev => {
-    ev.preventDefault();
-    removeFn(filter);
-  };
+export function ExistingFilter({ name, onClick }) {
   return (
     <glamorous.Li
       {...inverted}
@@ -34,36 +38,38 @@ export function ExistingFilter({ filter, removeFn }) {
         float="right"
         href="#"
         marginRight={typography.rhythm(-.75)}
-        onClick={removeClick}
+        onClick={onClick}
         title="Remove"
       >
         <FontAwesomeIcon icon={faTimesCircle} />
       </glamorous.A>
-      {filter.name}
+      {name}
     </glamorous.Li>
   );
 }
 
-export function HMDAFilter({
-  addFn,
-  items,
-  removeFn,
-  searchFn,
-  title,
-  year,
-}) {
-  const props = {
-    fetchFn: (value: string) => searchFn(value, year),
-    setValue: addFn,
-    toValue: input => input.name || "",
-  };
-  const lis = items.map(
-    item => <ExistingFilter filter={item} key={item.id} removeFn={removeFn} />,
+export interface HMDAFilterPropTypes<T> {
+  existing: { id: string, name: string, onClick: (ev) => void }[];
+  fetchFn: (str: string) => Promise<[string, T][]>;
+  label: string;
+  setValue: (input: [string, T]) => void;
+}
+
+export default function HMDAFilter<T>({
+  existing,
+  fetchFn,
+  label,
+  setValue,
+}: HMDAFilterPropTypes<T>) {
+  const toString = ([id, value]) => `${value}`;
+  const lis = existing.map(({ id, name, onClick }) =>
+    <ExistingFilter key={id} name={name} onClick={onClick} />,
   );
+
   return (
     <glamorous.Div marginBottom={largeSpace} marginTop={largeSpace}>
-      <FormInput name={title}>
-        <Autocomplete {...props} />
+      <FormInput name={label}>
+        <Autocomplete fetchFn={fetchFn} setValue={setValue} toString={toString} />
       </FormInput>
       <glamorous.Ul listStyle="none" margin={0} marginTop={mediumSpace}>
         {lis}
@@ -72,12 +78,40 @@ export function HMDAFilter({
   );
 }
 
-export default connect(
-  ({ larLayer: { year } }) => ({ year }),
-  (dispatch, { filterName }) => ({
-    addFn: (filter: FilterValue) =>
-      dispatch(addFilters.action([filterName, [filter]])),
-    removeFn: (filter: FilterValue) =>
-      dispatch(removeFilter.action([filterName, filter.id])),
-  }),
-)(HMDAFilter);
+export function makeProps<T extends (Geo | string)>(
+  filterName: keyof LARFilters,
+  larLayer: LARLayer,
+  searchFn: (term: string, year: number) => Promise<OrderedMap<string, T>>,
+  dispatch,
+): HMDAFilterPropTypes<T> {
+  const config: FilterConfig<Geo | string> = larLayer.filters[filterName];
+  const { label } = config;
+  const existing = config.selected.toArray()
+    .filter(id => config.options.has(id))
+    .map(id => ({
+      id,
+      name: `${config.options.get(id)}`,
+      onClick: ev => {
+        ev.preventDefault();
+        dispatch(selectFilters.action({
+          [filterName]: config.selected.remove(id),
+        }));
+      },
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const fetchFn = async (str: string) => {
+    const result: OrderedMap<string, T> = await searchFn(str, larLayer.year);
+    return result.entrySeq().toArray() as [string, T][];
+  };
+  const setValue = ([id, value]) => {
+    dispatch(addOptions({ [filterName]: OrderedMap([[id, value]]) }));
+    dispatch(selectFilters.action({
+      [filterName]: config.selected.add(id),
+    }));
+    if (filterName !== "lender") {
+      dispatch(zoomToGeos.action());
+    }
+  };
+
+  return { existing, fetchFn, label, setValue };
+}

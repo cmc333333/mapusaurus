@@ -1,4 +1,5 @@
 import axios from "axios";
+import { Set } from "immutable";
 
 import { fetchLar } from "../lar";
 
@@ -11,7 +12,7 @@ afterEach(getMock.mockReset);
 describe("fetchLar()", () => {
   it("hits the right endpoint", async () => {
     getMock.mockImplementationOnce(() => ({ data: [] }));
-    await fetchLar({ lender: ["2012abcd123"], metro: ["333"] });
+    await fetchLar({ lender: Set(["2012abcd123"]), metro: Set(["333"]) });
     expect(getMock).toHaveBeenCalled();
     const options = getMock.mock.calls[0][1];
     expect(options.params).toEqual({
@@ -28,7 +29,7 @@ describe("fetchLar()", () => {
   });
 
   it("requires a geo", async () => {
-    const result = await fetchLar({ lender: ["1"] });
+    const result = await fetchLar({ lender: Set(["1"]) });
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
@@ -57,7 +58,11 @@ describe("fetchLar()", () => {
         },
       ],
     }));
-    const lar = await fetchLar({ county: ["1"], lender: ["2"], metro: ["3"] });
+    const lar = await fetchLar({
+      county: Set(["1"]),
+      lender: Set(["2"]),
+      metro: Set(["3"]),
+    });
 
     // Ensure a consistent order
     lar.sort((l, r) => l.loanCount - r.loanCount);

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { OrderedMap, Set } from "immutable";
 
 import { fetchLenders, searchLenders } from "../lenders";
 
@@ -11,19 +12,18 @@ afterEach(getMock.mockReset);
 describe("fetchLenders()", () => {
   it("hits the right endpoint", async () => {
     getMock.mockImplementationOnce(() => ({ data: { results: [] } }));
-    await fetchLenders(["2012abcd123", "2013bcde234"]);
+    await fetchLenders(Set(["2012abcd123", "2013bcde234"]));
     expect(getMock).toHaveBeenCalled();
     const [url, options] = getMock.mock.calls[0];
     expect(url).toBe("/api/respondents/");
-    expect(options.params).toEqual({
-      institution_id__in: "2012abcd123,2013bcde234",
-    });
+    expect(["2012abcd123,2013bcde234", "2013bcde234,2012abcd123"])
+      .toContain(options.params.institution_id__in);
   });
 
   it("handles empty data", async () => {
-    const result = await fetchLenders([]);
+    const result = await fetchLenders(Set([]));
     expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual([]);
+    expect(result).toEqual(OrderedMap<string, string>());
   });
 
   it("transforms the result", async () => {
@@ -31,12 +31,9 @@ describe("fetchLenders()", () => {
       { institution_id: "abc", name: "AAA" },
       { institution_id: "def", name: "BBB" },
     ]}}));
-    const result = await fetchLenders(["2012abcd123"]);
+    const result = await fetchLenders(Set(["2012abcd123"]));
 
-    expect(result).toEqual([
-      { id: "abc", name: "AAA" },
-      { id: "def", name: "BBB" },
-    ]);
+    expect(result).toEqual(OrderedMap([["abc", "AAA"], ["def", "BBB"]]));
   });
 });
 
@@ -61,9 +58,6 @@ describe("searchLenders()", () => {
     ]}}));
     const result = await searchLenders("1234", 2000);
 
-    expect(result).toEqual([
-      { id: "abc", name: "AAA" },
-      { id: "def", name: "BBB" },
-    ]);
+    expect(result).toEqual(OrderedMap([["abc", "AAA"], ["def", "BBB"]]));
   });
 });

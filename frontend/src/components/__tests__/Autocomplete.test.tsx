@@ -9,7 +9,6 @@ describe("<Autocomplete />", () => {
       <Autocomplete
         fetchFn={jest.fn()}
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     );
     expect(result.find("Autosuggest")).toHaveLength(1);
@@ -21,7 +20,6 @@ describe("<Autocomplete />", () => {
       <Autocomplete
         fetchFn={fetchFn}
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     );
     const makeRequest: any = result
@@ -38,7 +36,6 @@ describe("<Autocomplete />", () => {
       <Autocomplete
         fetchFn={jest.fn()}
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     );
     result.setState({ suggestions: [1, 2, 3], value: "123" });
@@ -57,7 +54,6 @@ describe("<Autocomplete />", () => {
       <Autocomplete
         fetchFn={jest.fn()}
         setValue={setValue}
-        toValue={jest.fn()}
       />,
     );
     const makeRequest: any = result
@@ -72,7 +68,6 @@ describe("<Autocomplete />", () => {
       <Autocomplete
         fetchFn={jest.fn()}
         setValue={jest.fn()}
-        toValue={jest.fn()}
       />,
     );
     expect(result.find("Loading")).toHaveLength(0);
