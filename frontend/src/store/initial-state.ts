@@ -81,11 +81,11 @@ export function deriveMapbox(windowConfig): Mapbox {
 
 export function deriveViewport(hash: string): Viewport {
   const parsed = qs.parse(hash);
-  const { latitude, longitude, zoom } = viewportInit;
   return {
-    latitude: parseFloat(parsed.latitude) || latitude,
-    longitude: parseFloat(parsed.longitude) || longitude,
-    zoom: parseFloat(parsed.zoom) || zoom,
+    ...viewportInit,
+    latitude: parseFloat(parsed.latitude) || viewportInit.latitude,
+    longitude: parseFloat(parsed.longitude) || viewportInit.longitude,
+    zoom: parseFloat(parsed.zoom) || viewportInit.zoom,
   };
 }
 

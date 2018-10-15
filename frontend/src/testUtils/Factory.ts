@@ -12,6 +12,7 @@ const randZoom = () => random.integer(1, 14);
 export const ViewportFactory = new Factory().attrs({
   latitude: randLat,
   longitude: randLon,
+  transitionDuration: () => 0,
   zoom: randZoom,
 });
 

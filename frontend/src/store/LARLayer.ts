@@ -7,7 +7,7 @@ import { fitBounds } from "viewport-mercator-project";
 
 import { Geo } from "../apis/geography";
 import { fetchLar } from "../apis/lar";
-import { setViewport } from "./Viewport";
+import { transitionViewport } from "./Viewport";
 
 export interface LARPoint {
   geoid: string;
@@ -189,7 +189,7 @@ export const zoomToGeos = asyncActionCreator<void, void>(
         height,
         width,
       });
-      dispatch(setViewport({ latitude, longitude, zoom }));
+      dispatch(transitionViewport({ latitude, longitude, zoom }));
     }
   },
 );
