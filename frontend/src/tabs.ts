@@ -30,18 +30,6 @@ export class Tab {
 
 export default [
   new Tab({
-    Component: ChoroplethSelection,
-    icon: faLayerGroup,
-    id: "layers",
-    title: "Demographics",
-  }),
-  new Tab({
-    Component: FeatureSelection,
-    icon: faGlobe,
-    id: "features",
-    title: "Map Features",
-  }),
-  new Tab({
     Component: HMDAFilters,
     icon: faHome,
     id: "lar",
@@ -52,5 +40,17 @@ export default [
     icon: faSlidersH,
     id: "filters",
     title: "Filters",
+  }),
+  new Tab({
+    Component: ChoroplethSelection,
+    icon: faLayerGroup,
+    id: "layers",
+    title: "Demographics",
+  }),
+  new Tab({
+    Component: FeatureSelection,
+    icon: faGlobe,
+    id: "features",
+    title: "Map Features",
   }),
 ];
