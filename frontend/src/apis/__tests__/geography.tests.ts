@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Map, Set } from "immutable";
+import { OrderedMap, Set } from "immutable";
 
 import { fetchGeos } from "../geography";
 
@@ -23,6 +23,6 @@ describe("fetchGeos()", () => {
   it("handles empty data", async () => {
     const result = await fetchGeos(Set([]));
     expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual(Map<string, string>());
+    expect(result).toEqual(OrderedMap<string, string>());
   });
 });

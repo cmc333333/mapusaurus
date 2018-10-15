@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Map, Set } from "immutable";
+import { OrderedMap, Set } from "immutable";
 
 import { fetchLenders, searchLenders } from "../lenders";
 
@@ -23,7 +23,7 @@ describe("fetchLenders()", () => {
   it("handles empty data", async () => {
     const result = await fetchLenders(Set([]));
     expect(getMock).not.toHaveBeenCalled();
-    expect(result).toEqual(Map<string, string>());
+    expect(result).toEqual(OrderedMap<string, string>());
   });
 
   it("transforms the result", async () => {
@@ -33,7 +33,7 @@ describe("fetchLenders()", () => {
     ]}}));
     const result = await fetchLenders(Set(["2012abcd123"]));
 
-    expect(result).toEqual(Map([["abc", "AAA"], ["def", "BBB"]]));
+    expect(result).toEqual(OrderedMap([["abc", "AAA"], ["def", "BBB"]]));
   });
 });
 
@@ -58,6 +58,6 @@ describe("searchLenders()", () => {
     ]}}));
     const result = await searchLenders("1234", 2000);
 
-    expect(result).toEqual(Map([["abc", "AAA"], ["def", "BBB"]]));
+    expect(result).toEqual(OrderedMap([["abc", "AAA"], ["def", "BBB"]]));
   });
 });

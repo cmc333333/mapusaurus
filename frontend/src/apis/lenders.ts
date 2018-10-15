@@ -1,7 +1,7 @@
 import axios from "axios";
-import { Map, Set } from "immutable";
+import { OrderedMap, Set } from "immutable";
 
-export async function fetchLenders(ids: Set<string>): Promise<Map<string, string>> {
+export async function fetchLenders(ids: Set<string>): Promise<OrderedMap<string, string>> {
   if (ids.size) {
     const response = await axios.get(
       "/api/respondents/",
@@ -9,22 +9,22 @@ export async function fetchLenders(ids: Set<string>): Promise<Map<string, string
     );
     return response.data.results.reduce(
       (soFar, { institution_id, name }) => soFar.set(institution_id, name),
-      Map<string, string>(),
+      OrderedMap<string, string>(),
     );
   }
-  return Map<string, string>();
+  return OrderedMap<string, string>();
 }
 
 export async function searchLenders(
   text: string,
   year: number,
-): Promise<Map<string, string>> {
+): Promise<OrderedMap<string, string>> {
   const response = await axios.get(
     "/institutions/search/",
     { params: { year, auto: 1, q: text } },
   );
   return response.data.institutions.reduce(
     (soFar, { institution_id, name }) => soFar.set(institution_id, name),
-    Map<string, string>(),
+    OrderedMap<string, string>(),
   );
 }

@@ -1,7 +1,7 @@
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import glamorous from "glamorous";
-import { Map } from "immutable";
+import { OrderedMap } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
@@ -81,7 +81,7 @@ export default function HMDAFilter<T>({
 export function makeProps<T extends (Geo | string)>(
   filterName: keyof LARFilters,
   larLayer: LARLayer,
-  searchFn: (term: string, year: number) => Promise<Map<string, T>>,
+  searchFn: (term: string, year: number) => Promise<OrderedMap<string, T>>,
   dispatch,
 ): HMDAFilterPropTypes<T> {
   const config: FilterConfig<Geo | string> = larLayer.filters[filterName];
@@ -100,11 +100,11 @@ export function makeProps<T extends (Geo | string)>(
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
   const fetchFn = async (str: string) => {
-    const result: Map<string, T> = await searchFn(str, larLayer.year);
+    const result: OrderedMap<string, T> = await searchFn(str, larLayer.year);
     return result.entrySeq().toArray() as [string, T][];
   };
   const setValue = ([id, value]) => {
-    dispatch(addOptions({ [filterName]: Map([[id, value]]) }));
+    dispatch(addOptions({ [filterName]: OrderedMap([[id, value]]) }));
     dispatch(selectFilters.action({
       [filterName]: config.selected.add(id),
     }));
