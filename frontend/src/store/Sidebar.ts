@@ -10,7 +10,7 @@ export default interface Sidebar {
 }
 
 export const SAFE_INIT: Sidebar = {
-  activeTabId: "layers",
+  activeTabId: "lar",
   expanded: true,
 };
 
