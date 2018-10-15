@@ -23,12 +23,14 @@ export function Map({
   const layers = [
     new ScatterplotLayer({
       data: scatterPlot,
-      getColor: [0, 0, 0, 200],
+      getColor: [255, 158, 22, 200],
+      id: "lar-circle",
       radiusScale: 2500,
     }),
     new ScatterplotLayer({
       data: scatterPlot,
-      getColor: [255, 255, 255, 255],
+      getColor: [0, 0, 0, 255],
+      id: "lar-outline",
       outline: true,
       radiusScale: 2500,
     }),
