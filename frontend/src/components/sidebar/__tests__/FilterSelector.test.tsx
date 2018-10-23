@@ -3,12 +3,8 @@ import glamorous from "glamorous";
 import { Map, Set } from "immutable";
 import * as React from "react";
 
-import { SAFE_INIT } from "../../../store/LARLayer";
-import {
-  LARFiltersFactory,
-  LARLayerFactory,
-  StateFactory,
-} from "../../../testUtils/Factory";
+import { LienStatus, setFilters } from "../../../store/Lar/Filters";
+import { StateFactory } from "../../../testUtils/Factory";
 import {
   FilterSelector,
   mapDispatchToProps,
@@ -16,16 +12,13 @@ import {
 } from "../FilterSelector";
 
 describe("<FilterSelector />", () => {
-  const filterConfig = {
-    fieldName: "some_stuff",
+  const props = {
     label: "Some Stuff",
-    options: Map([["1", "Stuff"], ["2", "Other"], ["3", "Things"]]),
-    selected: Set(["1", "3"]),
+    nameMapping: { 1: "Stuff", 2: "Other", 3: "Things" },
+    onChange: jest.fn(),
+    value: Set(["1", "3"]),
   };
-  const onChange = jest.fn();
-  const rendered = shallow(
-    <FilterSelector filterConfig={filterConfig} onChange={onChange} />,
-  );
+  const rendered = shallow(<FilterSelector {...props} />);
 
   it("includes an Option for only the associated filter configs", () => {
     const options = rendered.find("glamorous(option)");
@@ -43,23 +36,40 @@ describe("<FilterSelector />", () => {
 
   it("triggers the onChange", () => {
     const select = rendered.find(glamorous.Select);
-    expect(onChange).not.toBeCalled();
+    expect(props.onChange).not.toBeCalled();
     select.simulate("change");
-    expect(onChange).toBeCalled();
+    expect(props.onChange).toBeCalled();
   });
 });
 
 test("mapStateToProps() pulls the associated filter configs", () => {
-  const state = StateFactory.build({
-    larLayer: LARLayerFactory.build({
-      filters: LARFiltersFactory.build({}, {
-        ownerOccupancySet: Set(["2", "3"]),
-      }),
-    }),
-  });
+  const state = StateFactory.build();
+  state.lar.filters.ownerOccupancy = Set(["2", "3"]);
 
   const result = mapStateToProps(state, { filterId: "ownerOccupancy" });
-  expect(result.filterConfig.options)
-    .toEqual(SAFE_INIT.filters.ownerOccupancy.options);
-  expect(result.filterConfig.selected).toEqual(Set(["2", "3"]));
+  expect(result.nameMapping).toEqual({
+    1: "Owner-occupied",
+    2: "Not Owner-occupied",
+    3: "N/A",
+  });
+  expect(result.value.sort()).toEqual(["2", "3"]);
+});
+
+test("mapDispatchToProps() triggers a setFilters", () => {
+  const dispatch = jest.fn();
+  mapDispatchToProps(dispatch, { filterId: "lienStatus" }).onChange({
+    target: {
+      options: [
+        { selected: false, value: "1" },
+        { selected: true, value: "2" },
+        { selected: false, value: "3" },
+        { selected: true, value: "4" },
+      ],
+    },
+  });
+
+  expect(dispatch).toHaveBeenCalledTimes(2);
+  expect(dispatch.mock.calls[0]).toEqual([
+    setFilters({ lienStatus: Set<LienStatus>(["2", "4"]) }),
+  ]);
 });

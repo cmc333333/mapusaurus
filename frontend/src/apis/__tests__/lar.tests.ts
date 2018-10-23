@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Set } from "immutable";
 
+import { FiltersFactory } from "../../testUtils/Factory";
 import { fetchLar } from "../lar";
 
 jest.mock("axios");
@@ -12,29 +13,50 @@ afterEach(getMock.mockReset);
 describe("fetchLar()", () => {
   it("hits the right endpoint", async () => {
     getMock.mockImplementationOnce(() => ({ data: [] }));
-    await fetchLar({ lender: Set(["2012abcd123"]), metro: Set(["333"]) });
+    await fetchLar(FiltersFactory.build({
+      county: Set(["111"]),
+      lender: Set(["222"]),
+      lienStatus: Set(["4"]),
+      loanPurpose: Set(["3"]),
+      metro: Set(["333"]),
+      ownerOccupancy: Set(["2"]),
+      propertyType: Set(["1"]),
+    }));
     expect(getMock).toHaveBeenCalled();
     const options = getMock.mock.calls[0][1];
     expect(options.params).toEqual({
       action_taken: "1,2,3,4,5",
-      lender: "2012abcd123",
+      county: "111",
+      lender: "222",
+      lien_status: "4",
+      loan_purpose: "3",
       metro: "333",
+      owner_occupancy: "2",
+      property_type: "1",
     });
   });
 
   it("handles non-hmda displays", async () => {
-    const result = await fetchLar({});
+    const result = await fetchLar(FiltersFactory.build({
+      county: Set<string>(),
+      lender: Set<string>(),
+      metro: Set<string>(),
+    }));
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 
   it("requires a geo", async () => {
-    const result = await fetchLar({ lender: Set(["1"]) });
+    const result = await fetchLar(FiltersFactory.build({
+      county: Set<string>(),
+      lender: Set(["1"]),
+      metro: Set<string>(),
+    }));
     expect(getMock).not.toHaveBeenCalled();
     expect(result).toEqual([]);
   });
 
-  it("creates an action in the right format", async () => {
+  it("creates results in the right format", async () => {
     getMock.mockImplementationOnce(() => ({
       data: [
         {
@@ -58,11 +80,7 @@ describe("fetchLar()", () => {
         },
       ],
     }));
-    const lar = await fetchLar({
-      county: Set(["1"]),
-      lender: Set(["2"]),
-      metro: Set(["3"]),
-    });
+    const lar = await fetchLar(FiltersFactory.build());
 
     // Ensure a consistent order
     lar.sort((l, r) => l.loanCount - r.loanCount);

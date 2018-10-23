@@ -2,8 +2,8 @@ import { Map, Set } from "immutable";
 import * as qs from "qs";
 
 import {
-  LARFiltersFactory,
-  LARLayerFactory,
+  FiltersFactory,
+  LarFactory,
   StateFactory,
   ViewportFactory,
 } from "../../testUtils/Factory";
@@ -12,26 +12,17 @@ import serialize, { setupSerialization } from "../serialize";
 describe("serialize()", () => {
   it("serializes the viewport, ignoring other args", () => {
     const result = serialize(StateFactory.build({
-      larLayer: LARLayerFactory.build({
-        filters: LARFiltersFactory.build({}, {
-          countySet: {
-            options: Map<string, string>(),
-            selected: Set<string>(),
-          },
-          lenderSet: {
-            options: Map<string, string>(),
-            selected: Set<string>(),
-          },
-          lienStatusSet: Set<string>(),
-          loanPurposeSet: Set<string>(),
-          metroSet: {
-            options: Map<string, string>(),
-            selected: Set<string>(),
-          },
-          ownerOccupancySet: Set<string>(),
-          propertyTypeSet: Set<string>(),
+      lar: LarFactory.build({
+        filters: FiltersFactory.build({
+          county: Set<string>(),
+          lender: Set<string>(),
+          lienStatus: Set<string>(),
+          loanPurpose: Set<string>(),
+          metro: Set<string>(),
+          ownerOccupancy: Set<string>(),
+          propertyType: Set<string>(),
+          year: 2002,
         }),
-        year: 2002,
       }),
       viewport: ViewportFactory.build({
         latitude: 44,
@@ -50,14 +41,11 @@ describe("serialize()", () => {
 
   it("serializes lar config", () => {
     const result = serialize(StateFactory.build({
-      larLayer: LARLayerFactory.build({
-        filters: LARFiltersFactory.build({}, {
-          countySet: {
-            options: Map<string, string>(),
-            selected: Set(["aaa", "bbb"]),
-          },
+      lar: LarFactory.build({
+        filters: FiltersFactory.build({
+          county: Set(["aaa", "bbb"]),
+          year: 2004,
         }),
-        year: 2004,
       }),
     }));
     expect(result).toMatch(/\bcounty=(aaa,bbb|bbb,aaa)\b/);

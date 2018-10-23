@@ -3,30 +3,8 @@ import glamorous from "glamorous";
 import { Map, Set } from "immutable";
 import * as React from "react";
 
-import {
-  LARFiltersFactory,
-  LARLayerFactory,
-  StateFactory,
-} from "../../../testUtils/Factory";
-import HMDAFilter, { ExistingFilter, makeProps } from "../HMDAFilter";
-
-describe("<ExistingFilter />", () => {
-  it("renders the correct name", () => {
-    const rendered = shallow(
-      <ExistingFilter name="NameName" onClick={jest.fn()} />,
-    );
-    expect(rendered.dive().text()).toMatch("NameName");
-  });
-
-  it("calls the remove fn when clicked", () => {
-    const onClick = jest.fn();
-    const rendered = shallow(
-      <ExistingFilter name="" onClick={onClick} />,
-    ).find(glamorous.A);
-    rendered.simulate("click", { some: "stuff" });
-    expect(onClick).toHaveBeenCalledWith({ some: "stuff" });
-  });
-});
+import HMDAFilter from "../HMDAFilter";
+import RemovableFilter from "../RemovableFilter";
 
 describe("<HMDAFilter />", () => {
   it("includes the title", () => {
@@ -34,6 +12,7 @@ describe("<HMDAFilter />", () => {
       <HMDAFilter
         existing={[]}
         fetchFn={jest.fn()}
+        fieldName="county"
         label="Some Title"
         setValue={jest.fn()}
       />,
@@ -48,6 +27,7 @@ describe("<HMDAFilter />", () => {
       <HMDAFilter
         existing={[]}
         fetchFn={fetchFn}
+        fieldName="county"
         label="Title Here"
         setValue={setValue}
       />,
@@ -57,69 +37,19 @@ describe("<HMDAFilter />", () => {
     expect(props.setValue).toBe(setValue);
   });
 
-  it("includes an ExistingFilter per item", () => {
-    const onClick = jest.fn();
-    const existing = [
-      { onClick, id: "a", name: "AName" },
-      { onClick, id: "b", name: "BName" },
-      { onClick, id: "c", name: "CName" },
-    ];
+  it("includes an RemovableFilter per item", () => {
     const lis = shallow(
       <HMDAFilter
-        existing={existing}
+        existing={["a", "b", "c"]}
         fetchFn={jest.fn()}
+        fieldName="metro"
         label="Title Here"
         setValue={jest.fn()}
       />,
-    ).find(ExistingFilter);
+    ).find(RemovableFilter);
     expect(lis).toHaveLength(3);
-    expect(lis.at(0).prop("name")).toBe("AName");
-    expect(lis.at(1).prop("name")).toBe("BName");
-    expect(lis.at(2).prop("name")).toBe("CName");
-  });
-});
-
-describe("makeProps()", () => {
-  it("transforms the existing filters", () => {
-    const larLayer = LARLayerFactory.build({
-      filters: LARFiltersFactory.build({}, {
-        lenderSet: {
-          options: Map([
-            ["111", "OneOneOne"],
-            ["222", "TwoTwoTwo"],
-            ["333", "ThreeThreeThree"],
-            ["444", "FourFourFour"],
-          ]),
-          selected: Set(["111", "333", "444"]),
-        },
-      }),
-    });
-
-    const { existing } = makeProps("lender", larLayer, jest.fn(), jest.fn());
-
-    expect(existing).toHaveLength(3);
-    expect(existing[0]).toMatchObject({ id: "444", name: "FourFourFour" });
-    expect(existing[1]).toMatchObject({ id: "111", name: "OneOneOne" });
-    expect(existing[2]).toMatchObject({ id: "333", name: "ThreeThreeThree" });
-  });
-
-  it("creates an appropriate fetchFn", () => {
-    const larLayer = LARLayerFactory.build({ year: 2004 });
-    const searchFn = jest.fn(() => Map<string, string>());
-
-    const { fetchFn } = makeProps("county", larLayer, searchFn, jest.fn());
-    fetchFn("some text");
-
-    expect(searchFn).toHaveBeenCalledWith("some text", 2004);
-  });
-
-  it("sets an approproate label", () => {
-    const { label } = makeProps(
-      "metro",
-      LARLayerFactory.build(),
-      jest.fn(),
-      jest.fn(),
-    );
-    expect(label).toBe("Metro");
+    expect(lis.at(0).props()).toMatchObject({ id: "a", filterName: "metro" });
+    expect(lis.at(1).props()).toMatchObject({ id: "b", filterName: "metro" });
+    expect(lis.at(2).props()).toMatchObject({ id: "c", filterName: "metro" });
   });
 });

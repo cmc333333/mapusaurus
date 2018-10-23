@@ -19,10 +19,10 @@ export default function Filters() {
       </FilterGroup>
       <hr />
       <FilterGroup name="Custom" filterGroup="custom">
-        <FilterSelector filterId="loanPurpose" />
-        <FilterSelector filterId="propertyType" />
-        <FilterSelector filterId="ownerOccupancy" />
-        <FilterSelector filterId="lienStatus" />
+        <FilterSelector filterId="loanPurpose" label="Loan Purpose" />
+        <FilterSelector filterId="propertyType" label="Property Type" />
+        <FilterSelector filterId="ownerOccupancy" label="Owner Occupancy" />
+        <FilterSelector filterId="lienStatus" label="Lien Status" />
       </FilterGroup>
     </glamorous.Div>
   );

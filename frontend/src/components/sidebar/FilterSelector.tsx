@@ -4,11 +4,8 @@ import { Set } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import {
-  FilterConfig,
-  selectFilters,
-} from "../../store/LARLayer";
-import State from "../../store/State";
+import { nameLookups, setFilters } from "../../store/Lar/Filters";
+import { updatePoints } from "../../store/Lar/Points";
 import { border, smallSpace, xLargeSpace } from "../../theme";
 import FormInput, { inputStyle } from "../FormInput";
 
@@ -18,18 +15,17 @@ const Option = glamorous.option(inputStyle, {
   paddingTop: smallSpace,
 });
 
-export function FilterSelector({ filterConfig, onChange }) {
-  const choices = filterConfig.options.entrySeq().toArray().map(
-    ([id, name]) => <Option key={id} value={id}>{name}</Option>,
-  );
+export function FilterSelector({ label, nameMapping, onChange, value }) {
+  const choices = Object.keys(nameMapping).sort()
+    .map(id => <Option key={id} value={id}>{nameMapping[id]}</Option>);
   return (
-    <FormInput fullWidth={true} name={filterConfig.label}>
+    <FormInput fullWidth={true} name={label}>
       <glamorous.Select
         border={border}
         height="6rem"
         multiple={true}
         onChange={onChange}
-        value={filterConfig.selected.toArray()}
+        value={value}
         width="100%"
       >
         {choices}
@@ -38,15 +34,17 @@ export function FilterSelector({ filterConfig, onChange }) {
   );
 }
 
-export const mapStateToProps = ({ larLayer }: State, { filterId }) => ({
-  filterConfig: larLayer.filters[filterId],
+export const mapStateToProps = ({ lar: { filters } }, { filterId }) => ({
+  nameMapping: nameLookups[filterId],
+  value: filters[filterId].toArray(),
 });
 export const mapDispatchToProps = (dispatch, { filterId }) => ({
   onChange: ev => {
     const values: string[] = Array.apply(null, ev.target.options)
       .filter(o => o.selected)
       .map(o => o.value);
-    return dispatch(selectFilters.action({ [filterId]: Set(values) }));
+    dispatch(setFilters({ [filterId]: Set(values) }));
+    dispatch(updatePoints.action());
   },
 });
 

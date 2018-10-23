@@ -1,101 +1,44 @@
-import { shallow } from "enzyme";
-import glamorous from "glamorous";
-import * as React from "react";
+import { Map } from "immutable";
 
 import { makeCountySearch } from "../../../apis/geography";
-import { setStateFips } from "../../../store/LARLayer";
-import { LARLayerFactory, StateFactory } from "../../../testUtils/Factory";
+import { addFilter, zoomToGeos } from "../../../store/Lar/Filters";
+import { addGeos } from "../../../store/Lar/Lookups";
+import { updatePoints } from "../../../store/Lar/Points";
 import {
-  CountySelector,
-  mapDispatchToProps,
-  mapStateToProps,
-} from "../CountySelector";
+  GeoFactory,
+  LarFactory,
+  StateFactory,
+} from "../../../testUtils/Factory";
+import { mergeProps } from "../CountySelector";
 
 jest.mock("../../../apis/geography");
 const makeCountySearchMock = makeCountySearch as jest.Mock;
 
-describe("<CountySelector />", () => {
-  it("includes both a state and county selector", () => {
-    const rendered = shallow(
-      <CountySelector
-        onChange={jest.fn()}
-        searchCounties={jest.fn()}
-        stateFips="01"
-        states={[]}
-      />,
-    );
-    expect(rendered.find(glamorous.Select)).toHaveLength(1);
-    expect(rendered.find("Connect(HMDAFilter)")).toHaveLength(1);
-  });
+describe("mergeProps()", () => {
+  it("creates a fetchFn by active state", async () => {
+    const lar = LarFactory.build();
+    lar.filters.year = 2011;
+    lar.uiOnly.state = "12";
+    const geo = GeoFactory.build();
+    const mockSearchWithState = jest.fn(() => Map([["idid", geo]]));
+    makeCountySearchMock.mockReturnValueOnce(mockSearchWithState);
 
-  it("includes an option per state", () => {
-    const states = [
-      { fips: "01", name: "Oh One" },
-      { fips: "02", name: "Two" },
-      { fips: "44", name: "FourFour" },
-    ];
-    const rendered = shallow(
-      <CountySelector
-        onChange={jest.fn()}
-        searchCounties={jest.fn()}
-        stateFips="01"
-        states={states}
-      />,
-    );
-    expect(rendered.find("option")).toHaveLength(3);
-  });
-
-  it("shows the selected state", () => {
-    const states = [
-      { fips: "01", name: "Oh One" },
-      { fips: "02", name: "Two" },
-      { fips: "44", name: "FourFour" },
-    ];
-    const rendered = shallow(
-      <CountySelector
-        onChange={jest.fn()}
-        searchCounties={jest.fn()}
-        stateFips="02"
-        states={states}
-      />,
-    );
-    expect(rendered.find(glamorous.Select).prop("value")).toBe("02");
-  });
-
-  it("triggers the right onChange", () => {
-    const onChange = jest.fn();
-    const rendered = shallow(
-      <CountySelector
-        onChange={onChange}
-        searchCounties={jest.fn()}
-        stateFips="02"
-        states={[]}
-      />,
-    );
-    rendered.find(glamorous.Select)
-      .simulate("change", { target: { value: "05" } });
-    expect(onChange).toHaveBeenCalledWith({ target: { value: "05" } });
-  });
-});
-
-describe("mapStateToProps()", () => {
-  it("creates a search fn by active state", () => {
-    const state = StateFactory.build({
-      larLayer: LARLayerFactory.build({ stateFips: "12" }),
-    });
-    makeCountySearchMock.mockReturnValueOnce("a return value");
-
-    const result = mapStateToProps(state);
+    const merged = mergeProps({ lar }, { dispatch: jest.fn() });
+    const result = await merged.fetchFn("stuff");
     expect(makeCountySearch).toHaveBeenCalledWith("12");
-    expect(result.searchCounties).toBe("a return value");
+    expect(mockSearchWithState).toHaveBeenCalledWith("stuff", 2011);
+    expect(result).toEqual([["idid", geo]]);
   });
-});
 
-describe("mapDispatchToProps()", () => {
   it("triggers a state change", () => {
+    const lar = LarFactory.build();
     const dispatch = jest.fn();
-    const result = mapDispatchToProps(dispatch);
-    result.onChange({ target: { value: "53" } });
-    expect(dispatch).toHaveBeenCalledWith(setStateFips("53"));
+    const result = mergeProps({ lar }, { dispatch });
+    const geo = GeoFactory.build();
+
+    result.setValue(["idid", geo]);
+    expect(dispatch).toHaveBeenCalledTimes(4);
+    expect(dispatch.mock.calls[0]).toEqual([addGeos(Map([["idid", geo]]))]);
+    expect(dispatch.mock.calls[1]).toEqual([addFilter({ county: "idid" })]);
   });
 });

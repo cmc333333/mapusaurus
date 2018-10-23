@@ -2,7 +2,9 @@ import { Map, Set } from "immutable";
 import * as Random from "random-js";
 import { Factory } from "rosie";
 
-import { SAFE_INIT as larInit } from "../store/LARLayer";
+import { Geo } from "../apis/geography";
+import { GeoId, LenderId } from "../store/Lar/Lookups";
+import { SAFE_INIT as uiOnlyInit } from "../store/Lar/UIOnly";
 
 const random = Random();
 const randLat = () => random.real(-90, 90);
@@ -29,76 +31,41 @@ export const LARPointFactory = new Factory().attrs({
   longitude: randLon,
 });
 
-export const USStateFactory = new Factory().attrs({
-  abbr: () => random.string(2, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-  fips: () => random.string(2, "0123456789"),
+export const FiltersFactory = new Factory().attrs({
+  county: () => Set([random.string(15, "0123456789")]),
+  lender: () => Set([random.string(15, "0123456789")]),
+  lienStatus:
+    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
+  loanPurpose: () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
+  metro: () => Set([random.string(15, "0123456789")]),
+  ownerOccupancy:
+    () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
+  propertyType:
+    () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
+});
+
+export const GeoFactory = new Factory(Geo).attrs({
+  maxLat: randLat,
+  maxLon: randLon,
+  minLat: randLat,
+  minLon: randLon,
   name: () => random.string(32),
 });
 
-const randDynamicFilter = () => {
-  const id = random.string(15, "0123456789");
-  return { options: Map([[id, random.string(32)]]), selected: Set(id) };
-};
+export const LookupsFactory = new Factory().attrs({
+  geos: () => Map<GeoId, Geo>(),
+  lenders: () => Map<LenderId, string>(),
+  years: () => random.sample(
+    [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
+    random.integer(1, 9),
+  ),
+});
 
-export const LARFiltersFactory = new Factory()
-  .option("countySet", randDynamicFilter)
-  .option("lenderSet", randDynamicFilter)
-  .option("metroSet", randDynamicFilter)
-  .option(
-    "lienStatusSet",
-    () => Set(random.sample(["1", "2", "3", "4"], random.integer(0, 4))),
-  )
-  .option(
-    "loanPurposeSet",
-    () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
-  )
-  .option(
-    "ownerOccupancySet",
-    () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
-  )
-  .option(
-    "propertyTypeSet",
-    () => Set(random.sample(["1", "2", "3"], random.integer(0, 3))),
-  )
-  .attr("county", ["countySet"], countySet => ({
-    ...larInit.filters.county,
-    ...countySet,
-  }))
-  .attr("lender", ["lenderSet"], lenderSet => ({
-    ...larInit.filters.lender,
-    ...lenderSet,
-  }))
-  .attr("metro", ["metroSet"], metroSet => ({
-    ...larInit.filters.metro,
-    ...metroSet,
-  }))
-  .attr("lienStatus", ["lienStatusSet"], selected => ({
-    ...larInit.filters.lienStatus,
-    selected,
-  }))
-  .attr("loanPurpose", ["loanPurposeSet"], selected => ({
-    ...larInit.filters.loanPurpose,
-    selected,
-  }))
-  .attr("ownerOccupancy", ["ownerOccupancySet"], selected => ({
-    ...larInit.filters.ownerOccupancy,
-    selected,
-  }))
-  .attr("propertyType", ["propertyTypeSet"], selected => ({
-    ...larInit.filters.propertyType,
-    selected,
-  }));
-
-export const LARLayerFactory = new Factory().attrs({
-  available: () => ({
-    states: () => USStateFactory.buildList(10),
-    years: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
-  }),
-  filterGroup: () => "custom",
-  filters: () => LARFiltersFactory.build(),
-  lar: () => [],
-  stateFips: () => random.string(2, "0123456789"),
-  year: () => random.integer(2010, 2018),
+export const LarFactory = new Factory().attrs({
+  filters: () => FiltersFactory.build(),
+  lookups: () => LookupsFactory.build(),
+  points: () => ({ raw: [] }),
+  uiOnly: () => ({ ...uiOnlyInit }),
 });
 
 export const MapboxFactory = new Factory().attrs({
@@ -112,7 +79,7 @@ export const SidebarFactory = new Factory().attrs({
 });
 
 export const StateFactory = new Factory().attrs({
-  larLayer: () => LARLayerFactory.build(),
+  lar: () => LarFactory.build(),
   mapbox: () => MapboxFactory.build(),
   sidebar: () => SidebarFactory.build(),
   viewport: () => ViewportFactory.build(),

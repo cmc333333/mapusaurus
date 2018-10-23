@@ -1,69 +1,21 @@
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import glamorous from "glamorous";
-import { OrderedMap } from "immutable";
 import * as React from "react";
-import { connect } from "react-redux";
 
-import { Geo } from "../../apis/geography";
-import LARLayer, {
-  addOptions,
-  FilterConfig,
-  LARFilters,
-  selectFilters,
-  zoomToGeos,
-} from "../../store/LARLayer";
-import {
-  inverted,
-  largeSpace,
-  mediumSpace,
-  smallSpace,
-  typography,
-} from "../../theme";
+import { largeSpace, mediumSpace } from "../../theme";
 import Autocomplete from "../Autocomplete";
 import FormInput from "../FormInput";
+import RemovableFilter from "./RemovableFilter";
 
-export function ExistingFilter({ name, onClick }) {
-  return (
-    <glamorous.Li
-      {...inverted}
-      borderRadius={mediumSpace}
-      paddingBottom={smallSpace}
-      paddingLeft={smallSpace}
-      paddingRight={largeSpace}
-      paddingTop={smallSpace}
-      textAlign="center"
-    >
-      <glamorous.A
-        float="right"
-        href="#"
-        marginRight={typography.rhythm(-.75)}
-        onClick={onClick}
-        title="Remove"
-      >
-        <FontAwesomeIcon icon={faTimesCircle} />
-      </glamorous.A>
-      {name}
-    </glamorous.Li>
-  );
-}
-
-export interface HMDAFilterPropTypes<T> {
-  existing: { id: string, name: string, onClick: (ev) => void }[];
-  fetchFn: (str: string) => Promise<[string, T][]>;
-  label: string;
-  setValue: (input: [string, T]) => void;
-}
-
-export default function HMDAFilter<T>({
+export default function HMDAFilter({
   existing,
   fetchFn,
+  fieldName,
   label,
   setValue,
-}: HMDAFilterPropTypes<T>) {
+}) {
   const toString = ([id, value]) => `${value}`;
-  const lis = existing.map(({ id, name, onClick }) =>
-    <ExistingFilter key={id} name={name} onClick={onClick} />,
+  const lis = existing.map(
+    id => <RemovableFilter id={id} key={id} filterName={fieldName} />,
   );
 
   return (
@@ -76,42 +28,4 @@ export default function HMDAFilter<T>({
       </glamorous.Ul>
     </glamorous.Div>
   );
-}
-
-export function makeProps<T extends (Geo | string)>(
-  filterName: keyof LARFilters,
-  larLayer: LARLayer,
-  searchFn: (term: string, year: number) => Promise<OrderedMap<string, T>>,
-  dispatch,
-): HMDAFilterPropTypes<T> {
-  const config: FilterConfig<Geo | string> = larLayer.filters[filterName];
-  const { label } = config;
-  const existing = config.selected.toArray()
-    .filter(id => config.options.has(id))
-    .map(id => ({
-      id,
-      name: `${config.options.get(id)}`,
-      onClick: ev => {
-        ev.preventDefault();
-        dispatch(selectFilters.action({
-          [filterName]: config.selected.remove(id),
-        }));
-      },
-    }))
-    .sort((left, right) => left.name.localeCompare(right.name));
-  const fetchFn = async (str: string) => {
-    const result: OrderedMap<string, T> = await searchFn(str, larLayer.year);
-    return result.entrySeq().toArray() as [string, T][];
-  };
-  const setValue = ([id, value]) => {
-    dispatch(addOptions({ [filterName]: OrderedMap([[id, value]]) }));
-    dispatch(selectFilters.action({
-      [filterName]: config.selected.add(id),
-    }));
-    if (filterName !== "lender") {
-      dispatch(zoomToGeos.action());
-    }
-  };
-
-  return { existing, fetchFn, label, setValue };
 }
