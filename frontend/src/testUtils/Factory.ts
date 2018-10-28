@@ -29,7 +29,12 @@ export const LARPointFactory = new Factory().attrs({
   latitude: randLat,
   loanCount: () => random.integer(1, 100),
   longitude: randLon,
-});
+})
+.attr(
+  "normalizedLoans",
+  ["houseCount", "loanCount"],
+  (houseCount, loanCount) => houseCount ? loanCount / houseCount : 0,
+);
 
 export const FiltersFactory = new Factory().attrs({
   county: () => Set([random.string(15, "0123456789")]),

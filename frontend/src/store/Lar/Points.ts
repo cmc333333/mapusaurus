@@ -32,22 +32,26 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
   }))
   .build();
 
-function normalize({ houseCount, loanCount }: LARPoint): number {
-  return houseCount ? loanCount / houseCount : 0;
+export function radius(area: number) {
+  // Area of a circle = pi * r * r
+  return Math.sqrt(area) / Math.PI;
 }
 
-export function toScatterPlot(point: LARPoint) {
-  const { latitude, longitude } = point;
-  // Area of a circle = pi * r * r, but since pi is a constant and we're only
-  // displaying relative values, we can ignore it.
-  const radius = Math.sqrt(normalize(point));
-  return {
-    radius,
-    position: [longitude, latitude],
-  };
-}
+export const scalarSelector = createSelector(
+  ({ raw }: Points) => raw,
+  raw => {
+    if (!raw.length) {
+      return NaN;
+    }
+    return 100000 / raw[Math.floor((raw.length - 1) / 2)].normalizedLoans;
+  },
+);
 
 export const scatterPlotSelector = createSelector(
   ({ raw }: Points) => raw,
-  raw => raw.map(toScatterPlot),
+  scalarSelector,
+  (raw, scalar) => raw.map(pt => ({
+    position: [pt.longitude, pt.latitude],
+    radius: radius(pt.normalizedLoans * scalar),
+  })),
 );

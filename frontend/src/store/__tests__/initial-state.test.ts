@@ -58,7 +58,7 @@ describe("deriveViewport()", () => {
     const result = deriveViewport("");
     expect(result.latitude).toBe(41.88);
     expect(result.longitude).toBe(-87.64);
-    expect(result.zoom).toBe(13);
+    expect(result.zoom).toBe(12);
   });
 });
 
