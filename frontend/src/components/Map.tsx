@@ -10,6 +10,7 @@ import { currentStyleSelector } from "../store/Mapbox";
 import State from "../store/State";
 import { setViewport } from "../store/Viewport";
 import { largeSpace } from "../theme";
+import MapKey from "./MapKey";
 
 export function Map({
   changeViewport,
@@ -51,6 +52,7 @@ export function Map({
           showCompass={false}
         />
       </glamorous.Div>
+      <MapKey bottom={largeSpace} position="absolute" right={largeSpace} />
     </ReactMapGL>
   );
 }
