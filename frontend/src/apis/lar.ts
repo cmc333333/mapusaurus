@@ -1,17 +1,29 @@
 import axios from "axios";
-import * as lodashSnakecase from "lodash.snakecase";
 
-import { FilterSelection, LARPoint } from "../store/LARLayer";
+import Filters from "../store/Lar/Filters";
+
+export interface LARPoint {
+  geoid: string;
+  houseCount: number;
+  latitude: number;
+  loanCount: number;
+  longitude: number;
+}
 
 /*
  * Fetch loan data from the API and convert to LARPoint objects.
  */
-export async function fetchLar(asIds: FilterSelection): Promise<LARPoint[]> {
-  const params: any = {
+export async function fetchLar(filters: Filters): Promise<LARPoint[]> {
+  const params = {
     action_taken: "1,2,3,4,5",
+    county: filters.county.join(","),
+    lender: filters.lender.join(","),
+    lien_status: filters.lienStatus.join(","),
+    loan_purpose: filters.loanPurpose.join(","),
+    metro: filters.metro.join(","),
+    owner_occupancy: filters.ownerOccupancy.join(","),
+    property_type: filters.propertyType.join(","),
   };
-  Object.keys(asIds)
-    .forEach(key => params[lodashSnakecase(key)] = asIds[key].join(","));
 
   if (params.lender && (params.county || params.metro)) {
     const response = await axios.get("/api/lar/", { params });

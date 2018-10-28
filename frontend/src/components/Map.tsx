@@ -5,7 +5,7 @@ import ReactMapGL, { NavigationControl } from "react-map-gl";
 import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 
-import { scatterPlotSelector } from "../store/LARLayer";
+import { scatterPlotSelector } from "../store/Lar/Points";
 import { currentStyleSelector } from "../store/Mapbox";
 import State from "../store/State";
 import { setViewport } from "../store/Viewport";
@@ -60,7 +60,7 @@ export default connect(
     height: state.window.height,
     mapStyle: currentStyleSelector(state.mapbox),
     mapboxApiAccessToken: state.mapbox.token,
-    scatterPlot: scatterPlotSelector(state.larLayer),
+    scatterPlot: scatterPlotSelector(state.lar.points),
     viewport: state.viewport,
     width: state.window.width,
   }),

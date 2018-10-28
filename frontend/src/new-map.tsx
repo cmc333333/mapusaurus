@@ -5,7 +5,7 @@ import { Set } from "immutable";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import { AnyAction, applyMiddleware, compose, createStore } from "redux";
+import { applyMiddleware, compose, createStore } from "redux";
 import reduxThunk, { ThunkDispatch } from "redux-thunk";
 
 import SPA from "./components/SPA";
@@ -31,10 +31,8 @@ const store = createStore(
 
 setupSerialization(window, store);
 setupResize(window, store);
+initCalls(store);
 
-(store.dispatch as ThunkDispatch<State, void, AnyAction>)(
-  initCalls.action(store.getState()),
-);
 ReactDOM.render(
   <Provider store={store}><SPA /></Provider>,
   document.getElementById("spa"),

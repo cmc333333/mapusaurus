@@ -2,7 +2,7 @@ import { Map } from "immutable";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { Geo, makeCountySearch } from "../../apis/geography";
+import { Geo, searchMetros } from "../../apis/geography";
 import { addFilter, zoomToGeos } from "../../store/Lar/Filters";
 import { addGeos } from "../../store/Lar/Lookups";
 import { updatePoints } from "../../store/Lar/Points";
@@ -10,25 +10,24 @@ import HMDAFilter from "./HMDAFilter";
 
 export function mergeProps({ lar }, { dispatch }) {
   const lookup = lar.lookups.geos;
-  const existingCounties = lar.filters.county.filter(id => lookup.has(id));
+  const existingMetros = lar.filters.metro.filter(id => lookup.has(id));
   const toStr = id => lookup.get(id).name;
   const { year } = lar.filters;
-  const { state } = lar.uiOnly;
 
-  const existing = existingCounties.toArray()
+  const existing = existingMetros.toArray()
     .sort((left, right) => toStr(left).localeCompare(toStr(right)));
   const fetchFn = async (str: string) => {
-    const result = await makeCountySearch(state)(str, year);
+    const result = await searchMetros(str, year);
     return result.entrySeq().toArray() as [string, Geo][];
   };
   const setValue = ([geoId, geo]) => {
     dispatch(addGeos(Map<string, Geo>([[geoId, geo]])));
-    dispatch(addFilter({ county: geoId }));
+    dispatch(addFilter({ metro: geoId }));
     dispatch(updatePoints.action());
     dispatch(zoomToGeos.action());
   };
 
-  return { existing, fetchFn, setValue, fieldName: "county", label: "County" };
+  return { existing, fetchFn, setValue, fieldName: "metro", label: "Metro" };
 }
 
 export default connect(

@@ -2,7 +2,13 @@ import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { setFilterGroup } from "../../store/LARLayer";
+import {
+  homePurchasePreset,
+  refinancePreset,
+  setFilters,
+} from "../../store/Lar/Filters";
+import { updatePoints } from "../../store/Lar/Points";
+import { setGroup } from "../../store/Lar/UIOnly";
 import State from "../../store/State";
 import { xLargeSpace } from "../../theme";
 import FormInput from "../FormInput";
@@ -30,11 +36,20 @@ export function FilterGroup({ checked, children, name, onChange }: PropsType) {
 }
 
 export const mapStateToProps =
-  ({ larLayer }: State, { children, filterGroup }) => ({
-    checked: filterGroup === larLayer.filterGroup,
-    children: filterGroup === larLayer.filterGroup ? children : null,
+  ({ lar: { uiOnly } }, { children, filterGroup }) => ({
+    checked: filterGroup === uiOnly.group,
+    children: filterGroup === uiOnly.group ? children : null,
   });
 export const mapDispatchToProps = (dispatch, { filterGroup }) => ({
-  onChange: () => dispatch(setFilterGroup.action(filterGroup)),
+  onChange: () => {
+    dispatch(setGroup(filterGroup));
+    if (filterGroup === "homePurchase") {
+      dispatch(setFilters(homePurchasePreset));
+      dispatch(updatePoints.action());
+    } else if (filterGroup === "refinance") {
+      dispatch(setFilters(refinancePreset));
+      dispatch(updatePoints.action());
+    }
+  },
 });
 export default connect(mapStateToProps, mapDispatchToProps)(FilterGroup);

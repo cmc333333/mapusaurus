@@ -1,12 +1,10 @@
 import { Set } from "immutable";
 import * as qs from "qs";
 
-import LARLayer, {
-  FilterGroup,
-  LARFilters,
-  SAFE_INIT as larInit,
-  USState,
-} from "./LARLayer";
+import Lar, { SAFE_INIT as larInit } from "./Lar";
+import Filters, { homePurchasePreset, refinancePreset } from "./Lar/Filters";
+import { Year } from "./Lar/Lookups";
+import { FilterGroup } from "./Lar/UIOnly";
 import Mapbox, { SAFE_INIT as mapboxInit } from "./Mapbox";
 import { SAFE_INIT as sidebarInit } from "./Sidebar";
 import State from "./State";
@@ -27,25 +25,23 @@ export function toSelected(value: any): Set<string> {
 /*
  * Inspects the LARFilters to derive a FilterGroup, defaulting to "custom"
  */
-export function toFilterGroup(filters: LARFilters): FilterGroup {
-  if (filters.lienStatus.selected.equals(Set(["1"]))
-      && filters.ownerOccupancy.selected.equals(Set(["1"]))
-      && filters.propertyType.selected.equals(Set(["1"]))) {
-    if (filters.loanPurpose.selected.equals(Set(["1"]))) {
-      return "homePurchase";
-    }
-    if (filters.loanPurpose.selected.equals(Set(["3"]))) {
-      return "refinance";
-    }
+export function toFilterGroup(filters: Filters): FilterGroup {
+  const isHomePurchase = Object.keys(homePurchasePreset).every(
+    key => filters[key].equals(homePurchasePreset[key]),
+  );
+  const isRefinance = Object.keys(refinancePreset).every(
+    key => filters[key].equals(refinancePreset[key]),
+  );
+  if (isHomePurchase) {
+    return "homePurchase";
+  }
+  if (isRefinance) {
+    return "refinance";
   }
   return "custom";
 }
 
-export function deriveLARLayer(
-  hash: string,
-  states: USState[],
-  years: number[],
-): LARLayer {
+export function deriveLar(hash: string, years: Year[]): Lar {
   const parsed = qs.parse(hash, {
     depth: 0, // we don't have any nested properties
     skipNulls: true,
@@ -53,22 +49,15 @@ export function deriveLARLayer(
 
   const filters = { ...larInit.filters };
   Object.keys(filters).forEach(filterName => {
-    if (parsed[filterName]) {
-      filters[filterName] = {
-        ...filters[filterName],
-        selected: toSelected(parsed[filterName]),
-      };
+    if (filterName !== "year" && parsed[filterName]) {
+      filters[filterName] = toSelected(parsed[filterName]);
     }
   });
+  filters.year = parseInt(parsed.year, 10) || (years.length ? years[0] : NaN);
+  const lookups = { ...larInit.lookups, years };
+  const uiOnly = { ...larInit.uiOnly, group: toFilterGroup(filters) };
 
-  return {
-    ...larInit,
-    filters,
-    available: { states, years },
-    filterGroup: toFilterGroup(filters),
-    stateFips: states.length ? states[0].fips : "",
-    year: parseInt(parsed.year, 10) || (years.length ? years[0] : NaN),
-  };
+  return { ...larInit, filters, lookups, uiOnly };
 }
 
 export function deriveMapbox(windowConfig): Mapbox {
@@ -93,13 +82,8 @@ const configField = "__SPA_CONFIG__";
 
 export default function initialState(window): State {
   const hash = window.location.hash.substr(1);
-  const larLayer = deriveLARLayer(
-    hash,
-    window[configField].states,
-    window[configField].years,
-  );
   return {
-    larLayer,
+    lar: deriveLar(hash, window[configField].years),
     mapbox: deriveMapbox(window[configField]),
     sidebar: sidebarInit,
     viewport: deriveViewport(hash),

@@ -1,8 +1,9 @@
 import { shallow } from "enzyme";
 import glamorous from "glamorous";
+import { Set } from "immutable";
 import * as React from "react";
 
-import { setYear } from "../../../store/LARLayer";
+import { setFilters } from "../../../store/Lar/Filters";
 import { mapDispatchToProps, YearSelector } from "../YearSelector";
 
 describe("<YearSelector />", () => {
@@ -44,8 +45,13 @@ describe("<YearSelector />", () => {
 
 test("mapDispatchToProps()", () => {
   const dispatch = jest.fn();
-  const result = mapDispatchToProps(dispatch);
-  result.onChange({ target: { value: "2001" } });
+  mapDispatchToProps(dispatch).onChange({ target: { value: "2001" } });
 
-  expect(dispatch).toHaveBeenCalledWith(setYear(2001));
+  expect(dispatch).toHaveBeenCalledTimes(2);
+  expect(dispatch).toHaveBeenCalledWith(setFilters({
+    county: Set<string>(),
+    lender: Set<string>(),
+    metro: Set<string>(),
+    year: 2001,
+  }));
 });

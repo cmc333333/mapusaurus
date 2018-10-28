@@ -1,52 +1,48 @@
 import { Set } from "immutable";
 
+import { FiltersFactory } from "../../testUtils/Factory";
 import {
-  LARFiltersFactory,
-  USStateFactory,
-} from "../../testUtils/Factory";
-import {
-  deriveLARLayer,
+  deriveLar,
   deriveViewport,
   toFilterGroup,
   toSelected,
 } from "../initial-state";
 
-describe("deriveLARLayer()", () => {
+describe("deriveLar()", () => {
   it("loads county, lender, and metro", () => {
-    const result = deriveLARLayer(
-      "county=123&lender=456&metro=789",
-      [],
-      [2009],
-    );
-    expect(result.filters.county.selected).toEqual(Set(["123"]));
-    expect(result.filters.lender.selected).toEqual(Set(["456"]));
-    expect(result.filters.metro.selected).toEqual(Set(["789"]));
+    const result = deriveLar("county=123&lender=456&metro=789", [2009]);
+    expect(result.filters).toMatchObject({
+      county: Set(["123"]),
+      lender: Set(["456"]),
+      metro: Set(["789"]),
+    });
   });
   it("defaults to reasonable, empty values", () => {
-    const result = deriveLARLayer("", [], [2009, 2008]);
-    expect(result.filterGroup).toEqual("homePurchase");
-    expect(result.filters.county.selected).toEqual(Set<string>());
-    expect(result.filters.lender.selected).toEqual(Set<string>());
-    expect(result.filters.lienStatus.selected).toEqual(Set(["1"]));
-    expect(result.filters.loanPurpose.selected).toEqual(Set(["1"]));
-    expect(result.filters.metro.selected).toEqual(Set<string>());
-    expect(result.filters.ownerOccupancy.selected).toEqual(Set(["1"]));
-    expect(result.filters.propertyType.selected).toEqual(Set(["1"]));
-    expect(result.year).toBe(2009);
+    const result = deriveLar("", [2009, 2008]);
+    expect(result.uiOnly.group).toEqual("homePurchase");
+    expect(result.filters).toEqual({
+      county: Set<string>(),
+      lender: Set<string>(),
+      lienStatus: Set(["1"]),
+      loanPurpose: Set(["1"]),
+      metro: Set<string>(),
+      ownerOccupancy: Set(["1"]),
+      propertyType: Set(["1"]),
+      year: 2009,
+    });
   });
   it("loads multiple", () => {
-    const result = deriveLARLayer("metro=123,456,789", [], [2009]);
-    expect(result.filters.metro.selected).toEqual(Set(["123", "456", "789"]));
+    const result = deriveLar("metro=123,456,789", [2009]);
+    expect(result.filters.metro).toEqual(Set(["123", "456", "789"]));
   });
   it("loads year", () => {
-    const result = deriveLARLayer("year=2012", [], [2014, 2013, 2012, 2010]);
-    expect(result.year).toBe(2012);
+    const result = deriveLar("year=2012", [2014, 2013, 2012, 2010]);
+    expect(result.filters.year).toBe(2012);
   });
-  it("adds the available states and years", () => {
-    const states = USStateFactory.buildList(3);
+  it("adds the available years", () => {
     const years = [2001, 2008];
-    const result = deriveLARLayer("", states, years);
-    expect(result.available).toEqual({ states, years });
+    const result = deriveLar("", years);
+    expect(result.lookups.years).toEqual(years);
   });
 });
 
@@ -68,29 +64,27 @@ describe("deriveViewport()", () => {
 
 describe("toFilterGroup()", () => {
   it("can derive homePurchase", () => {
-    const filters = LARFiltersFactory.build({}, {
-      lienStatusSet: Set(["1"]),
-      loanPurposeSet: Set(["1"]),
-      ownerOccupancySet: Set(["1"]),
-      propertyTypeSet: Set(["1"]),
+    const filters = FiltersFactory.build({
+      lienStatus: Set(["1"]),
+      loanPurpose: Set(["1"]),
+      ownerOccupancy: Set(["1"]),
+      propertyType: Set(["1"]),
     });
     expect(toFilterGroup(filters)).toBe("homePurchase");
   });
 
   it("can derive refinance", () => {
-    const filters = LARFiltersFactory.build({}, {
-      lienStatusSet: Set(["1"]),
-      loanPurposeSet: Set(["3"]),
-      ownerOccupancySet: Set(["1"]),
-      propertyTypeSet: Set(["1"]),
+    const filters = FiltersFactory.build({
+      lienStatus: Set(["1"]),
+      loanPurpose: Set(["3"]),
+      ownerOccupancy: Set(["1"]),
+      propertyType: Set(["1"]),
     });
     expect(toFilterGroup(filters)).toBe("refinance");
   });
 
   it("defaults to custom", () => {
-    const filters = LARFiltersFactory.build({}, {
-      loanPurposeSet: Set<string>(),
-    });
+    const filters = FiltersFactory.build({ loanPurpose: Set<string>() });
     expect(toFilterGroup(filters)).toBe("custom");
   });
 });
