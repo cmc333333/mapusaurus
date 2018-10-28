@@ -3,7 +3,7 @@ import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 
-import mapStyle, { choropleths, features } from "../mapStyle";
+import mapStyle, { choropleths, features, MapKeyColor } from "../mapStyle";
 
 export default interface Mapbox {
   token: string;
@@ -47,4 +47,14 @@ export const currentStyleSelector = createSelector(
     ...mapStyle,
     layers: mapStyle.layers.filter(l => visible.has(l.id)),
   }),
+);
+
+export const mapKeyColorsSelector = createSelector(
+  ({ visible }: Mapbox) => visible,
+  (visible: Set<string>) => mapStyle.layers.reduce((soFar, layer) => {
+    if (visible.has(layer.id) && layer.metadata.keyColors) {
+      return soFar.concat(layer.metadata.keyColors);
+    }
+    return soFar;
+  }, [] as MapKeyColor[]),
 );

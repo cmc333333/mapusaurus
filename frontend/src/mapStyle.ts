@@ -1,4 +1,9 @@
-import { OrderedMap, Set } from "immutable";
+import { Map, OrderedMap, Set } from "immutable";
+
+export interface MapKeyColor {
+  color: string;
+  description: string;
+}
 
 const mapStyle = {
   glyphs: "mapbox://fonts/cmc333333/{fontstack}/{range}.pbf",
@@ -24,7 +29,13 @@ const mapStyle = {
       "filter": [">", "gentrification", 0],
       "id": "gentrification",
       "layout": {},
-      "metadata": { choropleth: "Gentrification" },
+      "metadata": {
+        choropleth: "Gentrification",
+        keyColors: [
+          { color: "rgb(193, 166, 224)", description: "Gentrified" },
+          { color: "#fff", description: "Ungentrified" },
+        ],
+      },
       "paint": {
         "fill-color": [
           "match",
@@ -46,7 +57,16 @@ const mapStyle = {
       "filter": [">", "income", 0],
       "id": "income",
       "layout": {},
-      "metadata": { choropleth: "Income" },
+      "metadata": {
+        choropleth: "Income",
+        keyColors: [
+          { color: "rgb(233, 255, 186)", description: "Low" },
+          { color: "rgb(204, 242, 129)", description: "Moderate" },
+          { color: "rgb(148, 213, 129)", description: "Middle" },
+          { color: "rgb(147, 164, 128)", description: "Upper" },
+          { color: "#fff", description: "No Data" },
+        ],
+      },
       "paint": {
         "fill-color": [
           "match",
@@ -70,7 +90,13 @@ const mapStyle = {
       "filter": [">", "minority50", 0],
       "id": "minority-fifty",
       "layout": {},
-      "metadata": { choropleth: "50% Minority" },
+      "metadata": {
+        choropleth: "50% Minority",
+        keyColors: [
+          { color: "hsl(199, 75%, 45%)", description: "≥ 50% Minority" },
+          { color: "#fff", description: "< 50% Minority" },
+        ],
+      },
       "paint": {
         "fill-color": [
           "match",
@@ -88,7 +114,13 @@ const mapStyle = {
       "filter": [">", "msaminority", 0],
       "id": "msa-minority",
       "layout": {},
-      "metadata": { choropleth: "Higher Minority than MSA Avg" },
+      "metadata": {
+        choropleth: "Higher Minority than MSA Avg",
+        keyColors: [
+          { color: "rgb(0, 77, 168)", description: "Above MSA Average" },
+          { color: "#fff", description: "Below MSA Average" },
+        ],
+      },
       "paint": {
         "fill-color": [
           "match",

@@ -5,6 +5,7 @@ import { MapboxFactory } from "../../testUtils/Factory";
 import {
   addLayers,
   currentStyleSelector,
+  mapKeyColorsSelector,
   reducer,
   removeLayers,
   selectChoropleth,
@@ -52,5 +53,16 @@ describe("currentStyleSelector", () => {
     expect(result.layers).toHaveLength(2);
     expect(result.layers[0].type).toBe("background");
     expect(result.layers[1]["source-layer"]).toBe("road");
+  });
+});
+
+describe("mapKeyColorsSelector", () => {
+  it("includes the colors of selected layers", () => {
+    const mapbox = MapboxFactory.build({
+      visible: Set(["minority-fifty", "landuse"]),
+    });
+    const result = mapKeyColorsSelector(mapbox);
+    const layer: any = mapStyle.layers.find(l => l.id === "minority-fifty");
+    expect(result).toEqual(layer.metadata.keyColors);
   });
 });
