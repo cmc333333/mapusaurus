@@ -2,7 +2,7 @@ import { shallow } from "enzyme";
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { radius, scalarSelector } from "../../../store/Lar/Points";
+import { radiusFnSelector } from "../../../store/Lar/Points";
 import { pixelsPerMeterSelector } from "../../../store/Viewport";
 import {
   LarFactory,
@@ -14,6 +14,9 @@ import { LoanCircle, mapStateToProps } from "../LoanCircle";
 
 jest.mock("../../../store/Lar/Points");
 jest.mock("../../../store/Viewport");
+
+const radiusFnSelectorMock = radiusFnSelector as any as jest.Mock;
+const pixelsPerMeterSelectorMock = pixelsPerMeterSelector as any as jest.Mock;
 
 describe("<LoanCircle />", () => {
   const rendered = shallow(
@@ -42,8 +45,8 @@ describe("mapStateToProps()", () => {
       },
     }),
   });
-  (pixelsPerMeterSelector as any as jest.Mock)
-    .mockImplementation(() => ({ x: 123, y: 456 }));
+  pixelsPerMeterSelectorMock.mockImplementation(() => ({ x: 123, y: 456 }));
+  radiusFnSelectorMock.mockImplementation(() => () => 55);
 
   it("selects the correct point", () => {
     const { text } = mapStateToProps(state, { percentile: 4 / 5 });
@@ -51,19 +54,15 @@ describe("mapStateToProps()", () => {
   });
 
   it("derives the height and width based on viewport and point", () => {
-    (pixelsPerMeterSelector as any as jest.Mock)
-      .mockImplementationOnce(() => ({ x: 33, y: 44 }));
-    (scalarSelector as any as jest.Mock).mockImplementationOnce(() => 66);
-    (radius as any as jest.Mock).mockImplementationOnce(() => 88);
+    pixelsPerMeterSelectorMock.mockImplementationOnce(() => ({ x: 33, y: 44 }));
+    radiusFnSelectorMock.mockImplementationOnce(() => () => 88);
 
     const { height, width } = mapStateToProps(state, { percentile: 0 });
     expect(height).toEqual(2 * 88 * 44);
     expect(width).toEqual(2 * 88 * 33);
     expect(pixelsPerMeterSelector as any as jest.Mock)
       .toHaveBeenCalledWith(state.viewport);
-    expect(scalarSelector as any as jest.Mock)
-      .toHaveBeenCalledWith(state.lar.points);
-    expect(radius as any as jest.Mock).toHaveBeenCalledWith(4 / 11 * 66);
+    expect(radiusFnSelectorMock).toHaveBeenCalled();
   });
 
   it("derives the text from the point", () => {
