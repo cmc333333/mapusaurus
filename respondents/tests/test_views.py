@@ -3,7 +3,7 @@ from model_mommy import mommy
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 
-from respondents.models import Agency, Institution, ZipcodeCityStateYear
+from respondents.models import Institution
 
 
 @pytest.fixture
@@ -39,28 +39,6 @@ def test_branch_locations(client):
     assert resp['features'][1]['properties']['institution_id'] == \
         '201391000000001'
     assert resp['features'][1]['properties']['name'] == 'Dev Test Branch 1'
-
-
-@pytest.mark.usefixtures('data_setup')
-def test_select_metro(client):
-    results = client.get(reverse(
-        'respondents:select_metro',
-        kwargs={'agency_id': '0', 'respondent': '0987654321', 'year': 2013},
-    ))
-    assert results.status_code == 404
-
-    zipcode = ZipcodeCityStateYear.objects.create(
-        zip_code=12345, city='City', state='IL', year=1234)
-    Institution.objects.create(
-        year=1234, respondent_id='9879879870', agency=Agency.objects.get(pk=9),
-        tax_id='1111111111', name='Institution', mailing_address='mail',
-        zip_code=zipcode, num_loans=1)
-
-    results = client.get(reverse(
-        'respondents:select_metro',
-        kwargs={'agency_id': '9', 'respondent': '9879879870', 'year': 1234},
-    ))
-    assert results.status_code == 200
 
 
 @pytest.mark.usefixtures('data_setup')

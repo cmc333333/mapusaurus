@@ -1,11 +1,9 @@
 import re
 import json
 
-from django.conf import settings
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q
 from django.http import HttpResponseBadRequest
-from django.shortcuts import render, get_object_or_404
 from django.utils.html import escape
 from rest_framework import serializers
 from rest_framework.decorators import api_view, renderer_classes
@@ -14,51 +12,6 @@ from rest_framework.response import Response
 
 from hmda.models import Year
 from respondents.models import Institution, Branch
-
-
-def respondent(request, agency_id, respondent, year):
-    respondent = get_object_or_404(Institution, respondent_id=respondent,
-                                   agency_id=int(agency_id), year=year)
-    context = {'respondent': respondent}
-
-    parents = [respondent]
-
-    p = respondent.parent
-    while p:
-        parents.append(p)
-        p = p.parent
-
-    last = parents[-1]
-    if last.non_reporting_parent:
-        context['non_reporting_parent'] = last.non_reporting_parent
-
-    parents = parents[1:]
-    context['parents'] = reversed(parents)
-
-    return render(
-        request,
-        'respondents/respondent_profile.html',
-        context
-    )
-
-
-def search_home(request):
-    """Search for an institution"""
-    years = Year.objects.values().order_by('-hmda_year')
-    return render(request, 'respondents/search_home.html', {
-        'contact_us_email': settings.CONTACT_US_EMAIL,
-        'years': years
-    })
-
-
-def select_metro(request, year, agency_id, respondent):
-    """Once an institution is selected, search for a metro"""
-    institution = get_object_or_404(Institution, respondent_id=respondent,
-                                    agency_id=int(agency_id), year=year)
-    return render(request, 'respondents/metro_search.html', {
-        'institution': institution,
-        'year': year
-    })
 
 
 class InstitutionSerializer(serializers.ModelSerializer):
