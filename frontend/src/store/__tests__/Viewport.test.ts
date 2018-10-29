@@ -1,5 +1,10 @@
 import { ViewportFactory } from "../../testUtils/Factory";
-import { reducer, setViewport, transitionViewport } from "../Viewport";
+import {
+  pixelsPerMeterSelector,
+  reducer,
+  setViewport,
+  transitionViewport,
+} from "../Viewport";
 
 describe("reducer()", () => {
   it("sets the viewport", () => {
@@ -22,4 +27,14 @@ describe("reducer()", () => {
       transitionDuration: 3000,
     });
   });
+});
+
+test("pixelsPerMeterSelector()", () => {
+  const viewport = ViewportFactory.build({
+    latitude: 45,
+    longitude: 45,
+    zoom: 12,
+  });
+  expect(pixelsPerMeterSelector(viewport).x).toBeCloseTo(.0741);
+  expect(pixelsPerMeterSelector(viewport).y).toBeCloseTo(.0741);
 });

@@ -1,5 +1,6 @@
 import "mapbox-gl/dist/mapbox-gl.css";
 import "normalize.css/normalize.css";
+import "rc-slider/assets/index.css";
 
 import { Set } from "immutable";
 import * as React from "react";

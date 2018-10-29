@@ -8,6 +8,7 @@ export interface LARPoint {
   latitude: number;
   loanCount: number;
   longitude: number;
+  normalizedLoans: number;
 }
 
 /*
@@ -33,7 +34,9 @@ export async function fetchLar(filters: Filters): Promise<LARPoint[]> {
       latitude: obj.centlat,
       loanCount: obj.volume,
       longitude: obj.centlon,
-    }));
+      normalizedLoans:
+        obj.num_households ? obj.volume / obj.num_households : 0,
+    })).sort((left, right) => left.normalizedLoans - right.normalizedLoans);
   }
   return [];
 }

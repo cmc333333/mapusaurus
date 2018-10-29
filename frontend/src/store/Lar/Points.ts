@@ -7,15 +7,18 @@ import { fetchLar, LARPoint } from "../../apis/lar";
 
 export default interface Points {
   raw: LARPoint[];
+  scaleFactor: number;
 }
 
 export const SAFE_INIT: Points = {
   raw: [],
+  scaleFactor: 25,
 };
 
 const actionCreator = actionCreatorFactory("LAR/POINTS");
 const asyncActionCreator = asyncFactory<Points>(actionCreator);
 
+export const setScaleFactor = actionCreator<number>("SET_SCALE_FACTOR");
 export const updatePoints = asyncActionCreator<void, LARPoint[]>(
   "UPDATE_POINTS",
   (_, dispatch, getState: () => any) => fetchLar(getState().lar.filters),
@@ -30,24 +33,33 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
     ...original,
     raw: result,
   }))
+  .case(setScaleFactor, (original, scaleFactor) => ({
+    ...original,
+    scaleFactor,
+  }))
   .build();
 
-function normalize({ houseCount, loanCount }: LARPoint): number {
-  return houseCount ? loanCount / houseCount : 0;
+export function radius(area: number) {
+  // Area of a circle = pi * r * r
+  return Math.sqrt(area) / Math.PI;
 }
 
-export function toScatterPlot(point: LARPoint) {
-  const { latitude, longitude } = point;
-  // Area of a circle = pi * r * r, but since pi is a constant and we're only
-  // displaying relative values, we can ignore it.
-  const radius = Math.sqrt(normalize(point));
-  return {
-    radius,
-    position: [longitude, latitude],
-  };
-}
+export const scalarSelector = createSelector(
+  (points: Points) => points,
+  ({ raw, scaleFactor }) => {
+    if (!raw.length) {
+      return NaN;
+    }
+    const median = raw[Math.floor((raw.length - 1) / 2)];
+    return median.normalizedLoans * Math.pow(1.1, 250 + scaleFactor);
+  },
+);
 
 export const scatterPlotSelector = createSelector(
   ({ raw }: Points) => raw,
-  raw => raw.map(toScatterPlot),
+  scalarSelector,
+  (raw, scalar) => raw.map(pt => ({
+    position: [pt.longitude, pt.latitude],
+    radius: radius(pt.normalizedLoans * scalar),
+  })),
 );

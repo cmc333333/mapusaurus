@@ -60,17 +60,17 @@ describe("fetchLar()", () => {
     getMock.mockImplementationOnce(() => ({
       data: [
         {
-          centlat: 3.3,
-          centlon: -4.4,
-          geo_id: "aaaaaaaa",
-          num_households: 2,
-          volume: 1,
-        }, {
           centlat: -7.7,
           centlon: 8.8,
           geo_id: "bbbbbbbb",
           num_households: 6,
           volume: 5,
+        }, {
+          centlat: 3.3,
+          centlon: -4.4,
+          geo_id: "aaaaaaaa",
+          num_households: 2,
+          volume: 1,
         }, {
           centlat: 11,
           centlon: -12,
@@ -82,13 +82,28 @@ describe("fetchLar()", () => {
     }));
     const lar = await fetchLar(FiltersFactory.build());
 
-    // Ensure a consistent order
-    lar.sort((l, r) => l.loanCount - r.loanCount);
-
     expect(lar).toEqual([
-      { houseCount: 2, latitude: 3.3, loanCount: 1, longitude: -4.4 },
-      { houseCount: 6, latitude: -7.7, loanCount: 5, longitude: 8.8 },
-      { houseCount: 10, latitude: 11, loanCount: 9, longitude: -12 },
+      {
+        houseCount: 2,
+        latitude: 3.3,
+        loanCount: 1,
+        longitude: -4.4,
+        normalizedLoans: 1 / 2,
+      },
+      {
+        houseCount: 6,
+        latitude: -7.7,
+        loanCount: 5,
+        longitude: 8.8,
+        normalizedLoans: 5 / 6,
+      },
+      {
+        houseCount: 10,
+        latitude: 11,
+        loanCount: 9,
+        longitude: -12,
+        normalizedLoans: 9 / 10,
+      },
     ]);
   });
 });

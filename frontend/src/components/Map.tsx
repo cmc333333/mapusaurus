@@ -25,25 +25,24 @@ export function Map({
       data: scatterPlot,
       getColor: [255, 158, 22, 200],
       id: "lar-circle",
-      radiusScale: 2500,
     }),
     new ScatterplotLayer({
       data: scatterPlot,
       getColor: [0, 0, 0, 255],
       id: "lar-outline",
       outline: true,
-      radiusScale: 2500,
     }),
   ];
 
   return (
     <ReactMapGL
       {...viewport}
-      mapboxApiAccessToken={mapboxApiAccessToken}
-      width={width}
       height={height}
+      mapboxApiAccessToken={mapboxApiAccessToken}
       mapStyle={mapStyle}
+      maxZoom={12}
       onViewportChange={changeViewport}
+      width={width}
     >
       <DeckGL {...viewport} layers={layers} width={width} height={height} />
       <glamorous.Div position="absolute" right={largeSpace} top={largeSpace}>
