@@ -7,12 +7,17 @@ import { mapKeyColorsSelector } from "../../store/Mapbox";
 import State from "../../store/State";
 import { border, largeSpace, smallSpace, xLargeSpace } from "../../theme";
 import LoanCircle from "./LoanCircle";
+import LoanScalar from "./LoanScalar";
 
 const Wrapper = glamorous.div({
   border,
   backgroundColor: "#fff",
-  maxWidth: "250px",
+  bottom: largeSpace,
   padding: smallSpace,
+  position: "absolute",
+  right: largeSpace,
+  textAlign: "center",
+  width: "200px",
 });
 const ColorList = glamorous.ul({
   display: "inline-block",
@@ -54,15 +59,14 @@ export function MapKey({ colors, showLar, ...css }) {
           <LoanCircle percentile={.9} />
         </div>
         <div>Loans per 1k houses</div>
+        <LoanScalar />
       </glamorous.Div>
     );
   }
 
   return (
     <Wrapper css={css}>
-      <glamorous.Div textAlign="center">
-        <ColorList>{colorEls}</ColorList>
-      </glamorous.Div>
+      <div><ColorList>{colorEls}</ColorList></div>
       {lar}
     </Wrapper>
   );

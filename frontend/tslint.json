@@ -6,13 +6,19 @@
     "function-name": false,
     "import-name": [true, {
       "deckGl": "DeckGL",
+      "rcSlider": "Slider",
       "reactMapGl": "ReactMapGL",
       "typescriptFsa": "actionCreatorFactory"
     }],
     "interface-name": [true, "never-prefix"],
     "no-implicit-dependencies": [true, "dev"],
     "no-shadowed-variable": false,
-    "no-submodule-imports": [true, "mapbox-gl/dist/mapbox-gl.css", "normalize.css/normalize.css"],
+    "no-submodule-imports": [
+      true,
+      "mapbox-gl/dist/mapbox-gl.css",
+      "normalize.css/normalize.css",
+      "rc-slider/assets/index.css"
+    ],
     "object-literal-sort-keys": [true, "shorthand-first"],
     "ter-arrow-parens": [true, "as-needed"]
   }

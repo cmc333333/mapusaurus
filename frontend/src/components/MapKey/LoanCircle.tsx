@@ -9,23 +9,28 @@ import { smallSpace } from "../../theme";
 
 export const CircleWrapper = glamorous.div({
   display: "inline-block",
-  overflowX: "hidden",
   paddingLeft: smallSpace,
   paddingRight: smallSpace,
   textAlign: "center",
   width: "33%",
 });
+export const InnerWrapper = glamorous.div({
+  maxHeight: "100px",
+  overflow: "hidden",
+});
 
 export function LoanCircle({ height, text, width }) {
   return (
     <CircleWrapper>
-      <glamorous.Div
-        backgroundColor="#000"
-        borderRadius="50%"
-        display="inline-block"
-        height={`${height}px`}
-        width={`${width}px`}
-      />
+      <InnerWrapper>
+        <glamorous.Div
+          backgroundColor="#000"
+          borderRadius="50%"
+          display="inline-block"
+          height={`${height}px`}
+          width={`${width}px`}
+        />
+      </InnerWrapper>
       <div>{text}</div>
     </CircleWrapper>
   );

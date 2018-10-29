@@ -117,8 +117,8 @@ const mapStyle = {
       "metadata": {
         choropleth: "Higher Minority than MSA Avg",
         keyColors: [
-          { color: "rgb(0, 77, 168)", description: "Above MSA Average" },
-          { color: "#fff", description: "Below MSA Average" },
+          { color: "rgb(0, 77, 168)", description: "Above MSA Avg" },
+          { color: "#fff", description: "Below MSA Avg" },
         ],
       },
       "paint": {

@@ -66,10 +66,15 @@ export const LookupsFactory = new Factory().attrs({
   ),
 });
 
+export const PointsFactory = new Factory().attrs({
+  raw: () => [],
+  scaleFactor: () => random.integer(0, 50),
+});
+
 export const LarFactory = new Factory().attrs({
   filters: () => FiltersFactory.build(),
   lookups: () => LookupsFactory.build(),
-  points: () => ({ raw: [] }),
+  points: () => PointsFactory.build(),
   uiOnly: () => ({ ...uiOnlyInit }),
 });
 

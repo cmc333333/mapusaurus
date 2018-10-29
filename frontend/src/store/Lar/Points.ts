@@ -7,15 +7,18 @@ import { fetchLar, LARPoint } from "../../apis/lar";
 
 export default interface Points {
   raw: LARPoint[];
+  scaleFactor: number;
 }
 
 export const SAFE_INIT: Points = {
   raw: [],
+  scaleFactor: 25,
 };
 
 const actionCreator = actionCreatorFactory("LAR/POINTS");
 const asyncActionCreator = asyncFactory<Points>(actionCreator);
 
+export const setScaleFactor = actionCreator<number>("SET_SCALE_FACTOR");
 export const updatePoints = asyncActionCreator<void, LARPoint[]>(
   "UPDATE_POINTS",
   (_, dispatch, getState: () => any) => fetchLar(getState().lar.filters),
@@ -30,6 +33,10 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
     ...original,
     raw: result,
   }))
+  .case(setScaleFactor, (original, scaleFactor) => ({
+    ...original,
+    scaleFactor,
+  }))
   .build();
 
 export function radius(area: number) {
@@ -38,12 +45,13 @@ export function radius(area: number) {
 }
 
 export const scalarSelector = createSelector(
-  ({ raw }: Points) => raw,
-  raw => {
+  (points: Points) => points,
+  ({ raw, scaleFactor }) => {
     if (!raw.length) {
       return NaN;
     }
-    return 100000 / raw[Math.floor((raw.length - 1) / 2)].normalizedLoans;
+    const median = raw[Math.floor((raw.length - 1) / 2)];
+    return median.normalizedLoans * Math.pow(1.1, 250 + scaleFactor);
   },
 );
 
