@@ -6,7 +6,7 @@ import State from "./State";
  * Serialize relevant portions of the state tree into a string
  */
 export default function serialize(state: State): string {
-  const { lar: { filters } } = state;
+  const { lar: { filters, points: { scaleFactor } } } = state;
   const { viewport: { latitude, longitude, zoom } } = state;
   const { year } = filters;
   const filterValues: any = {};
@@ -16,7 +16,14 @@ export default function serialize(state: State): string {
       filterValues[key] = filters[key].join(",");
     });
   return qs.stringify(
-    { ...filterValues, latitude, longitude, year, zoom },
+    {
+      ...filterValues,
+      latitude,
+      longitude,
+      scaleFactor,
+      year,
+      zoom,
+    },
     { encode: false, skipNulls: true },
   );
 }

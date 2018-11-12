@@ -4,6 +4,7 @@ import * as qs from "qs";
 import Lar, { SAFE_INIT as larInit } from "./Lar";
 import Filters, { homePurchasePreset, refinancePreset } from "./Lar/Filters";
 import { Year } from "./Lar/Lookups";
+import Points from "./Lar/Points";
 import { FilterGroup } from "./Lar/UIOnly";
 import Mapbox, { SAFE_INIT as mapboxInit } from "./Mapbox";
 import { SAFE_INIT as sidebarInit } from "./Sidebar";
@@ -41,6 +42,13 @@ export function toFilterGroup(filters: Filters): FilterGroup {
   return "custom";
 }
 
+export function deriveLarPoints(parsed: any): Points {
+  const scaleFactor =
+    Math.min(100, Math.max(1, parseInt(parsed.scaleFactor, 10)))
+    || larInit.points.scaleFactor;
+  return { ...larInit.points, scaleFactor };
+}
+
 export function deriveLar(hash: string, years: Year[]): Lar {
   const parsed = qs.parse(hash, {
     depth: 0, // we don't have any nested properties
@@ -57,7 +65,13 @@ export function deriveLar(hash: string, years: Year[]): Lar {
   const lookups = { ...larInit.lookups, years };
   const uiOnly = { ...larInit.uiOnly, group: toFilterGroup(filters) };
 
-  return { ...larInit, filters, lookups, uiOnly };
+  return {
+    ...larInit,
+    filters,
+    lookups,
+    uiOnly,
+    points: deriveLarPoints(parsed),
+  };
 }
 
 export function deriveMapbox(windowConfig): Mapbox {

@@ -3,10 +3,32 @@ import { Set } from "immutable";
 import { FiltersFactory } from "../../testUtils/Factory";
 import {
   deriveLar,
+  deriveLarPoints,
   deriveViewport,
   toFilterGroup,
   toSelected,
 } from "../initial-state";
+
+describe("deriveLarPoints()", () => {
+  it("starts with no points", () => {
+    expect(deriveLarPoints({}).raw).toHaveLength(0);
+  });
+  it("uses the value if within bounds", () => {
+    expect(deriveLarPoints({ scaleFactor: "12" }).scaleFactor).toBe(12);
+  });
+  it("is bounded above", () => {
+    expect(deriveLarPoints({ scaleFactor: "122" }).scaleFactor).toBe(100);
+  });
+  it("is bounded below", () => {
+    expect(deriveLarPoints({ scaleFactor: "-50" }).scaleFactor).toBe(1);
+  });
+  it("handles bad input", () => {
+    expect(deriveLarPoints({ scaleFactor: "abcde" }).scaleFactor).toBe(25);
+  });
+  it("handles no input", () => {
+    expect(deriveLarPoints({}).scaleFactor).toBe(25);
+  });
+});
 
 describe("deriveLar()", () => {
   it("loads county, lender, and metro", () => {

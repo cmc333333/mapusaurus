@@ -4,6 +4,7 @@ import * as qs from "qs";
 import {
   FiltersFactory,
   LarFactory,
+  PointsFactory,
   StateFactory,
   ViewportFactory,
 } from "../../testUtils/Factory";
@@ -23,6 +24,9 @@ describe("serialize()", () => {
           propertyType: Set<string>(),
           year: 2002,
         }),
+        points: PointsFactory.build({
+          scaleFactor: 44,
+        }),
       }),
       viewport: ViewportFactory.build({
         latitude: 44,
@@ -34,6 +38,7 @@ describe("serialize()", () => {
     expect(qs.parse(result)).toEqual({
       latitude: "44",
       longitude: "55.55",
+      scaleFactor: "44",
       year: "2002",
       zoom: "6",
     });
