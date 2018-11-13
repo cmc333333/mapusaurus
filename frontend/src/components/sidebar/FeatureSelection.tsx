@@ -1,14 +1,11 @@
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { features } from "../../mapStyle";
+import { allFeatures, FeatureName, LayerId } from "../../mapStyle";
 import FeatureCheckbox from "./FeatureCheckbox";
 
 export default function FeatureSelection() {
-  const checkBoxes = features.entrySeq().toArray()
-    .map((pair: [string, Set<string>]) => {
-      const [name, layerIds] = pair;
-      return <FeatureCheckbox key={name} layerIds={layerIds} name={name} />;
-    });
+  const checkBoxes = allFeatures.keySeq().toArray()
+    .map(name => <FeatureCheckbox key={name} name={name} />);
   return <glamorous.Ul margin="0">{checkBoxes}</glamorous.Ul>;
 }

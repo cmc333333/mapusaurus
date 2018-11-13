@@ -46,7 +46,7 @@ describe("<ChoroplethLink />", () => {
 test("mapStateToProps() set isVisible based on the visible set", () => {
   const state = StateFactory.build({
     mapbox: MapboxFactory.build({
-      visible: Set<string>(["aaa", "bbb", "ccc"]),
+      choropleth: "bbb",
     }),
   });
   expect(mapStateToProps(state, { layerId: "bbb" })).toEqual({

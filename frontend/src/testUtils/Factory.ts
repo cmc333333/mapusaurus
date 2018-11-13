@@ -3,6 +3,7 @@ import * as Random from "random-js";
 import { Factory } from "rosie";
 
 import { Geo } from "../apis/geography";
+import { allChoropleths, allFeatures } from "../mapStyle";
 import { GeoId, LenderId } from "../store/Lar/Lookups";
 import { SAFE_INIT as uiOnlyInit } from "../store/Lar/UIOnly";
 
@@ -79,8 +80,9 @@ export const LarFactory = new Factory().attrs({
 });
 
 export const MapboxFactory = new Factory().attrs({
+  choropleth: () => random.pick(allChoropleths.keySeq().toArray()),
+  features: () => Set(allFeatures.keySeq().toArray()),
   token: () => random.string(32),
-  visible: Set<string>(),
 });
 
 export const SidebarFactory = new Factory().attrs({

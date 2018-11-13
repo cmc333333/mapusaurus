@@ -1,11 +1,11 @@
 import glamorous from "glamorous";
 import * as React from "react";
 
-import { choropleths } from "../../mapStyle";
+import { allChoropleths } from "../../mapStyle";
 import ChoroplethLink from "./ChoroplethLink";
 
 export default function ChoroplethSelection() {
-  const links = choropleths.entrySeq().toArray()
+  const links = allChoropleths.entrySeq().toArray()
     .map(([layerId, name]) =>
       <ChoroplethLink layerId={layerId} key={layerId} name={name} />,
     );

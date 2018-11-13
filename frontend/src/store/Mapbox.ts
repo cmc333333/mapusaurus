@@ -3,46 +3,57 @@ import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 
-import mapStyle, { choropleths, features, MapKeyColor } from "../mapStyle";
+import mapStyle, {
+  allChoropleths,
+  allFeatures,
+  FeatureName,
+  LayerId,
+  MapKeyColor,
+  mapKeyColors,
+} from "../mapStyle";
 
 export default interface Mapbox {
+  choropleth: LayerId;
+  features: Set<FeatureName>;
   token: string;
-  visible: Set<string>;
 }
 
 export const SAFE_INIT: Mapbox = {
+  choropleth: allChoropleths.keySeq().get(0),
+  features: Set(allFeatures.keys()),
   token: "",
-  visible: features.valueSeq().reduce(
-    (soFar: Set<string>, layerIds: Set<string>) => soFar.union(layerIds),
-    Set<string>([choropleths.keySeq().get(0)]),
-  ),
 };
 
 const actionCreator = actionCreatorFactory("MAPBOX_LAYERS");
 
-export const addLayers = actionCreator<Set<string>>("ADD_LAYERS");
-export const removeLayers = actionCreator<Set<string>>("REMOVE_LAYERS");
+export const toggleFeature = actionCreator<string>("TOGGLE_FEATURE");
 export const selectChoropleth = actionCreator<string>("SELECT_CHOROPLETH");
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
-  .case(addLayers, (original: Mapbox, layerIds: Set<string>) => ({
+  .case(toggleFeature, (original: Mapbox, feature: string) => ({
     ...original,
-    visible: original.visible.union(layerIds),
+    features:
+      original.features.has(feature) ?
+      original.features.remove(feature) : original.features.add(feature),
   }))
-  .case(removeLayers, (original: Mapbox, layerIds: Set<string>) => ({
+  .case(selectChoropleth, (original: Mapbox, choropleth: string) => ({
     ...original,
-    visible: original.visible.subtract(layerIds),
+    choropleth,
   }))
-  .case(selectChoropleth, (original: Mapbox, layerId: string) => {
-    return {
-      ...original,
-      visible: original.visible.subtract(choropleths.keySeq()).add(layerId),
-    };
-  })
   .build();
 
+export const visibleIdSelector = createSelector(
+  ({ choropleth }: Mapbox) => choropleth,
+  ({ features }: Mapbox) => features,
+  (choropleth: LayerId, features: Set<FeatureName>) => features.reduce(
+    (soFar: Set<LayerId>, feature: FeatureName) =>
+      soFar.union(allFeatures.get(feature)),
+    Set([choropleth]),
+  ),
+);
+
 export const currentStyleSelector = createSelector(
-  ({ visible }: Mapbox) => visible,
+  visibleIdSelector,
   (visible: Set<string>) => ({
     ...mapStyle,
     layers: mapStyle.layers.filter(l => visible.has(l.id)),
@@ -50,11 +61,6 @@ export const currentStyleSelector = createSelector(
 );
 
 export const mapKeyColorsSelector = createSelector(
-  ({ visible }: Mapbox) => visible,
-  (visible: Set<string>) => mapStyle.layers.reduce((soFar, layer) => {
-    if (visible.has(layer.id) && layer.metadata.keyColors) {
-      return soFar.concat(layer.metadata.keyColors);
-    }
-    return soFar;
-  }, [] as MapKeyColor[]),
+  ({ choropleth }: Mapbox) => choropleth,
+  (choropleth: string) => mapKeyColors.get(choropleth),
 );

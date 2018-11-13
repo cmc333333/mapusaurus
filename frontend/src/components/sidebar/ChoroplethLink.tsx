@@ -38,7 +38,7 @@ export function ChoroplethLink({ isVisible, name, onClick }) {
 }
 
 export function mapStateToProps({ mapbox }: State, { layerId }) {
-  return { isVisible: mapbox.visible.has(layerId) };
+  return { isVisible: mapbox.choropleth === layerId };
 }
 
 export function mapDispatchToProps(dispatch, { layerId }) {
