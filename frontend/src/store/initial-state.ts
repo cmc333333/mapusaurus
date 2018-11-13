@@ -74,10 +74,17 @@ export function deriveLar(hash: string, years: Year[]): Lar {
   };
 }
 
-export function deriveMapbox(windowConfig): Mapbox {
+export function deriveMapbox(hash: string, windowConfig): Mapbox {
   const { token } = windowConfig;
+  const parsed = qs.parse(hash, { depth: 0, skipNulls: true });
+  const choropleth = parsed.choropleth ?
+    `${parsed.choropleth}` : mapboxInit.choropleth;
+  const features = parsed.features ?
+    toSelected(parsed.features) : mapboxInit.features;
   return {
     ...mapboxInit,
+    choropleth,
+    features,
     token,
   };
 }
@@ -98,7 +105,7 @@ export default function initialState(window): State {
   const hash = window.location.hash.substr(1);
   return {
     lar: deriveLar(hash, window[configField].years),
-    mapbox: deriveMapbox(window[configField]),
+    mapbox: deriveMapbox(hash, window[configField]),
     sidebar: sidebarInit,
     viewport: deriveViewport(hash),
     window: {

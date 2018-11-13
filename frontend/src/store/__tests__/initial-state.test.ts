@@ -4,10 +4,12 @@ import { FiltersFactory } from "../../testUtils/Factory";
 import {
   deriveLar,
   deriveLarPoints,
+  deriveMapbox,
   deriveViewport,
   toFilterGroup,
   toSelected,
 } from "../initial-state";
+import { SAFE_INIT as mapboxInit } from "../Mapbox";
 
 describe("deriveLarPoints()", () => {
   it("starts with no points", () => {
@@ -122,5 +124,29 @@ describe("toSelected()", () => {
 
   it("splits on commas", () => {
     expect(toSelected("1,4,7")).toEqual(Set(["1", "4", "7"]));
+  });
+});
+
+describe("deriveMapbox()", () => {
+  it("grabs the token", () => {
+    expect(deriveMapbox("", { token: "some-thing" }).token).toBe("some-thing");
+  });
+
+  it("sets choropleth", () => {
+    expect(deriveMapbox("choropleth=bbb", {}).choropleth).toBe("bbb");
+  });
+
+  it("defaults choropleth if none is present", () => {
+    expect(deriveMapbox("", {}).choropleth).toBe(mapboxInit.choropleth);
+  });
+
+  it("sets features", () => {
+    expect(deriveMapbox("features=ccc,ddd,eee", {}).features).toEqual(
+      Set(["ccc", "ddd", "eee"]),
+    );
+  });
+
+  it("defaults features if none are present", () => {
+    expect(deriveMapbox("", {}).features).toEqual(mapboxInit.features);
   });
 });

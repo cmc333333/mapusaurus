@@ -4,6 +4,7 @@ import * as qs from "qs";
 import {
   FiltersFactory,
   LarFactory,
+  MapboxFactory,
   PointsFactory,
   StateFactory,
   ViewportFactory,
@@ -28,6 +29,10 @@ describe("serialize()", () => {
           scaleFactor: 44,
         }),
       }),
+      mapbox: MapboxFactory.build({
+        choropleth: "a-choropleth",
+        features: Set(["f1"]),
+      }),
       viewport: ViewportFactory.build({
         latitude: 44,
         longitude: 55.55,
@@ -36,6 +41,8 @@ describe("serialize()", () => {
     }));
 
     expect(qs.parse(result)).toEqual({
+      choropleth: "a-choropleth",
+      features: "f1",
       latitude: "44",
       longitude: "55.55",
       scaleFactor: "44",
@@ -55,6 +62,15 @@ describe("serialize()", () => {
     }));
     expect(result).toMatch(/\bcounty=(aaa,bbb|bbb,aaa)\b/);
     expect(result).toMatch(/\byear=2004\b/);
+  });
+
+  it("serializes features", () => {
+    const result = serialize(StateFactory.build({
+      mapbox: MapboxFactory.build({
+        features: Set(["aaa", "bbb"]),
+      }),
+    }));
+    expect(result).toMatch(/\bfeatures=(aaa,bbb|bbb,aaa)\b/);
   });
 });
 
