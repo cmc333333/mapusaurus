@@ -3,7 +3,7 @@ import glamorous from "glamorous";
 import { Set } from "immutable";
 import * as React from "react";
 
-import { addLayers, removeLayers } from "../../../store/Mapbox";
+import { toggleFeature } from "../../../store/Mapbox";
 import { MapboxFactory, StateFactory } from "../../../testUtils/Factory";
 import { FeatureCheckbox, mergeProps } from "../FeatureCheckbox";
 
@@ -31,29 +31,19 @@ describe("<FeatureCheckbox />", () => {
 });
 
 describe("mergeProps()", () => {
+  const features = Set(["aaa", "bbb", "ccc"]);
+  const dispatch = jest.fn();
   it("derives 'checked' based on overlap; triggers a remove", () => {
-    const dispatch = jest.fn();
-    const layerIds = Set(["bbb", "ddd", "eee"]);
-    const result = mergeProps(
-      { mapbox: { visible: Set(["aaa", "bbb", "ccc", "ddd"]) } },
-      { dispatch },
-      { layerIds, name: "" },
-    );
+    const result = mergeProps({ features }, { dispatch }, { name: "aaa" });
     expect(result.checked).toBe(true);
     result.onChange();
-    expect(dispatch).toHaveBeenCalledWith(removeLayers(layerIds));
+    expect(dispatch).toHaveBeenCalledWith(toggleFeature("aaa"));
   });
 
   it("triggers an add if not checked", () => {
-    const dispatch = jest.fn();
-    const layerIds = Set(["zzz", "yyy"]);
-    const result = mergeProps(
-      { mapbox: { visible: Set(["aaa", "bbb", "ccc", "ddd"]) } },
-      { dispatch },
-      { layerIds, name: "" },
-    );
+    const result = mergeProps({ features }, { dispatch }, { name: "xxx" });
     expect(result.checked).toBe(false);
     result.onChange();
-    expect(dispatch).toHaveBeenCalledWith(addLayers(layerIds));
+    expect(dispatch).toHaveBeenCalledWith(toggleFeature("xxx"));
   });
 });

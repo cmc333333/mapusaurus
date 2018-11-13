@@ -5,6 +5,9 @@ export interface MapKeyColor {
   description: string;
 }
 
+export type LayerId = string;
+export type FeatureName = string;
+
 const mapStyle = {
   glyphs: "mapbox://fonts/cmc333333/{fontstack}/{range}.pbf",
   layers: [
@@ -1304,23 +1307,33 @@ const mapStyle = {
 };
 export default mapStyle;
 
-export const features = mapStyle.layers.reduce((soFar, layer) => {
+export const allFeatures = mapStyle.layers.reduce((soFar, layer) => {
   if (layer.metadata.feature) {
     const featureName = layer.metadata.feature;
     return soFar.set(
       featureName,
-      soFar.get(featureName, Set<string>()).add(layer.id),
+      soFar.get(featureName, Set<LayerId>()).add(layer.id),
     );
   }
   return soFar;
-}, OrderedMap<string, Set<string>>());
+}, OrderedMap<FeatureName, Set<LayerId>>());
 
-export const choropleths = mapStyle.layers.reduce(
+export const allChoropleths = mapStyle.layers.reduce(
   (soFar, layer) => {
     if (layer.metadata.choropleth) {
       return soFar.set(layer.id, layer.metadata.choropleth);
     }
     return soFar;
   },
-  OrderedMap<string, string>(),
+  OrderedMap<LayerId, string>(),
+);
+
+export const mapKeyColors = mapStyle.layers.reduce(
+  (soFar: OrderedMap<string, MapKeyColor[]>, layer) => {
+    if (layer.metadata && layer.metadata.keyColors) {
+      return soFar.set(layer.id, layer.metadata.keyColors);
+    }
+    return soFar;
+  },
+  OrderedMap<LayerId, MapKeyColor[]>(),
 );

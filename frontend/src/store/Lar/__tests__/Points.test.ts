@@ -6,9 +6,8 @@ import {
   StateFactory,
 } from "../../../testUtils/Factory";
 import {
-  radius,
+  medianSelector,
   reducer,
-  scalarSelector,
   scatterPlotSelector,
   updatePoints,
 } from "../Points";
@@ -44,38 +43,26 @@ test("updatePoints() triggers a fetch with appropriate params", async () => {
   expect(fetchLarMock).toHaveBeenCalledWith(lar.filters);
 });
 
-describe("scalarSelector", () => {
+describe("medianSelector", () => {
   it("returns an appropriate median", () => {
     const raw: LARPoint[] = [];
-    // Remove the 250 offset
-    const mkPts = () => PointsFactory.build({ raw, scaleFactor: -250 });
-    expect(scalarSelector(mkPts())).toBe(NaN);
+    const points = PointsFactory.build({ raw });
+    expect(medianSelector(points)).toBe(NaN);
 
     raw.push(LARPointFactory.build({ normalizedLoans: 1 }));
-    expect(scalarSelector(mkPts())).toBe(1);
+    expect(medianSelector({ ...points, raw: [...raw] })).toBe(1);
 
     raw.push(LARPointFactory.build({ normalizedLoans: 2 }));
-    expect(scalarSelector(mkPts())).toBe(1);
+    expect(medianSelector({ ...points, raw: [...raw] })).toBe(1);
 
     raw.push(LARPointFactory.build({ normalizedLoans: 4 }));
-    expect(scalarSelector(mkPts())).toBe(2);
+    expect(medianSelector({ ...points, raw: [...raw] })).toBe(2);
 
     raw.push(LARPointFactory.build({ normalizedLoans: 8 }));
-    expect(scalarSelector(mkPts())).toBe(2);
+    expect(medianSelector({ ...points, raw: [...raw] })).toBe(2);
 
     raw.push(LARPointFactory.build({ normalizedLoans: 16 }));
-    expect(scalarSelector(mkPts())).toBe(4);
-  });
-
-  it("uses the scaleFactor", () => {
-    let points = PointsFactory.build({
-      raw: [LARPointFactory.build({ normalizedLoans: 1 })],
-      scaleFactor: 0,
-    });
-    expect(scalarSelector(points)).toBe(Math.pow(1.1, 250));
-
-    points = { ...points, scaleFactor: 100 };
-    expect(scalarSelector(points)).toBe(Math.pow(1.1, 350));
+    expect(medianSelector({ ...points, raw: [...raw] })).toBe(4);
   });
 });
 
@@ -89,19 +76,25 @@ describe("scatterPlotSelector", () => {
         longitude: 22,
       }),
       LARPointFactory.build({
-        houseCount: 1000,
+        houseCount: 2000,
         latitude: 33.33,
         loanCount: 5,
         longitude: 44.44,
       }),
     ];
-    const points = PointsFactory.build({ raw });
-    const scalar = scalarSelector(points);
+    const points = PointsFactory.build({ raw, scaleFactor: 21 });
 
     const circles = scatterPlotSelector(points);
+    const median = 4 / 1000;
     expect(circles).toEqual([
-      { radius: radius((4 / 1000) * scalar), position: [22, 11] },
-      { radius: radius((5 / 1000) * scalar), position: [44.44, 33.33] },
+      {
+        position: [22, 11],
+        radius: Math.sqrt(4 / 1000 * 21 * 4000 / median) / Math.PI,
+      },
+      {
+        position: [44.44, 33.33],
+        radius: Math.sqrt(5 / 2000 * 21 * 4000 / median) / Math.PI,
+      },
     ]);
   });
 });

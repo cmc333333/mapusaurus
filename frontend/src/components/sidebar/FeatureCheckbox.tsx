@@ -2,7 +2,7 @@ import glamorous from "glamorous";
 import * as React from "react";
 import { connect } from "react-redux";
 
-import { addLayers, removeLayers } from "../../store/Mapbox";
+import { toggleFeature } from "../../store/Mapbox";
 import State from "../../store/State";
 import { largeSpace, mediumSpace, smallSpace } from "../../theme";
 
@@ -28,19 +28,16 @@ export function FeatureCheckbox({ checked, name, onChange }) {
   );
 }
 
-export function mergeProps({ mapbox }, { dispatch }, { layerIds, name }) {
-  const checked = !mapbox.visible.intersect(layerIds).isEmpty();
+export function mergeProps({ features }, { dispatch }, { name }) {
   return {
-    checked,
     name,
-    onChange: () => dispatch(
-      checked ?  removeLayers(layerIds) : addLayers(layerIds),
-    ),
+    checked: features.has(name),
+    onChange: () => dispatch(toggleFeature(name)),
   };
 }
 
 export default connect(
-  ({ mapbox }) => ({ mapbox }),
+  ({ mapbox: { features } }) => ({ features }),
   dispatch => ({ dispatch }),
   mergeProps,
 )(FeatureCheckbox);

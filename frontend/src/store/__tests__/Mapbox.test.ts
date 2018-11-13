@@ -3,66 +3,57 @@ import { Set } from "immutable";
 import mapStyle from "../../mapStyle";
 import { MapboxFactory } from "../../testUtils/Factory";
 import {
-  addLayers,
   currentStyleSelector,
   mapKeyColorsSelector,
   reducer,
-  removeLayers,
   selectChoropleth,
+  toggleFeature,
 } from "../Mapbox";
 
 describe("reducer()", () => {
   it("sets choropleth layers", () => {
     const mapbox = MapboxFactory.build({
-      visible: Set<string>(["admin-country", "building", "income"]),
+      choropleth: "income",
     });
 
     const result = reducer(mapbox, selectChoropleth("msa-minority"));
-    expect(result.visible).toEqual(
-      Set<string>(["admin-country", "building", "msa-minority"]),
-    );
+    expect(result.choropleth).toBe("msa-minority");
   });
 
-  it("adds and removes layers", () => {
+  it("adds and removes features", () => {
     const mapbox = MapboxFactory.build({
-      visible: Set<string>(["aaa", "bbb", "ccc"]),
+      features: Set(["aaa", "bbb", "ccc"]),
     });
-    const addResult = reducer(
-      mapbox,
-      addLayers(Set<string>(["ccc", "ddd", "eee"])),
-    );
-    const subResult = reducer(
-      mapbox,
-      removeLayers(Set<string>(["111", "bbb"])),
-    );
+    const subtractResult = reducer(mapbox, toggleFeature("ccc"));
+    expect(subtractResult.features).toEqual(Set(["aaa", "bbb"]));
 
-    expect(addResult.visible).toEqual(
-      Set<string>(["aaa", "bbb", "ccc", "ddd", "eee"]),
-    );
-    expect(subResult.visible).toEqual(Set<string>(["aaa", "ccc"]));
+    const addResult = reducer(mapbox, toggleFeature("ddd"));
+    expect(addResult.features).toEqual(Set(["aaa", "bbb", "ccc", "ddd"]));
   });
 });
 
 describe("currentStyleSelector", () => {
   it("filters to the appropriate layers", () => {
     const mapbox = MapboxFactory.build({
-      visible: Set<string>(["background", "pedestrian-path"]),
+      choropleth: "income",
+      features: Set(["Geography"]),
     });
 
     const result = currentStyleSelector(mapbox);
-    expect(result.layers).toHaveLength(2);
-    expect(result.layers[0].type).toBe("background");
-    expect(result.layers[1]["source-layer"]).toBe("road");
+    expect(result.layers.map(l => l.id)).toEqual(
+      ["background", "income", "national_park", "landuse", "waterway", "water"],
+    );
   });
 });
 
 describe("mapKeyColorsSelector", () => {
   it("includes the colors of selected layers", () => {
     const mapbox = MapboxFactory.build({
-      visible: Set(["minority-fifty", "landuse"]),
+      choropleth: "minority-fifty",
     });
     const result = mapKeyColorsSelector(mapbox);
-    const layer: any = mapStyle.layers.find(l => l.id === "minority-fifty");
-    expect(result).toEqual(layer.metadata.keyColors);
+    expect(result.map(k => k.description)).toEqual(
+      ["≥ 50% Minority", "< 50% Minority"],
+    );
   });
 });

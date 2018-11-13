@@ -39,27 +39,32 @@ export const reducer = reducerWithInitialState(SAFE_INIT)
   }))
   .build();
 
-export function radius(area: number) {
-  // Area of a circle = pi * r * r
-  return Math.sqrt(area) / Math.PI;
-}
-
-export const scalarSelector = createSelector(
-  (points: Points) => points,
-  ({ raw, scaleFactor }) => {
+export const medianSelector = createSelector(
+  ({ raw }: Points) => raw,
+  raw => {
     if (!raw.length) {
       return NaN;
     }
     const median = raw[Math.floor((raw.length - 1) / 2)];
-    return median.normalizedLoans * Math.pow(1.1, 250 + scaleFactor);
+    return median.normalizedLoans;
   },
 );
 
+export const radiusFnSelector = createSelector(
+  ({ scaleFactor }: Points) => scaleFactor,
+  medianSelector,
+  (scaleFactor, median) => (
+    (point: LARPoint) =>
+      // Area of a circle = pi * r * r
+      Math.sqrt(point.normalizedLoans * scaleFactor * 4000 / median) / Math.PI
+  ),
+);
+
 export const scatterPlotSelector = createSelector(
-  ({ raw }: Points) => raw,
-  scalarSelector,
-  (raw, scalar) => raw.map(pt => ({
-    position: [pt.longitude, pt.latitude],
-    radius: radius(pt.normalizedLoans * scalar),
+  (points: Points) => points,
+  radiusFnSelector,
+  (points, radiusFn) => points.raw.map(point => ({
+    position: [point.longitude, point.latitude],
+    radius: radiusFn(point),
   })),
 );

@@ -23,8 +23,8 @@ export function LoanScalar({ onChange, scaleFactor }) {
     <glamorous.Div paddingLeft={mediumSpace} paddingRight={mediumSpace}>
       <Slider
         handleStyle={{ border, height: largeSpace, width: largeSpace }}
-        max={50}
-        min={0}
+        max={100}
+        min={1}
         onChange={onChange}
         railStyle={{ border, backgroundColor: textBg, height: mediumSpace }}
         trackStyle={{ border, backgroundColor: textBg, height: mediumSpace }}
