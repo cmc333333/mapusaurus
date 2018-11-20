@@ -47,7 +47,7 @@ class ParentInstitution(models.Model):
     we have fewer details. If we have an RSSD ID we try and store it here. """
 
     year = models.SmallIntegerField(db_index=True)
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=128)
     city = models.CharField(max_length=25)
     state = models.CharField(max_length=2, blank=True, null=True)
     country = models.CharField(max_length=40, blank=True, null=True)
@@ -73,12 +73,13 @@ class Institution(models.Model):
     agency = models.ForeignKey('Agency')
     institution_id = models.CharField(max_length=15, primary_key=True)
     tax_id = models.CharField(max_length=10)
-    name = models.CharField(max_length=30)
-    mailing_address = models.CharField(max_length=40)
+    name = models.CharField(max_length=128)
+    mailing_address = models.CharField(max_length=64)
     zip_code = models.ForeignKey('ZipCodeCityStateYear', null=False)
     assets = models.BigIntegerField(
-        default=0,
-        help_text='Prior year reported assets in thousands of dollars'
+        blank=True,
+        help_text='Prior year reported assets in thousands of dollars',
+        null=True,
     )
     rssd_id = models.CharField(
         blank=True,

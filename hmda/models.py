@@ -3,19 +3,19 @@ from typing import Iterator, Tuple
 from django.db import models
 
 AGENCY_CHOICES = (
-    (1, 'Office of the Comptroller of the Currency (OCC)'),
-    (2, 'Federal Reserve System (FRS)'),
-    (3, 'Federal Deposit Insurance Corporation (FDIC)'),
-    (5, 'National Credit Union Administration (NCUA)'),
-    (7, 'Department of Housing and Urban Development (HUD)'),
-    (9, 'Consumer Financial Protection Bureau (CFPB)'),
+    ('1', 'Office of the Comptroller of the Currency (OCC)'),
+    ('2', 'Federal Reserve System (FRS)'),
+    ('3', 'Federal Deposit Insurance Corporation (FDIC)'),
+    ('5', 'National Credit Union Administration (NCUA)'),
+    ('7', 'Department of Housing and Urban Development (HUD)'),
+    ('9', 'Consumer Financial Protection Bureau (CFPB)'),
 )
 
 EDIT_STATUS_CHOICES = (
     ('', 'No edit failures'),
-    (5, 'Validity edit failure only'),
-    (6, 'Quality edit failure only'),
-    (7, 'Validity and quality edit failures'),
+    ('5', 'Validity edit failure only'),
+    ('6', 'Quality edit failure only'),
+    ('7', 'Validity and quality edit failures'),
 )
 
 LOAN_TYPE_CHOICES = (
@@ -26,9 +26,9 @@ LOAN_TYPE_CHOICES = (
 )
 
 PROPERTY_TYPE_CHOICES = (
-    (1, 'One to four-family (other than manufactured housing)'),
-    (2, 'Manufactured housing'),
-    (3, 'Multifamily'),
+    ('1', 'One to four-family (other than manufactured housing)'),
+    ('2', 'Manufactured housing'),
+    ('3', 'Multifamily'),
 )
 
 LOAN_PURPOSE_CHOICES = (
@@ -44,9 +44,9 @@ OWNER_OCCUPANCY_CHOICES = (
 )
 
 PREAPROVAL_CHOICES = (
-    (1, 'Preapproval was requested'),
-    (2, 'Preapproval was not requested'),
-    (3, 'Not applicable'),
+    ('1', 'Preapproval was requested'),
+    ('2', 'Preapproval was not requested'),
+    ('3', 'Not applicable'),
 )
 ACTION_TAKEN_CHOICES = (
     (1, 'Loan originated'),
@@ -60,24 +60,24 @@ ACTION_TAKEN_CHOICES = (
 )
 
 ETHNICITY_CHOICES = (
-    (1, 'Hispanic or Latino'),
-    (2, 'Not Hispanic or Latino'),
-    (3, ('Information not provided by applicant in mail, Internet, or '
-         'telephone application')),
-    (4, 'Not applicable'),
-    (5, 'No co-applicant'),
+    ('1', 'Hispanic or Latino'),
+    ('2', 'Not Hispanic or Latino'),
+    ('3', ('Information not provided by applicant in mail, Internet, or '
+           'telephone application')),
+    ('4', 'Not applicable'),
+    ('5', 'No co-applicant'),
 )
 
 RACE_CHOICES = (
-    (1, 'American Indian or Alaska Native'),
-    (2, 'Asian'),
-    (3, 'Black or African American'),
-    (4, 'Native Hawaiian or Other Pacific Islander '),
-    (5, 'White'),
-    (6, ('Information not provided by applicant in mail, Internet, or '
-         'telephone application')),
-    (7, 'Not applicable'),
-    (8, 'No co-applicant'),
+    ('1', 'American Indian or Alaska Native'),
+    ('2', 'Asian'),
+    ('3', 'Black or African American'),
+    ('4', 'Native Hawaiian or Other Pacific Islander '),
+    ('5', 'White'),
+    ('6', ('Information not provided by applicant in mail, Internet, or '
+           'telephone application')),
+    ('7', 'Not applicable'),
+    ('8', 'No co-applicant'),
 )
 
 SEX_CHOICES = (
@@ -91,42 +91,42 @@ SEX_CHOICES = (
 
 
 TYPE_OF_PURCHASER_CHOICES = (
-    (0, ('Loan was not originated or was not sold in calendar year covered '
-         'by register')),
-    (1, 'Fannie Mae (FNMA)'),
-    (2, 'Ginnie Mae (GNMA)'),
-    (3, 'Freddie Mac (FHLMC)'),
-    (4, 'Farmer Mac (FAMC)'),
-    (5, 'Private securitization'),
-    (6, 'Commercial bank, savings bank or savings association'),
-    (7, ('Life insurance company, credit union, mortgage bank, or finance '
-         'company')),
-    (8, 'Affiliate institution'),
-    (9, 'Other type of purchaser'),
+    ('0', ('Loan was not originated or was not sold in calendar year covered '
+           'by register')),
+    ('1', 'Fannie Mae (FNMA)'),
+    ('2', 'Ginnie Mae (GNMA)'),
+    ('3', 'Freddie Mac (FHLMC)'),
+    ('4', 'Farmer Mac (FAMC)'),
+    ('5', 'Private securitization'),
+    ('6', 'Commercial bank, savings bank or savings association'),
+    ('7', ('Life insurance company, credit union, mortgage bank, or finance '
+           'company')),
+    ('8', 'Affiliate institution'),
+    ('9', 'Other type of purchaser'),
 )
 
 REASONS_FOR_DENIAL_CHOICES = (
-    (1, 'Debt-to-income ratio'),
-    (2, 'Employment history'),
-    (3, 'Credit history'),
-    (4, 'Collateral'),
-    (5, 'Insufficient cash (downpayment, closing costs)'),
-    (6, 'Unverifiable information'),
-    (7, 'Credit application incomplete'),
-    (8, 'Mortgage insurance denied'),
-    (9, 'Other'),
+    ('1', 'Debt-to-income ratio'),
+    ('2', 'Employment history'),
+    ('3', 'Credit history'),
+    ('4', 'Collateral'),
+    ('5', 'Insufficient cash (downpayment, closing costs)'),
+    ('6', 'Unverifiable information'),
+    ('7', 'Credit application incomplete'),
+    ('8', 'Mortgage insurance denied'),
+    ('9', 'Other'),
 )
 
 HOEPA_STATUS_CHOICES = (
-    (1, 'HOEPA loan'),
-    (2, 'Not a HOEPA loan'),
+    ('1', 'HOEPA loan'),
+    ('2', 'Not a HOEPA loan'),
 )
 
 LIEN_STATUS_CHOICES = (
-    (1, 'Secured by a first lien'),
-    (2, 'Secured by a subordinate lien'),
-    (3, 'Not secured by a lien'),
-    (4, 'Not applicable (purchased loans)'),
+    ('1', 'Secured by a first lien'),
+    ('2', 'Secured by a subordinate lien'),
+    ('3', 'Not secured by a lien'),
+    ('4', 'Not applicable (purchased loans)'),
 )
 
 APPLICATION_DATE_INDICATOR_CHOICES = (
@@ -187,7 +187,7 @@ class HMDARecord(models.Model):
     """
     objects = HMDARecordQuerySet.as_manager()
     # compound key: institution_id + sequence_number
-    hmda_record_id = models.CharField(max_length=22, primary_key=True)
+    hmda_record_id = models.CharField(max_length=23, primary_key=True)
     as_of_year = models.PositiveIntegerField(
         db_index=True, help_text="The reporting year of the HMDA record.")
     respondent_id = models.CharField(
@@ -372,7 +372,7 @@ class HMDARecord(models.Model):
         help_text="A code representing the sex of the co-applicant.",
     )
     applicant_income_000s = models.CharField(
-        max_length=4,
+        max_length=8,
         help_text=("The gross annual income that the lender relied on when "
                    "evaluating the creditworthiness of the applicant, "
                    "rounded to the nearest thousand."),
@@ -438,7 +438,7 @@ class HMDARecord(models.Model):
                    "application."),
     )
     sequence_number = models.CharField(
-        max_length=7,
+        max_length=8,
         help_text=("A one-up number scheme for each respondent to make each "
                    "loan unique."),
     )

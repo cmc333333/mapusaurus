@@ -1,6 +1,6 @@
 import argparse
 import logging
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 from django.core.management.base import BaseCommand
 
@@ -65,6 +65,17 @@ class ReporterRow(NamedTuple):
             parent_rssd_id=line[329:339],
             respondent_fips_state=line[339:341],
         )
+
+    @classmethod
+    def from_csv_row(cls, line: List[str]) -> 'ReporterRow':
+        """Parse a line from the CFPB HMDA CSV."""
+        transformed = [cell.strip() for cell in line]
+        transformed[2] = int(transformed[2])
+        # fillers
+        transformed.insert(11, "")
+        transformed.insert(14, "")
+        transformed.insert(15, "")
+        return cls(*transformed)
 
     def institution(self):
         """Get the Institution object that corresonds to this ReporterRow."""

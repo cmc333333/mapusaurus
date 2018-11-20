@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 from io import TextIOWrapper
 
 import requests
@@ -10,17 +9,24 @@ from hmda.management.commands.load_hmda import (filter_by_fks, load_from_csv,
 from hmda.models import HMDARecord
 from respondents.management.utils import fetch_and_unzip_file, save_batches
 
-ZIP_TPL = ('https://www.ffiec.gov/hmdarawdata/LAR/National/'
-           '{year}HMDALAR%20-%20National.zip')
 logger = logging.getLogger(__name__)
+FILE_URLS = {}
+for year in range(2012, 2017):
+    FILE_URLS[year] = (
+        "https://www.ffiec.gov/hmdarawdata/LAR/National/"
+        f"{year}HMDALAR%20-%20National.zip"
+    )
+FILE_URLS[2017] = (
+    "https://s3.amazonaws.com/cfpb-hmda-public/prod/snapshot-data/"
+    "2017_public_lar_csv.zip"
+)
 
 
 class Command(BaseCommand):
     help = "Download and load HMDA LARs."""
 
     def add_arguments(self, parser):
-        this_year = date.today().year
-        choices = list(range(2012, this_year))
+        choices = list(range(2012, 2018))
         parser.add_argument('--year', type=int, nargs='*', default=choices,
                             choices=choices,
                             help="Years to download. Defaults to >=2012")
@@ -29,12 +35,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for year in options['year']:
             logger.info("Loading HMDALAR for %s", year)
-            url = ZIP_TPL.format(year=year)
             try:
-                with fetch_and_unzip_file(url) as lar_file:
+                with fetch_and_unzip_file(FILE_URLS[year]) as lar_file:
                     models = load_from_csv(TextIOWrapper(lar_file, 'utf-8'))
                     save_batches(models, HMDARecord, options['replace'],
-                                 filter_by_fks, batch_size=1000)
+                                 filter_by_fks, batch_size=10000)
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
         update_num_loans()
