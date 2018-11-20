@@ -22,7 +22,7 @@ def fetch_pre_2017(year: int):
 def fetch_post_2016(year: int):
     """Update institution from a CSV."""
     url = ("https://s3.amazonaws.com/cfpb-hmda-public/prod/snapshot-data/"
-           f"{year}_publicpanel_csv.zip")
+           f"{year}_public_panel_csv.zip")
     with fetch_and_unzip_file(url) as panel_file:
         csv_file = csv.reader(TextIOWrapper(panel_file, 'utf-8'))
         for line in csv_file:
