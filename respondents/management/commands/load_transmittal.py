@@ -1,7 +1,7 @@
 import argparse
 import csv
 import logging
-from typing import BinaryIO, Dict
+from typing import Dict, Iterator, List
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
@@ -20,14 +20,17 @@ def fixup(line):
     return line
 
 
-def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
-    transmittal_reader = csv.reader(csv_file, delimiter='\t')
+def load_from_csv(
+        agencies: Dict[int, Agency], transmittal_reader: Iterator[List[str]]):
     for zero_line_number, line in enumerate(transmittal_reader):
         line_number = zero_line_number + 1
         line = fixup(line)
-        if len(line) != 22:
-            logger.warning("Line %s is invalid, has length %s (expected 22)",
-                           line_number, len(line))
+        if len(line) not in (15, 22):
+            logger.warning(
+                "Line %s is invalid, has length %s (expected 15 or 22)",
+                line_number,
+                len(line),
+            )
             break
         year = line[0]
         zipcode_city = create_zipcode(
@@ -39,10 +42,9 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
                            line_number, agency_id)
             break
 
-        assets = line[17]
-        if not assets.isdigit():
+        if len(line) == 22 and not line[17].isdigit():
             logger.warning("Line %s has an invalid asset amount: %s",
-                           line_number, assets)
+                           line_number, line[17])
             break
 
         respondent_id = line[1]
@@ -56,7 +58,7 @@ def load_from_csv(agencies: Dict[int, Agency], csv_file: BinaryIO):
             name=line[4],
             mailing_address=line[5],
             zip_code=zipcode_city,
-            assets=int(assets),
+            assets=int(line[17]) if len(line) == 22 else None,
         )
         try:
             inst.full_clean(exclude=['agency'], validate_unique=False)
@@ -73,10 +75,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('file_name', type=argparse.FileType('r'))
         parser.add_argument('--replace', action='store_true')
+        parser.add_argument('--delimiter', default='\t')
 
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
-        institutions = load_from_csv(agencies, options['file_name'])
+        transmittal_reader = csv.reader(
+            options['file_name'], delimiter=options['delimiter'])
+        institutions = load_from_csv(agencies, transmittal_reader)
         save_batches(institutions, Institution, options['replace'],
                      batch_size=1000)
         options['file_name'].close()

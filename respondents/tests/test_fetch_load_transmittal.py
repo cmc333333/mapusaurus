@@ -1,9 +1,10 @@
+from collections import Counter
+from io import BytesIO
 from unittest.mock import MagicMock, Mock
 
 import pytest
 import requests
 from django.core.management import call_command
-from freezegun import freeze_time
 
 from respondents.management.commands import fetch_load_transmittals
 
@@ -12,11 +13,12 @@ def test_handle_no_args(monkeypatch):
     monkeypatch.setattr(
         fetch_load_transmittals, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_transmittals.fetch_and_unzip_file
+    fetch_call.return_value.__enter__.return_value = BytesIO(b"")
     monkeypatch.setattr(fetch_load_transmittals, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'Agency', Mock())
-    with freeze_time('2018-01-01'):
-        call_command('fetch_load_transmittals')
+    monkeypatch.setattr(fetch_load_transmittals.csv, "reader", Mock())
+    call_command('fetch_load_transmittals')
 
     assert fetch_call.call_count == 6
     called_urls = [call[0][0] for call in fetch_call.call_args_list]
@@ -28,11 +30,19 @@ def test_handle_no_args(monkeypatch):
     replace = fetch_load_transmittals.save_batches.call_args[0][2]
     assert not replace
 
+    delimiters = Counter(
+        args[1]['delimiter']
+        for args in fetch_load_transmittals.csv.reader.call_args_list
+    )
+    assert delimiters[","] == 1
+    assert delimiters["\t"] == 5
+
 
 def test_handle_specific_args(monkeypatch):
     monkeypatch.setattr(
         fetch_load_transmittals, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_transmittals.fetch_and_unzip_file
+    fetch_call.return_value.__enter__.return_value = BytesIO(b"")
     monkeypatch.setattr(fetch_load_transmittals, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_transmittals, 'Agency', Mock())

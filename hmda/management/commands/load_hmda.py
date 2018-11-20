@@ -16,18 +16,18 @@ logger = logging.getLogger(__name__)
 
 
 def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
-    for row in csv.reader(csv_file):
+    for idx, row in enumerate(csv.reader(csv_file)):
         record = HMDARecord(
-            as_of_year=row[0],
+            as_of_year=int(row[0]),
             respondent_id=row[1],
             agency_code=row[2],
             loan_type=row[3],
-            property_type=row[4],
-            loan_purpose=row[5],
-            owner_occupancy=row[6],
-            loan_amount_000s=row[7],
+            property_type=int(row[4]),
+            loan_purpose=int(row[5]),
+            owner_occupancy=int(row[6]),
+            loan_amount_000s=int(row[7] or '0'),
             preapproval=row[8],
-            action_taken=row[9],
+            action_taken=int(row[9]),
             msamd=row[10],
             statefp=row[11],
             countyfp=row[12],
@@ -44,8 +44,8 @@ def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
             co_applicant_race_3=row[23],
             co_applicant_race_4=row[24],
             co_applicant_race_5=row[25],
-            applicant_sex=row[26],
-            co_applicant_sex=row[27],
+            applicant_sex=int(row[26]),
+            co_applicant_sex=int(row[27]),
             applicant_income_000s=row[28],
             purchaser_type=row[29],
             denial_reason_1=row[30],
@@ -55,14 +55,14 @@ def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
             hoepa_status=row[34],
             lien_status=row[35],
             edit_status=row[36],
-            sequence_number=row[37],
-            population=row[38],
-            minority_population=row[39],
-            ffieic_median_family_income=row[40],
-            tract_to_msamd_income=row[41],
-            number_of_owner_occupied_units=row[42],
-            number_of_1_to_4_family_units=row[43],
-            application_date_indicator=row[44],
+            sequence_number=(row[37] or str(idx)).zfill(8),
+            population=row[38] or '0',
+            minority_population=row[39] or '0',
+            ffieic_median_family_income=row[40] or '0',
+            tract_to_msamd_income=row[41] or '0',
+            number_of_owner_occupied_units=row[42] or '0',
+            number_of_1_to_4_family_units=row[43] or '0',
+            application_date_indicator=0,
         )
         censustract = row[11] + row[12] + row[13].replace('.', '')
         censustract = errors.change_specific_year(censustract,
@@ -71,6 +71,8 @@ def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
         record.institution_id = f"{record.as_of_year}{record.agency_code}"
         record.institution_id += record.respondent_id
         record.hmda_record_id = record.institution_id + record.sequence_number
+        record.full_clean(
+            exclude=['geo', 'institution'], validate_unique=False)
         yield record
 
 
