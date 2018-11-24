@@ -7,7 +7,7 @@ from django.http import HttpResponseBadRequest
 from django.utils.html import escape
 from rest_framework import serializers
 from rest_framework.decorators import api_view, renderer_classes
-from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from hmda.models import Year
@@ -45,7 +45,7 @@ SORT_WHITELIST = ('assets', '-assets', 'num_loans', '-num_loans')
 
 
 @api_view(['GET'])
-@renderer_classes((TemplateHTMLRenderer, JSONRenderer))
+@renderer_classes((JSONRenderer,))
 def search_results(request):
     query_str = escape(request.GET.get('q', '')).strip()
     year = escape(request.GET.get('year', '')).strip()
@@ -143,7 +143,7 @@ def search_results(request):
          'next_page': next_page, 'prev_page': prev_page,
          'total_pages': total_pages, 'current_sort': current_sort,
          'year': year},
-        template_name='respondents/search_results.html')
+    )
 
 
 def branch_locations_as_json(request):
