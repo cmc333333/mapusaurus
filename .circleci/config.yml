@@ -42,6 +42,11 @@ jobs:
     - run:
         name: Py.test
         command: pipenv run pytest
+    - run:
+        name: Lint
+        command: |
+          pipenv run mypy .
+          pipenv run flake8
 
   ui-deps:
     <<: *UI
