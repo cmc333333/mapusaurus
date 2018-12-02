@@ -1,4 +1,5 @@
 import json
+from typing import Tuple
 
 import django_filters
 import webargs
@@ -34,13 +35,13 @@ class LARFilters(django_filters.FilterSet):
     loan_purpose = ChoiceInFilter(choices=LOAN_PURPOSE_CHOICES,
                                   lookup_expr='in')
     owner_occupancy = ChoiceInFilter(choices=OWNER_OCCUPANCY_CHOICES,
-                                  lookup_expr='in')
+                                     lookup_expr='in')
     property_type = ChoiceInFilter(choices=PROPERTY_TYPE_CHOICES,
-                                  lookup_expr='in')
+                                   lookup_expr='in')
 
     class Meta:
         model = HMDARecord
-        fields = tuple()
+        fields: Tuple[str, ...] = tuple()
 
     @property
     def qs(self):

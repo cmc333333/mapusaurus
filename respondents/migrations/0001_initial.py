@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from typing import List
 
 from django.db import models, migrations
 import localflavor.us.models
@@ -7,7 +8,7 @@ import localflavor.us.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies: List[str] = [
     ]
 
     operations = [

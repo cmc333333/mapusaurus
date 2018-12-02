@@ -35,7 +35,7 @@ def all_years_urls(shapes: List[str], states: List[us.states.State],
 
 
 @contextmanager
-def fetch_and_unzip_dir(url: str) -> Path:
+def fetch_and_unzip_dir(url: str) -> Iterator[Path]:
     with TemporaryDirectory() as tmp_dir:
         response = requests.get(url, timeout=120)
         response.raise_for_status()

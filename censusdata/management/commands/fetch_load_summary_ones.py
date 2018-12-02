@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterator, NamedTuple
+from typing import cast, Iterator, NamedTuple, TextIO
 from zipfile import ZipFile
 
 import requests
@@ -39,7 +39,8 @@ class Summary1Files(NamedTuple):
         """Insert the associated summary data into the db, attaching it to
         year-specific geos."""
         with self.geofile.open(encoding='latin') as geofile:
-            state_fips, tracts = load_state_tracts(geofile, year)
+            state_fips, tracts = load_state_tracts(
+                cast(TextIO, geofile), year)
 
         geo_query = Geo.objects.filter(state=state_fips, year=year)
 
@@ -52,7 +53,7 @@ class Summary1Files(NamedTuple):
 
 
 @contextmanager
-def fetch_and_unzip(state: us.states.State) -> Summary1Files:
+def fetch_and_unzip(state: us.states.State) -> Iterator[Summary1Files]:
     """Fetch an archive containing all of the summary data for a specific
     state. Unzip the files we care about and yield their Summary1Files
     wrapper."""

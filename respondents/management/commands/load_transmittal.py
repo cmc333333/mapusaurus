@@ -32,7 +32,7 @@ def load_from_csv(
                 len(line),
             )
             break
-        year = line[0]
+        year = int(line[0])
         zipcode_city = create_zipcode(
             city=line[6], state=line[7], year=year, zip_code=line[8])
 

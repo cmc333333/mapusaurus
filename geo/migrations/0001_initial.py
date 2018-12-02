@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from typing import List
 
 from django.db import models, migrations
 import django.contrib.gis.db.models.fields
@@ -7,7 +8,7 @@ import django.contrib.gis.db.models.fields
 
 class Migration(migrations.Migration):
 
-    dependencies = [
+    dependencies: List[str] = [
     ]
 
     operations = [

@@ -70,12 +70,12 @@ class ReporterRow(NamedTuple):
     def from_csv_row(cls, line: List[str]) -> 'ReporterRow':
         """Parse a line from the CFPB HMDA CSV."""
         transformed = [cell.strip() for cell in line]
-        transformed[2] = int(transformed[2])
         # fillers
         transformed.insert(11, "")
         transformed.insert(14, "")
         transformed.insert(15, "")
-        return cls(*transformed)
+        return cls(transformed[0], transformed[1], int(transformed[2]),
+                   *transformed[3:])
 
     def institution(self):
         """Get the Institution object that corresonds to this ReporterRow."""
