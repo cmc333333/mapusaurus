@@ -93,7 +93,7 @@ class LARSingleLenderFilters(LARFilters):
 
         try:
             args = webargs_parser.parse(self.institution_args, self.request)
-        except webargs.ValidationError as err:
+        except webargs.ValidationError:
             return queryset
 
         if args['lender']:

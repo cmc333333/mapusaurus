@@ -9,11 +9,11 @@ from geo.models import Geo
 class GeoInline(admin.TabularInline):
     model = Geo
 
+
 class HMDARecordAdmin(admin.ModelAdmin):
-    list_display = ('institution', 'as_of_year', 'action_taken', 'statefp', 'countyfp')
-    #inlines = [
-    #    GeoInline,
-    #]
+    list_display = (
+        'institution', 'as_of_year', 'action_taken', 'statefp', 'countyfp')
+
 
 class LendingStatsAdmin(admin.ModelAdmin):
     list_display = ('institution', 'lar_median')

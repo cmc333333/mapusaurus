@@ -32,7 +32,7 @@ def fetch_and_unzip_file(url: str):
             yield unzipped_file
 
 
-def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
+def batches(elts: Iterator[T], batch_size: int = 100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
     batch: List[T] = []
     for elt in elts:
@@ -44,7 +44,7 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
 
 
 def save_batches(models: Iterator[DjangoModel], model_class: Type[DjangoModel],
-                 replace: bool=False, filter_fn=None, batch_size: int=100,
+                 replace: bool = False, filter_fn=None, batch_size: int = 100,
                  log=True):
     """Save (optionally, replacing) batches of models."""
     count_saved, count_skipped = 0, 0
