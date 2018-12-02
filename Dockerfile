@@ -1,11 +1,12 @@
-FROM python:3.6.4
+FROM python:3.6.7
 
 RUN apt-get update &&\
     apt-get install binutils libproj-dev gdal-bin libgeoip1 python3-gdal -y &&\
     apt-get autoremove -y &&\
     rm -rf /var/lib/apt/lists/* &&\
     rm -rf /var/cache/apt/*
-RUN pip install certifi pipenv
+RUN pip install --upgrade pip &&\
+    pip install certifi pipenv
 COPY ["Pipfile", "Pipfile.lock", "/app/"]
 WORKDIR /app
 RUN pipenv install
