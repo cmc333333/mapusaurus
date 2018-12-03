@@ -1,9 +1,10 @@
 import csv
-from typing import Dict, Iterator, List, NewType, TextIO, Tuple, Type
+from typing import (
+    Dict, Iterator, NamedTuple, NewType, TextIO, Tuple, Type, Union)
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.db.models import Model, QuerySet
+from django.db.models import QuerySet
 
 from censusdata.models import (
     Census2010Age, Census2010HispanicOrigin, Census2010Households,
@@ -14,10 +15,6 @@ from geo.models import Geo
 RecordId = NewType('RecordId', str)
 TractId = NewType('TractId', str)
 TractByRecord = Dict[RecordId, TractId]
-File3Models = Tuple[Census2010Race, Census2010HispanicOrigin,
-                    Census2010RaceStats]
-File4Models = Tuple[Census2010Sex, Census2010Age]
-File5Models = Tuple[Census2010Households]
 AGE_FIELDS = (
     'under_five', 'five_nine', 'ten_fourteen', 'fifteen_seventeen',
     'eighteen_nineteen', 'twenty', 'twentyone', 'twentytwo_twentyfour',
@@ -34,12 +31,32 @@ HOUSEHOLD_FIELDS = (
 )
 
 
-def make_file_loader(model_classes: List[Type[Model]], parser):
+class File3Models(NamedTuple):
+    race: Census2010Race
+    hispanic_origin: Census2010HispanicOrigin
+    race_stats: Census2010RaceStats
+
+
+class File4Models(NamedTuple):
+    sex: Census2010Sex
+    age: Census2010Age
+
+
+class File5Models(NamedTuple):
+    households: Census2010Households
+
+
+ContainerClass = Union[File3Models, File4Models, File5Models]
+
+
+def make_file_loader(container_class: Type[ContainerClass], parser):
     """Bulk create Census2010 stat models using the parser function. Skip if
     data's already loaded."""
     @transaction.atomic
     def load_file(datafile: TextIO, geo_query: QuerySet, replace: bool,
                   tracts: TractByRecord):
+        model_classes = [
+            container_class._field_types[f] for f in container_class._fields]
         skip = all(model_class.objects.filter(geoid__in=geo_query).exists()
                    for model_class in model_classes)
 
@@ -94,7 +111,7 @@ def file3_models(datafile: TextIO,
             stat.auto_fields()
             stat.full_clean(exclude=['geoid'], validate_unique=False)
 
-            yield (race, hisp, stat)
+            yield File3Models(race, hisp, stat)
 
 
 def file4_models(datafile: TextIO,
@@ -120,7 +137,7 @@ def file4_models(datafile: TextIO,
                 setattr(age, field_name, male_count + female_count)
             age.full_clean(exclude=['geoid'], validate_unique=False)
 
-            yield (sex, age)
+            yield File4Models(sex, age)
 
 
 def file5_models(datafile: TextIO,
@@ -136,12 +153,12 @@ def file5_models(datafile: TextIO,
                 setattr(household, field_name, row[28 + idx])
             household.full_clean(exclude=['geoid'], validate_unique=False)
 
-            yield (household,)
+            yield File5Models(household)
 
 
-load_file_three = make_file_loader(File3Models.__args__, file3_models)
-load_file_four = make_file_loader(File4Models.__args__, file4_models)
-load_file_five = make_file_loader(File5Models.__args__, file5_models)
+load_file_three = make_file_loader(File3Models, file3_models)
+load_file_four = make_file_loader(File4Models, file4_models)
+load_file_five = make_file_loader(File5Models, file5_models)
 
 
 def load_state_tracts(datafile: TextIO,

@@ -1,7 +1,7 @@
 import argparse
 import csv
 import logging
-from typing import BinaryIO, Iterator, List
+from typing import Iterator, List, TextIO
 
 from django.core.management.base import BaseCommand
 from django.db.models.expressions import RawSQL
@@ -15,7 +15,7 @@ from respondents.management.utils import save_batches
 logger = logging.getLogger(__name__)
 
 
-def load_from_csv(csv_file: BinaryIO) -> Iterator[HMDARecord]:
+def load_from_csv(csv_file: TextIO) -> Iterator[HMDARecord]:
     for idx, row in enumerate(csv.reader(csv_file)):
         record = HMDARecord(
             as_of_year=int(row[0]),

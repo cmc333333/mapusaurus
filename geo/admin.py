@@ -2,10 +2,21 @@ from django.contrib.gis import admin
 
 from geo.models import Geo
 
-# Register your models here.
 
 class GeoAdmin(admin.GeoModelAdmin):
-    list_display = ['geoid', 'geo_type', 'name', 'state', 'county', 'tract', 'csa', 'cbsa', 'metdiv', 'centlat', 'centlon']
+    list_display = [
+        'geoid',
+        'geo_type',
+        'name',
+        'state',
+        'county',
+        'tract',
+        'csa',
+        'cbsa',
+        'metdiv',
+        'centlat',
+        'centlon',
+    ]
 
     search_fields = ['name']
 
@@ -26,5 +37,6 @@ class GeoAdmin(admin.GeoModelAdmin):
         'centlat',
         'centlon',
     )
+
 
 admin.site.register(Geo, GeoAdmin)

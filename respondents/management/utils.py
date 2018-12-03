@@ -1,13 +1,24 @@
 import logging
 from contextlib import contextmanager
 from io import BytesIO
-from typing import Iterator, List, Type, TypeVar
+from typing import Any, Iterator, List, Type, TypeVar
+from typing_extensions import Protocol
 from zipfile import ZipFile
 
 import requests
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
+T = TypeVar('T')
+
+
+class DjangoModel(Protocol):
+    _meta: Any
+    objects: Any
+
+    @property
+    def pk(self) -> int:
+        pass
 
 
 @contextmanager
@@ -21,12 +32,9 @@ def fetch_and_unzip_file(url: str):
             yield unzipped_file
 
 
-T = TypeVar('T')
-
-
-def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
+def batches(elts: Iterator[T], batch_size: int = 100) -> Iterator[List[T]]:
     """Split an iterator of elements into an iterator of batches."""
-    batch = []
+    batch: List[T] = []
     for elt in elts:
         if len(batch) == batch_size:
             yield batch
@@ -35,8 +43,8 @@ def batches(elts: Iterator[T], batch_size: int=100) -> Iterator[List[T]]:
     yield batch
 
 
-def save_batches(models: Iterator[T], model_class: Type[T],
-                 replace: bool=False, filter_fn=None, batch_size: int=100,
+def save_batches(models: Iterator[DjangoModel], model_class: Type[DjangoModel],
+                 replace: bool = False, filter_fn=None, batch_size: int = 100,
                  log=True):
     """Save (optionally, replacing) batches of models."""
     count_saved, count_skipped = 0, 0

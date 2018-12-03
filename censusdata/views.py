@@ -7,13 +7,14 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 
-from .models import Census2010RaceStats,Census2010Households
+from .models import Census2010RaceStats, Census2010Households
 from geo.views import TractFilters
 from geo.models import Geo
 from hmda.views import loan_originations_as_json
 from respondents.models import Institution
 
 THREE_PLACES = Decimal(10) ** -3
+
 
 def get_minority_area_stats(target_lar_data, peer_lar_data, tracts):
     lma_sum = 0
@@ -44,10 +45,13 @@ def get_minority_area_stats(target_lar_data, peer_lar_data, tracts):
                 hma_sum += target_tract_volume
                 peer_hma_sum += peer_tract_volume
 
-    minority_area_stats = (lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_hma_sum)
+    minority_area_stats = (
+        lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_hma_sum)
     return minority_area_stats
 
-def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_hma_sum):
+
+def assemble_stats(
+        lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_hma_sum):
     """
     assembles a lender's applications by those made
     in low, medium and high minority areas;
@@ -74,7 +78,7 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
         maj_pct = (Decimal(mma_pct) + hma_pct).quantize(
             THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
-                'lma': lma_sum, 
+                'lma': lma_sum,
                 'lma_pct': float(lma_pct),
                 'mma': mma_sum,
                 'mma_pct': float(mma_pct),
@@ -86,14 +90,14 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
     else:
         stats.update({
             'lar_total': 0,
-            'lma': 0, 
-            'lma_pct': 0, 
+            'lma': 0,
+            'lma_pct': 0,
             'mma': 0,
             'mma_pct': 0,
             'hma': 0,
             'hma_pct': 0
         })
-    #assemble peer data
+    # assemble peer data
     peer_lar_total = peer_lma_sum + peer_mma_sum + peer_hma_sum
     if peer_lar_total:
         peer_lma_pct = (Decimal(peer_lma_sum) / peer_lar_total).quantize(
@@ -105,7 +109,7 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
         peer_maj_pct = (Decimal(peer_mma_pct) + peer_hma_pct).quantize(
             THREE_PLACES, rounding=ROUND_HALF_UP)
         stats.update({
-                'peer_lma': peer_lma_sum, 
+                'peer_lma': peer_lma_sum,
                 'peer_lma_pct': float(peer_lma_pct),
                 'peer_mma': peer_mma_sum,
                 'peer_mma_pct': float(peer_mma_pct),
@@ -117,8 +121,8 @@ def assemble_stats(lma_sum, mma_sum, hma_sum, peer_lma_sum, peer_mma_sum, peer_h
     else:
         stats.update({
             'peer_lma': 0,
-            'peer_lma_pct': 0, 
-            'peer_mma': 0, 
+            'peer_lma_pct': 0,
+            'peer_mma': 0,
             'peer_mma_pct': 0,
             'peer_hma': 0,
             'peer_hma_pct': 0,
@@ -141,8 +145,8 @@ def odds_ratio(target_pct, peer_pct):
     """
     intended to calculate a lender/peers odds ratio for minority lending,
     based on counts of loans in mostly minority areas vs mostly majority areas
-    this algorithm has not been vetted, so its current use 
-    is only for mocking data flow to tables
+    this algorithm has not been vetted, so its current use is only for mocking
+    data flow to tables
     """
     odds_ratio = Decimal(0)
     if peer_pct == 0.0:
@@ -159,11 +163,11 @@ def odds_ratio(target_pct, peer_pct):
         )
     return float(odds_ratio.quantize(THREE_PLACES, rounding=ROUND_HALF_UP))
 
+
 def minority_aggregation_as_json(request):
     """
-    aggregates minority population ranges and LAR counts 
-    for a lender in an MSA
-    by tract, msa and county
+    aggregates minority population ranges and LAR counts for a lender in an
+    MSA by tract, msa and county
     """
     msa_target_lma_sum = 0
     msa_target_mma_sum = 0
@@ -173,41 +177,56 @@ def minority_aggregation_as_json(request):
     msa_peer_mma_sum = 0
     msa_peer_hma_sum = 0
 
-
     msa_stats = {}
 
     lar_data = loan_originations_as_json(request)
     lender = get_object_or_404(Institution, pk=request.GET.get('lender'))
-    metro = get_object_or_404(Geo, geo_type=Geo.METRO_TYPE, geoid=request.GET.get('metro'))
+    metro = get_object_or_404(
+        Geo, geo_type=Geo.METRO_TYPE, geoid=request.GET.get('metro'))
     peer_request = HttpRequest()
     peer_request.GET['lender'] = lender.institution_id
-    peer_request.GET['metro']= metro.geoid
+    peer_request.GET['metro'] = metro.geoid
     peer_request.GET['peers'] = 'true'
     peer_lar_data = loan_originations_as_json(peer_request)
 
-    msa_counties = Geo.objects.filter(geo_type=Geo.COUNTY_TYPE, cbsa=metro.cbsa, year=metro.year)
+    msa_counties = Geo.objects.filter(
+        geo_type=Geo.COUNTY_TYPE, cbsa=metro.cbsa, year=metro.year)
     county_stats = {}
     for county in msa_counties:
-        county_tracts = Geo.objects.filter(geo_type=Geo.TRACT_TYPE, state=county.state, county=county.county, year=metro.year)
-        minority_area_stats = get_minority_area_stats(lar_data, peer_lar_data, county_tracts)
+        county_tracts = Geo.objects.filter(
+            county=county.county,
+            geo_type=Geo.TRACT_TYPE,
+            state=county.state,
+            year=metro.year,
+        )
+        minority_area_stats = get_minority_area_stats(
+            lar_data, peer_lar_data, county_tracts)
         county_stats[county.geoid] = assemble_stats(*minority_area_stats)
         county_stats[county.geoid]['name'] = county.name
-        #tally target msa counts
+        # tally target msa counts
         msa_target_lma_sum += county_stats[county.geoid]['lma']
         msa_target_mma_sum += county_stats[county.geoid]['mma']
         msa_target_hma_sum += county_stats[county.geoid]['hma']
-        #tally peer msa counts
+        # tally peer msa counts
         msa_peer_lma_sum += county_stats[county.geoid]['peer_lma']
         msa_peer_mma_sum += county_stats[county.geoid]['peer_mma']
         msa_peer_hma_sum += county_stats[county.geoid]['peer_hma']
-    #msa
-    msa_minority_area_stats = (msa_target_lma_sum, msa_target_mma_sum, msa_target_hma_sum, msa_peer_lma_sum, msa_peer_mma_sum, msa_peer_hma_sum)
+    # msa
+    msa_minority_area_stats = (
+        msa_target_lma_sum,
+        msa_target_mma_sum,
+        msa_target_hma_sum,
+        msa_peer_lma_sum,
+        msa_peer_mma_sum,
+        msa_peer_hma_sum,
+    )
     msa_stats = assemble_stats(*msa_minority_area_stats)
-    
+
     return {
         'msa': msa_stats,
         'counties': county_stats,
     }
+
 
 def race_summary(request):
     """Race summary statistics"""
@@ -216,6 +235,7 @@ def race_summary(request):
     if geos.exists():
         query = query.filter(geoid__in=geos)
     return query
+
 
 def race_summary_as_json(request_dict):
     records = race_summary(request_dict)
@@ -236,18 +256,21 @@ def race_summary_as_json(request_dict):
         }
     return data
 
+
 def race_summary_http(request):
     return HttpResponse(json.dumps(race_summary_as_json(request)))
+
 
 def race_summary_csv(request):
     institution_id = request.GET.get('lender')
     metro = request.GET.get('metro')
     year = request.GET.get('year')
-    if institution_id and metro: 
+    if institution_id and metro:
         lar_data = loan_originations_as_json(request)
         tracts_in_msa = TractFilters(request.GET, request=request).qs
         queryset = Census2010RaceStats.objects.filter(geoid__in=tracts_in_msa)
-        file_name = 'HMDA-Census-Tract_Year%s_Lender%s_MSA%s.csv' % (year, institution_id, metro)
+        file_name = 'HMDA-Census-Tract_Year%s_Lender%s_MSA%s.csv' % (
+            year, institution_id, metro)
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s' % file_name
         writer = csv.writer(response, csv.excel)
@@ -263,13 +286,14 @@ def race_summary_csv(request):
         ])
         for obj in queryset:
             geoid = "'%s'" % str(obj.geoid.geoid)
-            if lar_data.get(obj.geoid.geoid,None):
+            if lar_data.get(obj.geoid.geoid, None):
                 lar_count = lar_data[obj.geoid.geoid]['volume']
                 num_households = lar_data[obj.geoid.geoid]['num_households']
             else:
                 lar_count = 0
                 # if there's no loan data we can still get household data
-                num_households = get_object_or_404(Census2010Households, geoid_id=obj.geoid.geoid).total
+                num_households = get_object_or_404(
+                    Census2010Households, geoid_id=obj.geoid.geoid).total
             writer.writerow([
                 smart_str(geoid),
                 smart_str(obj.total_pop),
@@ -281,6 +305,5 @@ def race_summary_csv(request):
                 smart_str(num_households),
             ])
         return response
-    else: 
+    else:
         raise Http404("Invalid Institution or Metro")
-

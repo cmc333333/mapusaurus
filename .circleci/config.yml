@@ -18,7 +18,7 @@ jobs:
 
   api-tests:
     docker:
-    - image: python:3.6.4
+    - image: python:3.6.7
     - image: mdillon/postgis:10-alpine
     environment:
       DATABASE_URL: postgis://postgres@localhost/postgres
@@ -37,11 +37,17 @@ jobs:
           apt-get autoremove -y
           rm -rf /var/lib/apt/lists/*
           rm -rf /var/cache/apt/*
+          pip install --upgrade pip
           pip install certifi pipenv
-    - run: pipenv sync --dev
+    - run: pipenv install --dev --system --ignore-pipfile
     - run:
         name: Py.test
-        command: pipenv run pytest
+        command: pytest
+    - run:
+        name: Lint
+        command: |
+          mypy .
+          flake8
 
   ui-deps:
     <<: *UI

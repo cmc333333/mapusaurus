@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class AgencyManager(models.Manager):
     def get_all_by_code(self):
         agencies = self.all()

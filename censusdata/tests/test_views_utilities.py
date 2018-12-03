@@ -55,7 +55,8 @@ class ViewsUtilitiesTests(TestCase):
         peer_request.GET['action_taken'] = '1,2,3,4,5'
         peer_lar_data = loan_originations_as_json(peer_request)
         tracts = Geo.objects.filter(geo_type=Geo.TRACT_TYPE, cbsa=metro.cbsa)
-        lender_stats = assemble_stats(*get_minority_area_stats(lar_data, peer_lar_data, tracts))
+        lender_stats = assemble_stats(
+            *get_minority_area_stats(lar_data, peer_lar_data, tracts))
         self.assertEqual(lender_stats['hma_pct'], 0)
         self.assertEqual(lender_stats['lma_pct'], 1)
         self.assertEqual(lender_stats['mma_pct'], 0)

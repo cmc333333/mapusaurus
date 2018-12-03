@@ -1,5 +1,4 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
@@ -8,22 +7,21 @@ name = "pypi"
 python_version = '3.6'
 
 [dev-packages]
-
 mock = "*"
 coverage = "*"
 coveralls = "*"
-model_mommy = "*"
-pytest = "~=3.4.0"
-pytest-django = "~=3.1.2"
+model-mommy = "*"
+pytest = "~=4.0.1"
+pytest-django = "~=3.4.4"
 pytest-cov = "~=2.5.1"
 pytest-watch = "~=4.1.0"
 requests-mock = "~=1.4.0"
 freezegun = "~=0.3.9"
-
+mypy = "*"
+"flake8" = "~=3.6.0"
 
 [packages]
-
-Django = "~=1.11.10"
+django = "~=1.11.10"
 dj-database-url = "~=0.4.2"
 django-localflavor = "==2.0"
 djangorestframework = "~=3.7.7"
@@ -37,3 +35,4 @@ webargs = "~=2.0.0"
 openpyxl = "~=2.5.1"
 django-filter = "~=1.1.0"
 django-analytical = "~=2.4.0"
+typing-extensions = "~=3.6.6"

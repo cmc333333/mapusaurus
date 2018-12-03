@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from typing import Dict
 
 from django.db.models import Sum
 from rest_framework.decorators import api_view
@@ -6,7 +7,7 @@ from rest_framework.response import Response
 
 from geo.views import TractFilters
 
-_aggregates = OrderedDict()
+_aggregates: Dict[str, Sum] = OrderedDict()
 _aggregates['Total Population'] = Sum('census2010race__total_pop')
 _aggregates['White'] = Sum('census2010race__white_alone')
 _aggregates['Black'] = Sum('census2010race__black_alone')

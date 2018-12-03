@@ -3,7 +3,7 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from respondents.models import LenderHierarchy, Institution
+from respondents.models import LenderHierarchy
 
 
 class Command(BaseCommand):
@@ -20,7 +20,8 @@ class Command(BaseCommand):
             record = LenderHierarchy(
                 organization_id=int(hierarchy_line[2]),
             )
-            record.institution_id = year+hierarchy_line[0]+hierarchy_line[1].replace("'", "")
+            record.institution_id = (
+                year + hierarchy_line[0] + hierarchy_line[1].replace("'", ""))
             hierarchy.append(record)
         LenderHierarchy.objects.bulk_create(hierarchy)
         options['file_name'].close()
