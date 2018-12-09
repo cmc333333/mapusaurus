@@ -7,17 +7,19 @@ from django.core.management.base import BaseCommand
 from django.db.models.expressions import RawSQL
 
 from geo import errors
-from geo.models import Geo
-from hmda.models import HMDARecord
+from geo.models import Tract
+from hmda.models import LoanApplicationRecord
 from respondents.models import Institution
 from respondents.management.utils import save_batches
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
 
-def load_from_csv(csv_file: TextIO) -> Iterator[HMDARecord]:
-    for idx, row in enumerate(csv.reader(csv_file)):
-        record = HMDARecord(
+def load_from_csv(csv_file: TextIO) -> Iterator[LoanApplicationRecord]:
+    pbar = tqdm(csv.reader(csv_file), unit=" records")
+    for idx, row in enumerate(pbar):
+        record = LoanApplicationRecord(
             as_of_year=int(row[0]),
             respondent_id=row[1],
             agency_code=row[2],
@@ -28,10 +30,6 @@ def load_from_csv(csv_file: TextIO) -> Iterator[HMDARecord]:
             loan_amount_000s=int(row[7] or '0'),
             preapproval=row[8],
             action_taken=int(row[9]),
-            msamd=row[10],
-            statefp=row[11],
-            countyfp=row[12],
-            census_tract_number=row[13],
             applicant_ethnicity=row[14],
             co_applicant_ethnicity=row[15],
             applicant_race_1=row[16],
@@ -56,43 +54,39 @@ def load_from_csv(csv_file: TextIO) -> Iterator[HMDARecord]:
             lien_status=row[35],
             edit_status=row[36],
             sequence_number=(row[37] or str(idx)).zfill(8),
-            population=row[38] or '0',
-            minority_population=row[39] or '0',
-            ffieic_median_family_income=row[40] or '0',
-            tract_to_msamd_income=row[41] or '0',
-            number_of_owner_occupied_units=row[42] or '0',
-            number_of_1_to_4_family_units=row[43] or '0',
             application_date_indicator=0,
         )
-        censustract = row[11] + row[12] + row[13].replace('.', '')
-        censustract = errors.change_specific_year(censustract,
-                                                  record.as_of_year)
-        record.geo_id = f"{record.as_of_year}{censustract}"
+        tract_id = row[11] + row[12] + row[13].replace('.', '')
+        tract_id = errors.change_specific_year(tract_id, record.as_of_year)
+        record.tract_id = tract_id
         record.institution_id = f"{record.as_of_year}{record.agency_code}"
         record.institution_id += record.respondent_id
         record.hmda_record_id = record.institution_id + record.sequence_number
         record.full_clean(
-            exclude=['geo', 'institution'], validate_unique=False)
+            exclude=['tract', 'institution'], validate_unique=False)
         yield record
 
 
-def filter_by_fks(batch: List[HMDARecord]) -> List[HMDARecord]:
+def filter_by_fks(
+        batch: List[LoanApplicationRecord]) -> List[LoanApplicationRecord]:
     """We don't want to insert records with no associated census tract or no
     associated bank."""
-    geo_ids = set(Geo.objects.filter(pk__in={m.geo_id for m in batch})
-                  .values_list('pk', flat=True).distinct())
+    tract_ids = set(
+        Tract.objects.filter(pk__in={m.tract_id for m in batch})
+        .values_list('pk', flat=True).distinct()
+    )
     inst_ids = set(Institution.objects
                    .filter(pk__in={m.institution_id for m in batch})
                    .values_list('pk', flat=True).distinct())
     return [m for m in batch
-            if m.geo_id in geo_ids and m.institution_id in inst_ids]
+            if m.tract_id in tract_ids and m.institution_id in inst_ids]
 
 
 def update_num_loans():
     Institution.objects.update(num_loans=RawSQL("""
         SELECT count(*)
-        FROM hmda_hmdarecord
-        WHERE hmda_hmdarecord.institution_id =
+        FROM hmda_loanapplicationrecord
+        WHERE hmda_loanapplicationrecord.institution_id =
             respondents_institution.institution_id
     """, tuple()))
 
@@ -106,7 +100,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         models = load_from_csv(options['file_name'])
-        save_batches(models, HMDARecord, options['replace'], filter_by_fks,
-                     batch_size=10000)
+        save_batches(models, LoanApplicationRecord, options['replace'],
+                     filter_by_fks, batch_size=10000)
         options['file_name'].close()
         update_num_loans()
