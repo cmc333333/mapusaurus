@@ -1,4 +1,6 @@
+import us
 from django.contrib.gis.db import models
+from django.core.validators import RegexValidator
 
 
 class Geo(models.Model):
@@ -59,18 +61,62 @@ class Geo(models.Model):
         self.maxlon = max(lons)
 
 
-class CensusTract(models.Model):
-    geoid = models.CharField(max_length=11, primary_key=True)
+class GeoModel(models.Model):
+    """Base for new geo models."""
     name = models.CharField(max_length=64)
-
-    state = models.PositiveSmallIntegerField()
-    county = models.PositiveSmallIntegerField()
-    tract = models.PositiveIntegerField()
-
     geom = models.MultiPolygonField()
     interior_lat = models.FloatField()
     interior_lon = models.FloatField()
+    min_lat = models.FloatField()
+    max_lat = models.FloatField()
+    min_lon = models.FloatField()
+    max_lon = models.FloatField()
+
+    class Meta:
+        abstract = True
+
+    def autofields(self):
+        points = [point
+                  for polygon in self.geom.coords
+                  for line in polygon
+                  for point in line]
+        lons, lats = zip(*points)   # unzips into pairs
+
+        self.min_lat = min(lats)
+        self.max_lat = max(lats)
+        self.min_lon = min(lons)
+        self.max_lon = max(lons)
 
 
-class TractProperty(models.Model):
-    relation_field = models.CharField(max_length=64, primary_key=True)
+class State(GeoModel):
+    geoid = models.CharField(
+        choices=[(s.fips, s.name) for s in us.states.STATES_AND_TERRITORIES],
+        max_length=2,
+        primary_key=True,
+    )
+
+
+class CoreBasedStatisticalArea(GeoModel):
+    geoid = models.CharField(
+        validators=[RegexValidator(r"\d{5}")], max_length=5, primary_key=True)
+    metro = models.BooleanField()   # metro- vs micro-politan
+
+
+class County(GeoModel):
+    geoid = models.CharField(
+        validators=[RegexValidator(r"\d{5}")], max_length=5, primary_key=True)
+    state = models.ForeignKey(State)
+    county_only = models.CharField(
+        validators=[RegexValidator(r"\d{3}")], max_length=3)
+    cbsa = models.ForeignKey(CoreBasedStatisticalArea, blank=True, null=True)
+
+
+class Tract(GeoModel):
+    geoid = models.CharField(
+        validators=[RegexValidator(r"\d{11}")],
+        max_length=11,
+        primary_key=True,
+    )
+    county = models.ForeignKey(County, models.CASCADE)
+    tract_only = models.CharField(
+        validators=[RegexValidator(r"\d{6}")], max_length=6)
