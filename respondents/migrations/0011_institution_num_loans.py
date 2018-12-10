@@ -19,6 +19,7 @@ def forward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('hmda', '0009_auto_20181117_2048'),
         ('respondents', '0010_auto_20180311_2316'),
     ]
 

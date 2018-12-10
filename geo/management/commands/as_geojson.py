@@ -1,3 +1,4 @@
+"""This logic has been removed but will return soon.
 import json
 from typing import Dict, Iterator, Set
 
@@ -9,8 +10,8 @@ from geo.models import CensusTract, TractProperty
 
 
 def tracts(relations: Set[str]) -> Iterator[CensusTract]:
-    """All census tracts, joined with property data and wrapped in a tqdm
-    progress bar."""
+    # All census tracts, joined with property data and wrapped in a tqdm
+    # progress bar.
     queryset = CensusTract.objects.all().order_by('pk')
 
     if relations:
@@ -27,7 +28,7 @@ def tracts(relations: Set[str]) -> Iterator[CensusTract]:
 
 def to_geojson(tract: CensusTract, properties: Set[str],
                bool_as_int: bool = False) -> Dict[str, str]:
-    """Convert a CensusTract into GeoJSON, including requested properties."""
+    # Convert a CensusTract into GeoJSON, including requested properties.
     geojson = {
         'id': int(tract.pk),  # tippecanoe won't tolerate string pks
         'geometry': json.loads(tract.geom.simplify().geojson),
@@ -68,3 +69,4 @@ class Command(BaseCommand):
 
         self.stdout.write(']')
         self.stdout.write('}')
+"""

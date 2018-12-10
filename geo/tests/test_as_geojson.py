@@ -1,3 +1,4 @@
+"""This logic has been removed but will return soon.
 from unittest.mock import Mock
 
 import pytest
@@ -53,7 +54,7 @@ def test_to_geojson():
 
 
 def test_to_geojson_ints():
-    """The bool_as_int parameter should convert boolean values to ints"""
+    # The bool_as_int parameter should convert boolean values to ints
     tract = Mock(spec=['aaa', 'geom', 'pk'])
     tract.geom.simplify.return_value.geojson = '{}'
     tract.aaa.value = True
@@ -86,3 +87,4 @@ def test_to_geojson_ints():
         'properties': {'aaa': 0},
         'type': 'Feature',
     }
+"""
