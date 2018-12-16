@@ -11,7 +11,6 @@ from django.core.management import call_command
 from freezegun import freeze_time
 
 from geo.management.commands import fetch_load_geos
-from geo.models import CoreBasedStatisticalArea, County, State, Tract
 
 
 def test_load_shapes_shapefile(monkeypatch):
@@ -22,7 +21,7 @@ def test_load_shapes_shapefile(monkeypatch):
         Path('/path/here')
 
     fetch_load_geos.load_shapes(
-        "https://example.com/some/sort/of.zip", Mock(), False, 100, Mock())
+        "https://example.com/some/sort/of.zip", False, 100, Mock())
 
     assert fetch_load_geos.parse_layer.call_args == call("/path/here/of.shp")
 
@@ -39,8 +38,7 @@ def test_load_shapes_handles_exceptions(monkeypatch, exception):
     context = fetch_load_geos.fetch_and_unzip_dir.return_value.__enter__
     context.side_effect = exception
 
-    fetch_load_geos.load_shapes(
-        "http://example.com/", Mock(), False, 100, Mock())
+    fetch_load_geos.load_shapes("http://example.com/", False, 100, Mock())
 
     assert fetch_load_geos.logger.exception.called
 
@@ -205,11 +203,11 @@ def test_fetch_flags(monkeypatch):
         '--year', '2014',
         '--no-cbsas',
     )
-    assert fetch_load_geos.load_shapes.call_count == 5
+    # States, Counties, + 1 call for each state/territory
+    assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 3
     calls = fetch_load_geos.load_shapes.call_args_list
-    urls, models = zip(*(call[0][:2] for call in calls))
+    urls = [call[0][0] for call in calls]
     assert all("2014" in url for url in urls)
-    assert models == (State, County, Tract, Tract, Tract)
 
 
 def test_fetch_flags_default(monkeypatch):
@@ -219,8 +217,8 @@ def test_fetch_flags_default(monkeypatch):
 
     call_command('fetch_load_geos')
 
+    # States, CBSAs, Counties, + 1 call for each state/territory
+    assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 1 + 56
     calls = fetch_load_geos.load_shapes.call_args_list
-    urls, models = zip(*(call[0][:2] for call in calls))
+    urls = [call[0][0] for call in calls]
     assert all("2016" in url for url in urls)
-    assert models == \
-        (State, CoreBasedStatisticalArea, County) + tuple([Tract] * 59)

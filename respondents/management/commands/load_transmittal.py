@@ -6,8 +6,8 @@ from typing import Dict, Iterator, List
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 
+from mapusaurus.batch_utils import save_batches
 from respondents.models import Institution, Agency
-from respondents.management.utils import save_batches
 from respondents.zipcode_utils import create_zipcode
 
 logger = logging.getLogger(__name__)
@@ -82,6 +82,5 @@ class Command(BaseCommand):
         transmittal_reader = csv.reader(
             options['file_name'], delimiter=options['delimiter'])
         institutions = load_from_csv(agencies, transmittal_reader)
-        save_batches(institutions, Institution, options['replace'],
-                     batch_size=1000)
+        save_batches(institutions, options['replace'], batch_size=1000)
         options['file_name'].close()

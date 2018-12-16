@@ -5,8 +5,8 @@ from io import TextIOWrapper
 import requests
 from django.core.management.base import BaseCommand
 
+from mapusaurus.fetch_zip import fetch_and_unzip_file
 from respondents.management.commands.load_reporter_panel import ReporterRow
-from respondents.management.utils import fetch_and_unzip_file
 
 logger = logging.getLogger(__name__)
 

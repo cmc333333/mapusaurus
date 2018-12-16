@@ -1,13 +1,8 @@
 import logging
-from contextlib import contextmanager
 from datetime import date
 from functools import partial
-from io import BytesIO
 from os.path import basename
-from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Callable, Iterator, Type
-from zipfile import ZipFile
+from typing import Callable, Iterator
 
 import requests
 import us
@@ -19,7 +14,8 @@ from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
 from geo.models import CoreBasedStatisticalArea, County, State, Tract
-from respondents.management.utils import DjangoModel, save_batches
+from mapusaurus.batch_utils import DjangoModel, save_batches
+from mapusaurus.fetch_zip import fetch_and_unzip_dir
 
 ZIP_TPL = ('https://www2.census.gov/geo/tiger/TIGER{year}/{shape}/'
            'tl_{year}_{state}_{shape_lower}.zip')
@@ -41,27 +37,14 @@ def parse_layer(file_name: str) -> Layer:
     return data_source[0]
 
 
-@contextmanager
-def fetch_and_unzip_dir(url: str) -> Iterator[Path]:
-    with TemporaryDirectory() as tmp_dir:
-        response = requests.get(url, timeout=120)
-        response.raise_for_status()
-        resp_buffer = BytesIO(response.content)
-        with ZipFile(resp_buffer) as archive:
-            archive.extractall(tmp_dir)
-        yield Path(tmp_dir)
-
-
-def load_shapes(
-        url: str, Model: Type[DjangoModel], replace: bool, batch_size: int,
-        parse_fn: Callable[[Layer], Iterator[DjangoModel]]):
+def load_shapes(url: str, replace: bool, batch_size: int,
+                parse_fn: Callable[[Layer], Iterator[DjangoModel]]):
     try:
         with fetch_and_unzip_dir(url) as dir_path:
             shp_name = basename(url)[:-len(".zip")] + ".shp"
             layer = parse_layer(str(dir_path / shp_name))
             models = parse_fn(layer)
-            save_batches(
-                models, Model, replace, batch_size=batch_size, log=False)
+            save_batches(models, replace, batch_size=batch_size)
     except requests.exceptions.RequestException:
         logger.exception("Problem retrieving %s", url)
 
@@ -159,7 +142,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--year', type=int, default=default_year(),
                             help="TIGER source year")
-        choices = us.STATES_AND_TERRITORIES
+        choices = us.STATES + us.TERRITORIES
         parser.add_argument(
             "--states", type=us.states.lookup, nargs='*', default=choices,
             choices=choices, help="States to load",
@@ -192,25 +175,16 @@ class Command(BaseCommand):
         relevant_fips = {state.fips for state in options["states"]}
 
         if options["state_shapes"]:
-            load_shapes(
-                state_tpl(year=year), State, replace, 10,
-                partial(parse_states, only_states=relevant_fips),
-            )
+            load_shapes(state_tpl(year=year), replace, 10,
+                        partial(parse_states, only_states=relevant_fips))
         if options["cbsa_shapes"]:
-            load_shapes(
-                cbsa_tpl(year=year), CoreBasedStatisticalArea, replace, 100,
-                parse_cbsas,
-            )
+            load_shapes(cbsa_tpl(year=year), replace, 100, parse_cbsas)
         if options["county_shapes"]:
-            load_shapes(
-                county_tpl(year=year), County, replace, 100,
-                partial(parse_counties, only_states=relevant_fips),
-            )
+            load_shapes(county_tpl(year=year), replace, 100,
+                        partial(parse_counties, only_states=relevant_fips))
 
         if options["tract_shapes"]:
             for state in tqdm(options["states"], desc="Tracts by State"):
-                load_shapes(
-                    tract_tpl(year=year, state=state.fips), Tract, replace,
-                    100, partial(parse_tracts, state=state),
-                )
+                load_shapes(tract_tpl(year=year, state=state.fips), replace,
+                            100, partial(parse_tracts, state=state))
             logger.info("Loaded tracts for %s states", len(options["states"]))

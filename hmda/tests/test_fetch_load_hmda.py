@@ -24,7 +24,7 @@ def test_handle_no_args(monkeypatch):
 
     assert fetch_load_hmda.load_from_csv.call_count == 6
     assert fetch_load_hmda.save_batches.call_count == 6
-    replace = fetch_load_hmda.save_batches.call_args[0][2]
+    replace = fetch_load_hmda.save_batches.call_args[0][1]
     assert not replace
     assert fetch_load_hmda.update_num_loans.call_count == 1
 
@@ -47,7 +47,7 @@ def test_handle_specific_args(monkeypatch):
     assert '2017' in called_urls[1]
 
     assert fetch_load_hmda.save_batches.call_count == 2
-    replace = fetch_load_hmda.save_batches.call_args[0][2]
+    replace = fetch_load_hmda.save_batches.call_args[0][1]
     assert replace
 
 

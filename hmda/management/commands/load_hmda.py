@@ -9,8 +9,8 @@ from django.db.models.expressions import RawSQL
 from geo import errors
 from geo.models import Tract
 from hmda.models import LoanApplicationRecord
+from mapusaurus.batch_utils import save_batches
 from respondents.models import Institution
-from respondents.management.utils import save_batches
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         models = load_from_csv(options['file_name'])
-        save_batches(models, LoanApplicationRecord, options['replace'],
-                     filter_by_fks, batch_size=10000)
+        save_batches(models, options['replace'], filter_by_fks,
+                     batch_size=10000)
         options['file_name'].close()
         update_num_loans()
