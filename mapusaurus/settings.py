@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'hmda',
     'api',
     'reports',
+    'ffiec',
 )
 
 MIDDLEWARE = (
