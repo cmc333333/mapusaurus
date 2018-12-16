@@ -27,7 +27,7 @@ def test_handle_no_args(monkeypatch):
 
     assert fetch_load_transmittals.load_from_csv.call_count == 6
     assert fetch_load_transmittals.save_batches.call_count == 6
-    replace = fetch_load_transmittals.save_batches.call_args[0][2]
+    replace = fetch_load_transmittals.save_batches.call_args[0][1]
     assert not replace
 
     delimiters = Counter(
@@ -58,7 +58,7 @@ def test_handle_specific_args(monkeypatch):
     assert '2017' in called_urls[1]
 
     assert fetch_load_transmittals.save_batches.call_count == 2
-    replace = fetch_load_transmittals.save_batches.call_args[0][2]
+    replace = fetch_load_transmittals.save_batches.call_args[0][1]
     assert replace
 
 

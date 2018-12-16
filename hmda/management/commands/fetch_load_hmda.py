@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 from hmda.management.commands.load_hmda import (filter_by_fks, load_from_csv,
                                                 update_num_loans)
-from hmda.models import HMDARecord
-from respondents.management.utils import fetch_and_unzip_file, save_batches
+from mapusaurus.batch_utils import save_batches
+from mapusaurus.fetch_zip import fetch_and_unzip_file
 
 logger = logging.getLogger(__name__)
 FILE_URLS = {}
@@ -40,8 +40,8 @@ class Command(BaseCommand):
             try:
                 with fetch_and_unzip_file(FILE_URLS[year]) as lar_file:
                     models = load_from_csv(TextIOWrapper(lar_file, 'utf-8'))
-                    save_batches(models, HMDARecord, options['replace'],
-                                 filter_by_fks, batch_size=10000, log=False)
+                    save_batches(models, options['replace'], filter_by_fks,
+                                 batch_size=10000)
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
         update_num_loans()

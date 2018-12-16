@@ -5,9 +5,10 @@ from io import TextIOWrapper
 import requests
 from django.core.management.base import BaseCommand
 
+from mapusaurus.batch_utils import save_batches
+from mapusaurus.fetch_zip import fetch_and_unzip_file
 from respondents.management.commands.load_transmittal import load_from_csv
-from respondents.management.utils import fetch_and_unzip_file, save_batches
-from respondents.models import Agency, Institution
+from respondents.models import Agency
 
 logger = logging.getLogger(__name__)
 FILE_URLS = {}
@@ -44,6 +45,6 @@ class Command(BaseCommand):
                         delimiter=delimiter,
                     )
                     institutions = load_from_csv(agencies, csv_file)
-                    save_batches(institutions, Institution, options['replace'])
+                    save_batches(institutions, options['replace'])
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)

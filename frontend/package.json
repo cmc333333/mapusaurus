@@ -77,7 +77,7 @@
     "build-dev": "webpack --mode development",
     "build-dist": "webpack --mode production",
     "lint": "tslint 'src/**/*.{ts,tsx}'",
-    "test": "jest"
+    "test": "jest --maxWorkers=1"
   },
   "jest": {
     "moduleFileExtensions": [
