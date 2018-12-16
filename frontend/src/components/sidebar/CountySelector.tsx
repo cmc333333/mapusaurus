@@ -12,13 +12,12 @@ export function mergeProps({ lar }, { dispatch }) {
   const lookup = lar.lookups.geos;
   const existingCounties = lar.filters.county.filter(id => lookup.has(id));
   const toStr = id => lookup.get(id).name;
-  const { year } = lar.filters;
   const { state } = lar.uiOnly;
 
   const existing = existingCounties.toArray()
     .sort((left, right) => toStr(left).localeCompare(toStr(right)));
   const fetchFn = async (str: string) => {
-    const result = await makeCountySearch(state)(str, year);
+    const result = await makeCountySearch(state)(str);
     return result.entrySeq().toArray() as [string, Geo][];
   };
   const setValue = ([geoId, geo]) => {

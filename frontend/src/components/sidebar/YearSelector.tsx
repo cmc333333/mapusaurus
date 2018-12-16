@@ -22,9 +22,7 @@ export function YearSelector({ onChange, year, years }) {
 export const mapDispatchToProps = dispatch => ({
   onChange: ev => {
     dispatch(setFilters({
-      county: Set<GeoId>(),
       lender: Set<LenderId>(),
-      metro: Set<GeoId>(),
       year: parseInt(ev.target.value, 10),
     }));
     dispatch(updatePoints.action());

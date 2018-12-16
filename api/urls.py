@@ -2,12 +2,13 @@ from django.conf.urls import include, url
 from rest_framework.routers import DefaultRouter
 
 from api import views
-from geo.viewsets import GeoViewSet
+from geo.viewsets import CountyViewSet, MetroViewSet
 from hmda.viewsets import LARViewSet
 from respondents.viewsets import RespondentViewSet
 
 api_router = DefaultRouter()
-api_router.register(r'geo', GeoViewSet)
+api_router.register(r'county', CountyViewSet)
+api_router.register(r'metro', MetroViewSet)
 api_router.register(r'lar', LARViewSet, base_name='LAR')
 api_router.register(r'respondents', RespondentViewSet)
 

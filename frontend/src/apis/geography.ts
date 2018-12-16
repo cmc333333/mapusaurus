@@ -1,13 +1,16 @@
 import axios from "axios";
 import { OrderedMap, Set } from "immutable";
 
+export interface Point {
+  lat: number;
+  lon: number;
+}
+
 export class Geo {
   constructor(
     readonly name: string,
-    readonly minlon: number,
-    readonly maxlon: number,
-    readonly minlat: number,
-    readonly maxlat: number,
+    readonly northeast: Point,
+    readonly southwest: Point,
   ) {}
 
   public toString(): string {
@@ -17,18 +20,26 @@ export class Geo {
 
 function geoReducer(
   soFar: OrderedMap<string, Geo>,
-  { geoid, maxlat, maxlon, minlat, minlon, name },
+  { geoid, name, points },
 ): OrderedMap<string, Geo> {
-  return soFar.set(
-    geoid,
-    new Geo(name, minlon, maxlon, minlat, maxlat),
-  );
+  return soFar.set(geoid, new Geo(name, points.northeast, points.southwest));
 }
 
-export async function fetchGeos(ids: Set<string>): Promise<OrderedMap<string, Geo>> {
+export async function fetchCounties(ids: Set<string>): Promise<OrderedMap<string, Geo>> {
   if (ids.size) {
     const response = await axios.get(
-      "/api/geo/",
+      "/api/county/",
+      { params: { geoid__in: ids.join(",") } },
+    );
+    return response.data.results.reduce(geoReducer, OrderedMap<string, Geo>());
+  }
+  return OrderedMap<string, Geo>();
+}
+
+export async function fetchMetros(ids: Set<string>): Promise<OrderedMap<string, Geo>> {
+  if (ids.size) {
+    const response = await axios.get(
+      "/api/metro/",
       { params: { geoid__in: ids.join(",") } },
     );
     return response.data.results.reduce(geoReducer, OrderedMap<string, Geo>());
@@ -38,20 +49,19 @@ export async function fetchGeos(ids: Set<string>): Promise<OrderedMap<string, Ge
 
 export async function searchMetros(
   text: string,
-  year: number,
 ): Promise<OrderedMap<string, string>> {
   const response = await axios.get(
-    "/shapes/search/metro/",
-    { params: { year, q: text } },
+    "/api/metro/",
+    { params: { q: text } },
   );
-  return response.data.geos.reduce(geoReducer, OrderedMap<string, Geo>());
+  return response.data.results.reduce(geoReducer, OrderedMap<string, Geo>());
 }
 
 export const makeCountySearch =
-  (state: string) => async (text: string, year: number) => {
+  (state: string) => async (text: string) => {
     const response = await axios.get(
-      "/shapes/search/county/",
-      { params: { state, year, q: text } },
+      "/api/county/",
+      { params: { state, q: text } },
     );
-    return response.data.geos.reduce(geoReducer, OrderedMap<string, Geo>());
+    return response.data.results.reduce(geoReducer, OrderedMap<string, Geo>());
   };

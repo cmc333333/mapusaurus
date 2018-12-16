@@ -96,12 +96,12 @@ export const zoomToGeos = asyncActionCreator<void, void>(
     if (geos.length) {
       const bounds = [
         [
-          Math.max(...geos.map(g => g.maxlon)),
-          Math.min(...geos.map(g => g.minlat)),
+          Math.max(...geos.map(g => g.northeast.lon)),
+          Math.max(...geos.map(g => g.northeast.lat)),
         ],
         [
-          Math.min(...geos.map(g => g.minlon)),
-          Math.max(...geos.map(g => g.maxlat)),
+          Math.min(...geos.map(g => g.southwest.lon)),
+          Math.min(...geos.map(g => g.southwest.lat)),
         ],
       ];
 

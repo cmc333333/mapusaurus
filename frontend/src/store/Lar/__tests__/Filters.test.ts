@@ -41,7 +41,10 @@ describe("reducer()", () => {
             metro: Set<string>(),
           }),
           lookups: LookupsFactory.build({
-            geos: Map([["1234", new Geo("name", -60, -40, 20, 30)]]),
+            geos: Map([[
+              "1234",
+              new Geo("name", { lat: 20, lon: -10 }, { lat: 10, lon: -30 }),
+            ]]),
           }),
         }),
         window: { height: 100, width: 100 },
@@ -49,8 +52,8 @@ describe("reducer()", () => {
       await zoomToGeos.action()(dispatch, getState, {});
       expect(dispatch).toHaveBeenCalledTimes(3);
       const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
-      expect(latitude).toBeCloseTo(25, 0);
-      expect(longitude).toBeCloseTo(-50, 0);
+      expect(latitude).toBeCloseTo(15, 0);
+      expect(longitude).toBeCloseTo(-20, 0);
       expect(zoom).toBeCloseTo(2, 0);
     });
 
@@ -64,9 +67,18 @@ describe("reducer()", () => {
           }),
           lookups: LookupsFactory.build({
             geos: Map([
-              ["1234", new Geo("name", -60, -41, 20, 29)],
-              ["2345", new Geo("other", -59, -40, 21, 29)],
-              ["3456", new Geo("another", -59, -41, 21, 30)],
+              [
+                "1234",
+                new Geo("name", { lat: 29, lon: -10 }, { lat: 11, lon: -20 }),
+              ],
+              [
+                "2345",
+                new Geo("other", { lat: 29, lon: -11 }, { lat: 10, lon: -19 }),
+              ],
+              [
+                "3456",
+                new Geo("another", { lat: 30, lon: -11 }, { lat: 11, lon: -19 }),
+              ],
             ]),
           }),
         }),
@@ -75,8 +87,8 @@ describe("reducer()", () => {
       await zoomToGeos.action()(dispatch, getState, {});
       expect(dispatch).toHaveBeenCalledTimes(3);
       const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
-      expect(latitude).toBeCloseTo(25, 0);
-      expect(longitude).toBeCloseTo(-50, 0);
+      expect(latitude).toBeCloseTo(20, 0);
+      expect(longitude).toBeCloseTo(-15, 0);
       expect(zoom).toBeCloseTo(2, 0);
     });
 
@@ -90,8 +102,14 @@ describe("reducer()", () => {
           }),
           lookups: LookupsFactory.build({
             geos: Map([
-              ["1234", new Geo("name", -60, -40, 30, 20)],
-              ["2345", new Geo("ignored", -80, 0, 80, 0)],
+              [
+                "1234",
+                new Geo("name", { lat: 20, lon: -10 }, { lat: 10, lon: -30 }),
+              ],
+              [
+                "2345",
+                new Geo("ignored", { lat: 0, lon: 80 }, { lat: 0, lon: -80 }),
+              ],
             ]),
           }),
         }),
@@ -100,8 +118,8 @@ describe("reducer()", () => {
       await zoomToGeos.action()(dispatch, getState, {});
       expect(dispatch).toHaveBeenCalledTimes(3);
       const { latitude, longitude, zoom } = dispatch.mock.calls[1][0].payload;
-      expect(latitude).toBeCloseTo(25, 0);
-      expect(longitude).toBeCloseTo(-50, 0);
+      expect(latitude).toBeCloseTo(15, 0);
+      expect(longitude).toBeCloseTo(-20, 0);
       expect(zoom).toBeCloseTo(2, 0);
     });
   });

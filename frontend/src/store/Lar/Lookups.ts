@@ -3,7 +3,7 @@ import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 import { asyncFactory } from "typescript-fsa-redux-thunk";
 
-import { fetchGeos, Geo } from "../../apis/geography";
+import { fetchCounties, fetchMetros,  Geo } from "../../apis/geography";
 import { fetchLenders } from "../../apis/lenders";
 
 export type GeoId = string;
@@ -29,9 +29,13 @@ export const addGeos = actionCreator<Map<GeoId, Geo>>("ADD_GEOS");
 export const addLenders = actionCreator<Map<LenderId, string>>("ADD_LENDERS");
 export const initGeos = asyncActionCreator<void, Map<GeoId, Geo>>(
   "INIT_GEOS",
-  (_, dispatch, getState: () => any) => {
+  async (_, dispatch, getState: () => any) => {
     const { lar: { filters: { county, metro } } } = getState();
-    return fetchGeos(county.union(metro));
+    const [counties, metros] = await Promise.all([
+      fetchCounties(county),
+      fetchMetros(metro),
+    ]);
+    return counties.merge(metros);
   },
 );
 export const initLenders = asyncActionCreator<void, Map<LenderId, string>>(

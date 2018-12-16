@@ -17,7 +17,6 @@ const makeCountySearchMock = makeCountySearch as jest.Mock;
 describe("mergeProps()", () => {
   it("creates a fetchFn by active state", async () => {
     const lar = LarFactory.build();
-    lar.filters.year = 2011;
     lar.uiOnly.state = "12";
     const geo = GeoFactory.build();
     const mockSearchWithState = jest.fn(() => Map([["idid", geo]]));
@@ -26,7 +25,7 @@ describe("mergeProps()", () => {
     const merged = mergeProps({ lar }, { dispatch: jest.fn() });
     const result = await merged.fetchFn("stuff");
     expect(makeCountySearch).toHaveBeenCalledWith("12");
-    expect(mockSearchWithState).toHaveBeenCalledWith("stuff", 2011);
+    expect(mockSearchWithState).toHaveBeenCalledWith("stuff");
     expect(result).toEqual([["idid", geo]]);
   });
 

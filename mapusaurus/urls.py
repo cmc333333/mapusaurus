@@ -9,7 +9,6 @@ urlpatterns = [
     url(r'^api/', include('api.urls')),
     url(r'^institutions/', include('respondents.urls',
                                    namespace='respondents')),
-    url(r'^shapes/', include('geo.urls', namespace='geo')),
     url(r'^hmda/', include('hmda.urls', namespace='hmda')),
     url(r'^map/spa/$', RedirectView.as_view(url="/", permanent=False)),
     url(r'^census/', include('censusdata.urls', namespace='censusdata')),

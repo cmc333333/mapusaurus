@@ -60,29 +60,3 @@ class TractFilters(django_filters.FilterSet):
             queryset = queryset.filter(
                 geom__intersects=boundary_serializer.save())
         return queryset
-
-
-class SearchFilters(django_filters.FilterSet):
-    q = django_filters.CharFilter(method='filter_to_search_term')
-
-    class Meta:
-        model = Geo
-        fields = ('state', 'year')
-
-    def filter_to_search_term(self, queryset, name, value):
-        return queryset\
-            .annotate(similarity=TrigramSimilarity('name', value))\
-            .filter(similarity__gte=0.01)\
-            .order_by('-similarity')
-
-
-@api_view(['GET'])
-def search(request, geo_type):
-    queryset = SearchFilters(
-        request.GET,
-        queryset=Geo.objects.filter(geo_type=geo_type),
-        request=request
-    ).qs
-    results = GeoSerializer(queryset[:25], many=True).data
-
-    return Response({'geos': results})

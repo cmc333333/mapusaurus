@@ -49,9 +49,7 @@ test("mapDispatchToProps()", () => {
 
   expect(dispatch).toHaveBeenCalledTimes(2);
   expect(dispatch).toHaveBeenCalledWith(setFilters({
-    county: Set<string>(),
     lender: Set<string>(),
-    metro: Set<string>(),
     year: 2001,
   }));
 });
