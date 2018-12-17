@@ -10,6 +10,4 @@ urlpatterns = [
     url(r'^institutions/', include('respondents.urls',
                                    namespace='respondents')),
     url(r'^map/spa/$', RedirectView.as_view(url="/", permanent=False)),
-    url(r'^census/', include('censusdata.urls', namespace='censusdata')),
-    url(r'^reports/', include('reports.urls', namespace='reports')),
 ]

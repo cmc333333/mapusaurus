@@ -32,10 +32,8 @@ INSTALLED_APPS = (
     'mapping',
     'respondents',
     'geo',
-    'censusdata',
     'hmda',
     'api',
-    'reports',
     'ffiec',
 )
 
