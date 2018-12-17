@@ -1,11 +1,9 @@
 import json
-from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import models
 from django.template import defaultfilters
 from localflavor.us.models import USStateField
 
-from hmda.models import LendingStats
 from respondents.managers import AgencyManager
 
 
@@ -130,29 +128,6 @@ class Institution(models.Model):
                     '-institution__assets')
             return hierarchy_list
         return LenderHierarchy.objects.none()
-
-    def get_peer_list(self, metro, exclude, order_by):
-        """ Returns a list of peers for a lender+metro combination based on
-        fha_bucket and lar count. Allows to exclude selected
-        institution/lender and order by institution's assets """
-        loan_stats = self.lendingstats_set.filter(geo_id=metro.geoid).first()
-        if loan_stats:
-            half_raw = Decimal(loan_stats.lar_count) / 2
-            percent_50 = half_raw.quantize(1, rounding=ROUND_HALF_UP)
-            percent_200 = loan_stats.lar_count * 2.0
-            peer_stats = LendingStats.objects.filter(
-                geo_id=metro.geoid,
-                fha_bucket=loan_stats.fha_bucket,
-                lar_count__range=(percent_50, percent_200)
-            ).select_related('institution')
-            if exclude:
-                peer_stats = peer_stats.exclude(institution=self)
-            peer_list = type(self).objects.filter(
-                pk__in=peer_stats.values_list('institution_id', flat=True))
-            if order_by:
-                peer_list = peer_list.order_by('-assets')
-            return peer_list
-        return type(self).objects.none()
 
     def __str__(self):
         return self.name

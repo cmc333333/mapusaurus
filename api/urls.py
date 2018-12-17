@@ -14,11 +14,6 @@ api_router.register(r'respondents', RespondentViewSet)
 
 
 urlpatterns = [
-    url(r'^all/', views.all, name='all'),
-    url(r'^hmda/', views.hmda, name='hmda'),
-    url(r'^census/', views.census, name='census'),
-    url(r'^tables/', views.tables, name='tables'),
-    url(r'^tables_csv/', views.tables_csv, name='tables_csv'),
     url(r'^branchLocations/', views.branch_locations, name='branchLocations'),
     url(r'^', include(api_router.urls)),
 ]
