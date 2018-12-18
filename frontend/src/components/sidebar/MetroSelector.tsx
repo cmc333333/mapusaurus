@@ -12,12 +12,11 @@ export function mergeProps({ lar }, { dispatch }) {
   const lookup = lar.lookups.geos;
   const existingMetros = lar.filters.metro.filter(id => lookup.has(id));
   const toStr = id => lookup.get(id).name;
-  const { year } = lar.filters;
 
   const existing = existingMetros.toArray()
     .sort((left, right) => toStr(left).localeCompare(toStr(right)));
   const fetchFn = async (str: string) => {
-    const result = await searchMetros(str, year);
+    const result = await searchMetros(str);
     return result.entrySeq().toArray() as [string, Geo][];
   };
   const setValue = ([geoId, geo]) => {

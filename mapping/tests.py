@@ -4,16 +4,16 @@ from unittest.mock import Mock
 import pytest
 from model_mommy import mommy
 
-from hmda.models import Year
+from hmda.models import LoanApplicationRecord
 from mapping import views
 
 
 @pytest.mark.django_db
 def test_spa_contains_years(monkeypatch):
     monkeypatch.setattr(views, "render", Mock())
-    mommy.make(Year, hmda_year=2010, _quantity=3)
-    mommy.make(Year, hmda_year=2011)
-    mommy.make(Year, hmda_year=2013)
+    mommy.make(LoanApplicationRecord, as_of_year=2010, _quantity=3)
+    mommy.make(LoanApplicationRecord, as_of_year=2011)
+    mommy.make(LoanApplicationRecord, as_of_year=2013)
 
     views.single_page_app(Mock())
     context = views.render.call_args[0][2]

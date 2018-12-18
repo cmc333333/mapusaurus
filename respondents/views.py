@@ -1,5 +1,6 @@
 import re
 import json
+from datetime import date
 
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q
@@ -10,7 +11,6 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from hmda.models import Year
 from respondents.models import Institution, Branch
 
 
@@ -50,7 +50,7 @@ def search_results(request):
     query_str = escape(request.GET.get('q', '')).strip()
     year = escape(request.GET.get('year', '')).strip()
     if not year:
-        year = str(Year.objects.latest().hmda_year)
+        year = str(date.today().year)
 
     lender_id = False
     respondent_id = False

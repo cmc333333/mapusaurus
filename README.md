@@ -51,18 +51,20 @@ We next load state, county, CBSA, and census tract shape files by running:
 python manage.py fetch_load_geos --year 2013
 ```
 
+### FFIEC
+
+We'll also need demographic data from the FFIEC for each tract. Fetch and load
+that by running:
+```sh
+python manage.py fetch_load_demographics --year 2013
+```
+
 ### HMDA Data
 
 Next, we load the HMDA Loan Application Record data for each of our census
 tracts:
 ```sh
 python manage.py fetch_load_hmda --year 2013
-```
-
-Finally, we need to populate a listing of every (HMDA, census, geo) year.
-
-```sh
-python manage.py load_years 2013 2010 2013
 ```
 
 ### Start the app

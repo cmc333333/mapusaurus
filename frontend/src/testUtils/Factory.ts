@@ -51,11 +51,9 @@ export const FiltersFactory = new Factory().attrs({
 });
 
 export const GeoFactory = new Factory(Geo).attrs({
-  maxLat: randLat,
-  maxLon: randLon,
-  minLat: randLat,
-  minLon: randLon,
   name: () => random.string(32),
+  northeast: () => ({ lat: randLat(), lon: randLon() }),
+  southwest: () => ({ lat: randLat(), lon: randLon() }),
 });
 
 export const LookupsFactory = new Factory().attrs({

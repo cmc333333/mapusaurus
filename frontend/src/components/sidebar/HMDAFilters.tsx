@@ -11,16 +11,21 @@ import StateSelector from "./StateSelector";
 import YearSelector from "./YearSelector";
 
 export function HMDAFilters({ showLenders }) {
-  return (
-    <glamorous.Div margin={largeSpace}>
+  const larContent = showLenders && (
+    <>
       <YearSelector />
       <hr />
+      <LenderSelector />
+    </>
+  );
+  return (
+    <glamorous.Div margin={largeSpace}>
       <MetroSelector />
       <hr />
       <StateSelector />
       <CountySelector />
       <hr />
-      {showLenders && <LenderSelector />}
+      {larContent}
     </glamorous.Div>
   );
 }

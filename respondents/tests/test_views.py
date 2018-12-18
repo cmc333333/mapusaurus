@@ -9,7 +9,7 @@ from respondents.models import Institution
 @pytest.fixture
 def data_setup(db):
     call_command('loaddata', 'agency', 'fake_respondents', 'fake_hierarchy',
-                 'fake_branches', 'fake_year')
+                 'fake_branches')
 
 
 def fetch_search(client, query, **kwargs):

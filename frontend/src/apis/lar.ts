@@ -24,6 +24,7 @@ export async function fetchLar(filters: Filters): Promise<LARPoint[]> {
     metro: filters.metro.join(","),
     owner_occupancy: filters.ownerOccupancy.join(","),
     property_type: filters.propertyType.join(","),
+    year: filters.year,
   };
 
   if (params.lender && (params.county || params.metro)) {
@@ -31,9 +32,9 @@ export async function fetchLar(filters: Filters): Promise<LARPoint[]> {
     // Convert between API format and ours
     return response.data.map(obj => ({
       houseCount: obj.num_households,
-      latitude: obj.centlat,
+      latitude: obj.lat,
       loanCount: obj.volume,
-      longitude: obj.centlon,
+      longitude: obj.lon,
       normalizedLoans:
         obj.num_households ? obj.volume / obj.num_households : 0,
     })).sort((left, right) => left.normalizedLoans - right.normalizedLoans);

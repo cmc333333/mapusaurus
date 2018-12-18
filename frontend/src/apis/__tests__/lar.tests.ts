@@ -60,21 +60,21 @@ describe("fetchLar()", () => {
     getMock.mockImplementationOnce(() => ({
       data: [
         {
-          centlat: -7.7,
-          centlon: 8.8,
           geo_id: "bbbbbbbb",
+          lat: -7.7,
+          lon: 8.8,
           num_households: 6,
           volume: 5,
         }, {
-          centlat: 3.3,
-          centlon: -4.4,
           geo_id: "aaaaaaaa",
+          lat: 3.3,
+          lon: -4.4,
           num_households: 2,
           volume: 1,
         }, {
-          centlat: 11,
-          centlon: -12,
           geo_id: "cccccccc",
+          lat: 11,
+          lon: -12,
           num_households: 10,
           volume: 9,
         },
