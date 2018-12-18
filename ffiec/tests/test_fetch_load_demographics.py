@@ -1,8 +1,8 @@
-from unittest.mock import call, MagicMock, Mock
+from unittest.mock import call, Mock
 
 import pytest
 import requests
-from django.management import call_command
+from django.core.management import call_command
 from freezegun import freeze_time
 
 from ffiec.management.commands import fetch_load_demographics
@@ -31,16 +31,14 @@ def test_custom_args(monkeypatch):
 
 
 @pytest.mark.parametrize("exception", (
-    requests.exceptions.ConnectionError(),
-    requests.exceptions.ConnectTimeout(),
-    requests.exceptions.ReadTimeout(),
-    requests.exceptions.HTTPError(),
+    requests.exceptions.ConnectionError,
+    requests.exceptions.ConnectTimeout,
+    requests.exceptions.ReadTimeout,
+    requests.exceptions.HTTPError,
 ))
-def test_fetch_csv_exceptions(monkeypatch, exception):
+def test_load_demographics_exceptions(monkeypatch, exception):
     monkeypatch.setattr(fetch_load_demographics, "logger", Mock())
-    monkeypatch.setattr(fetch_load_demographics, "fetch_and_unzip_dir",
-                        MagicMock())
-    fetch_load_demographics.fetch_and_unzip_demographics.side_effect = \
-        exception
-    fetch_load_demographics.fetch_csv(1234)
-    assert fetch_load_demographics.logger.exception.called
+    monkeypatch.setattr(fetch_load_demographics, "load_demographics", Mock())
+    fetch_load_demographics.load_demographics.side_effect = exception
+    call_command("fetch_load_demographics", "--year", "2014", "2016")
+    assert fetch_load_demographics.logger.exception.call_count == 2

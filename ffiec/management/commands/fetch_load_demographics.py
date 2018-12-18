@@ -124,14 +124,11 @@ def fetch_csv(year: int) -> Iterator[TextIO]:
     """Fetch the zipped data directory, find the csv it contains and yield it.
     Clean up afterwards."""
     url = ZIP_TPL.format(year=year)
-    try:
-        with fetch_and_unzip_dir(url) as dir_path:
-            csvs = (filename for filename in dir_path.iterdir()
-                    if filename.suffix.lower() == ".csv")
-            with next(csvs).open() as csv_file:
-                yield cast(TextIO, csv_file)
-    except requests.exceptions.RequestException:
-        logger.exception("Problem retrieving %s", url)
+    with fetch_and_unzip_dir(url) as dir_path:
+        csvs = (filename for filename in dir_path.iterdir()
+                if filename.suffix.lower() == ".csv")
+        with next(csvs).open() as csv_file:
+            yield cast(TextIO, csv_file)
 
 
 def load_demographics(
@@ -177,7 +174,10 @@ class Command(BaseCommand):
         pbar = tqdm(options["years"])
         for year in pbar:
             pbar.set_description(str(year))
-            load_demographics(
-                year, options["load_tracts"], options["load_cbsas"],
-                options["replace"],
-            )
+            try:
+                load_demographics(
+                    year, options["load_tracts"], options["load_cbsas"],
+                    options["replace"],
+                )
+            except requests.exceptions.RequestException:
+                logger.exception("Problem retrieving %s", year)
