@@ -430,3 +430,23 @@ class LoanApplicationRecord(models.Model):
 
     class Meta:
         index_together = [("institution", "tract")]
+
+
+class LARYear(models.Model):
+    """Counting distinct LAR years present is very slow when looking at
+    national data; these models are a denormalized list of years for which we
+    have LAR."""
+    class Meta:
+        ordering = ["-year"]
+
+    year = models.PositiveIntegerField(primary_key=True)
+
+    @classmethod
+    def rebuild_all(cls):
+        cls.objects.all().delete()
+        years = LoanApplicationRecord.objects\
+            .order_by('-as_of_year')\
+            .distinct('as_of_year')\
+            .values_list('as_of_year', flat=True)
+        for year in years:
+            LARYear.objects.create(year=year)

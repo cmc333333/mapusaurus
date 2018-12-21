@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from hmda.management.commands.load_hmda import (filter_by_fks, load_from_csv,
                                                 update_num_loans)
+from hmda.models import LARYear
 from mapusaurus.batch_utils import save_batches
 from mapusaurus.fetch_zip import fetch_and_unzip_file
 
@@ -45,3 +46,4 @@ class Command(BaseCommand):
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
         update_num_loans()
+        LARYear.rebuild_all()

@@ -11,6 +11,7 @@ from hmda.management.commands import fetch_load_hmda
 def test_handle_no_args(monkeypatch):
     monkeypatch.setattr(fetch_load_hmda, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_hmda.fetch_and_unzip_file
+    monkeypatch.setattr(fetch_load_hmda, 'LARYear', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
@@ -32,6 +33,7 @@ def test_handle_no_args(monkeypatch):
 def test_handle_specific_args(monkeypatch):
     monkeypatch.setattr(fetch_load_hmda, 'fetch_and_unzip_file', MagicMock())
     fetch_call = fetch_load_hmda.fetch_and_unzip_file
+    monkeypatch.setattr(fetch_load_hmda, 'LARYear', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'load_from_csv', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'save_batches', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
@@ -59,6 +61,7 @@ def test_handle_specific_args(monkeypatch):
 ))
 def test_handle_404(monkeypatch, exception):
     monkeypatch.setattr(fetch_load_hmda, 'fetch_and_unzip_file', MagicMock())
+    monkeypatch.setattr(fetch_load_hmda, 'LARYear', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'logger', Mock())
     monkeypatch.setattr(fetch_load_hmda, 'update_num_loans', Mock())
     fetch_call = fetch_load_hmda.fetch_and_unzip_file

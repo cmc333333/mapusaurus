@@ -8,7 +8,7 @@ from django.db.models.expressions import RawSQL
 
 from geo import errors
 from geo.models import Tract
-from hmda.models import LoanApplicationRecord
+from hmda.models import LARYear, LoanApplicationRecord
 from mapusaurus.batch_utils import save_batches
 from respondents.models import Institution
 from tqdm import tqdm
@@ -104,3 +104,4 @@ class Command(BaseCommand):
                      batch_size=10000)
         options['file_name'].close()
         update_num_loans()
+        LARYear.rebuild_all()
