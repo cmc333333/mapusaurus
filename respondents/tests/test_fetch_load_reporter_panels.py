@@ -47,13 +47,13 @@ def test_fetch_pre_2017(monkeypatch):
         fetch_load_reporter_panels, 'fetch_and_unzip_file', MagicMock())
     monkeypatch.setattr(fetch_load_reporter_panels, 'ReporterRow', Mock())
     fetch_mock = fetch_load_reporter_panels.fetch_and_unzip_file
-    fetch_mock.return_value.__enter__.return_value = ["line1", "line2"]
+    fetch_mock.return_value.__enter__.return_value = BytesIO(b"line1\nline2\n")
 
     fetch_load_reporter_panels.fetch_pre_2017(2015)
 
     assert "2015" in fetch_mock.call_args[0][0]
     assert fetch_load_reporter_panels.ReporterRow.from_line.call_args_list ==\
-        [call("line1"), call("line2")]
+        [call("line1\n"), call("line2\n")]
 
 
 def test_fetch_post_2016(monkeypatch):

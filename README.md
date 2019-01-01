@@ -28,7 +28,7 @@ See the Pipfile (and Pipfile.lock) for more details; we recommend using
 To create all of the relevant database tables, run:
 
 ```sh
-python manage.py migrate respondents
+python manage.py migrate
 ```
 
 ### Respondent/Institution data
