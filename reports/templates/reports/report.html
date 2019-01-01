@@ -1,0 +1,93 @@
+{% load reports %}<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      @page {
+        margin: 0;
+        size: legal landscape;
+      }
+      body, html {
+        box-sizing: border-box;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      table {
+        width: 100%;
+      }
+      td, thead th {
+        text-align: center;
+      }
+      .cell {
+        display: inline-block;
+        float: left;
+      }
+      .half {
+        box-sizing: border-box;
+        width: 50%;
+      }
+      .main-content {
+        box-sizing: border-box;
+        border-right: 1px solid black;
+        display: inline-block;
+        height: 8.5in;
+        width: 11in;
+      }
+      .page {
+        clear: both;
+        page-break-after: always;
+        page-break-before: always;
+        page-break-inside: avoid;
+      }
+      .sidebar {
+        display: inline-block;
+        float: right;
+        height: 8in;
+        max-width: 2.75in;
+        width: 2.75in;
+      }
+    </style>
+  </head>
+  <body>
+    {% for metro in metros %}
+      <div class="page">
+        <div class="main-content">
+          <div>
+            <div class="cell half">
+              {% population metro year %}
+            </div>
+            <div class="cell half" style="border-left: solid 1px black;">
+              <h3>Income and Housing Statistics</h3>
+              {% msa_median_income metro year %}
+              {% income_housing metro year %}
+            </div>
+          </div>
+          <hr style="clear: both;"/>
+        </div>
+        <div class="sidebar">
+          <h2>{{ metro.name }}</h2>
+        </div>
+      </div>
+    {% endfor %}
+    {% for county in counties %}
+      <div class="page">
+        <div class="main-content">
+          <div>
+            <div class="cell half">
+              {% population county year %}
+            </div>
+            <div class="cell half" style="border-left: solid 1px black;">
+              <h3>Income and Housing Statistics</h3>
+              {% income_housing county year %}
+            </div>
+          </div>
+          <hr style="clear: both;"/>
+        </div>
+        <div class="sidebar">
+          <h2>{{ county.name }} County, {{ county.state.name }}</h2>
+        </div>
+      </div>
+    {% endfor %}
+  </body>
+</html>

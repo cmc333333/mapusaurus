@@ -1,0 +1,49 @@
+{% comment %}
+Income and Housing Table. Expects the following variables:
+* home_report: reports.models.HomeReport
+* tract_report: reports.models.TractReport
+* poptract_report: reports.models.PopulationByTractReport
+{% endcomment %}
+{% load humanize %}
+<table>
+  <thead>
+    <tr>
+      <td />
+      <th>Total</th>
+      <th>Percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Single Family Homes</th>
+      <td>{{home_report.single_family_homes|intcomma}}</td>
+    </tr>
+    <tr>
+      <th>Owner Occupied Homes</th>
+      <td>{{home_report.single_family_occupied|intcomma}}</td>
+      <td>
+        {% widthratio home_report.single_family_occupied home_report.single_family_homes 100 %}%
+      </td>
+    </tr>
+    <tr>
+      <th>LMI Tracts in Geography</th>
+      <td>{{tract_report.lmi|intcomma}}</td>
+      <td>{% widthratio tract_report.lmi tract_report.total 100 %}%</td>
+    </tr>
+    <tr>
+      <th>Minority Tracts in Geography</th>
+      <td>{{tract_report.minority|intcomma}}</td>
+      <td>{% widthratio tract_report.minority tract_report.total 100 %}%</td>
+    </tr>
+    <tr>
+      <th>Population in LMI Tracts</th>
+      <td>{{poptract_report.in_lmi|intcomma}}</td>
+      <td>{% widthratio poptract_report.in_lmi poptract_report.total 100 %}%</td>
+    </tr>
+    <tr>
+      <th>Population in Minority Tracts</th>
+      <td>{{poptract_report.in_minority|intcomma}}</td>
+      <td>{% widthratio poptract_report.in_minority poptract_report.total 100 %}%</td>
+    </tr>
+  </tbody>
+</table>
