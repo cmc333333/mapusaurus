@@ -9,7 +9,7 @@ from respondents.viewsets import RespondentViewSet
 api_router = DefaultRouter()
 api_router.register(r'county', CountyViewSet)
 api_router.register(r'metro', MetroViewSet)
-api_router.register(r'lar', LARViewSet, base_name='LAR')
+api_router.register(r'lar', LARViewSet, basename='LAR')
 api_router.register(r'respondents', RespondentViewSet)
 
 

@@ -10,10 +10,10 @@ class MetroViewSet(viewsets.ReadOnlyModelViewSet):
         .filter(metro=True)\
         .order_by("name")
     serializer_class = CBSASerializer
-    filter_class = CBSAFilters
+    filterset_class = CBSAFilters
 
 
 class CountyViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = County.objects.order_by("name")
     serializer_class = CountySerializer
-    filter_class = CountyFilters
+    filterset_class = CountyFilters
