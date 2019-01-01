@@ -8,7 +8,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hmda', '0011_auto_20181218_0321'),
         ('geo', '0016_auto_20181209_1800'),
     ]
 

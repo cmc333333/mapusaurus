@@ -48,10 +48,11 @@ class CoreBasedStatisticalArea(GeoModel):
 class County(GeoModel):
     geoid = models.CharField(
         validators=[RegexValidator(r"\d{5}")], max_length=5, primary_key=True)
-    state = models.ForeignKey(State)
+    state = models.ForeignKey(State, models.CASCADE)
     county_only = models.CharField(
         validators=[RegexValidator(r"\d{3}")], max_length=3)
-    cbsa = models.ForeignKey(CoreBasedStatisticalArea, blank=True, null=True)
+    cbsa = models.ForeignKey(
+        CoreBasedStatisticalArea, models.SET_NULL, blank=True, null=True)
 
 
 class Tract(GeoModel):
