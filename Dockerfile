@@ -1,4 +1,4 @@
-FROM python:3.6.7
+FROM python:3.7.2
 
 RUN apt-get update &&\
     apt-get install binutils libproj-dev gdal-bin libgeoip1 python3-gdal -y &&\
@@ -13,6 +13,7 @@ RUN pipenv install
 
 COPY ["api", "/app/api"]
 COPY ["basestyle", "/app/basestyle"]
+COPY ["ffiec", "/app/ffiec"]
 COPY ["frontend", "/app/frontend"]
 COPY ["geo", "/app/geo"]
 COPY ["hmda", "/app/hmda"]

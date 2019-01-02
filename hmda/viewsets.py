@@ -9,4 +9,4 @@ class LARViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LoanApplicationRecord.objects.order_by("pk")
     serializer_class = LARSerializer
     pagination_class = None
-    filter_class = LARFilters
+    filterset_class = LARFilters

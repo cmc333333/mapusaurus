@@ -15,7 +15,7 @@ def fetch_pre_2017(year: int):
     """Update institutions from a pre-2017 file format."""
     url = f"http://www.ffiec.gov/hmdarawdata/OTHER/{year}HMDAReporterPanel.zip"
     with fetch_and_unzip_file(url) as panel_file:
-        for line in panel_file:
+        for line in TextIOWrapper(panel_file, 'utf-8'):
             ReporterRow.from_line(line).update_institution()
 
 

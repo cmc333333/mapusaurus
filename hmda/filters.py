@@ -30,10 +30,10 @@ class LARFilters(django_filters.FilterSet):
                                      lookup_expr='in')
     property_type = ChoiceInFilter(choices=PROPERTY_TYPE_CHOICES,
                                    lookup_expr='in')
-    lender = CharInFilter(name="institution_id", lookup_expr="in")
+    lender = CharInFilter(field_name="institution_id", lookup_expr="in")
     year = django_filters.NumberFilter(method="filter_year")
-    county = CharInFilter(name="tract__county_id", lookup_expr="in")
-    metro = CharInFilter(name="tract__county__cbsa_id", lookup_expr="in")
+    county = CharInFilter(field_name="tract__county_id", lookup_expr="in")
+    metro = CharInFilter(field_name="tract__county__cbsa_id", lookup_expr="in")
 
     class Meta:
         model = LoanApplicationRecord

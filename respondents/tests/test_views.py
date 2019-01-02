@@ -1,7 +1,7 @@
 import pytest
 from model_mommy import mommy
 from django.core.management import call_command
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from respondents.models import Institution
 

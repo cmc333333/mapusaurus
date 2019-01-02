@@ -3,6 +3,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from respondents import views
 
+app_name = "respondents"
+
 
 urlpatterns = [
     url(r'^search/$', views.search_results, name='search_results'),

@@ -68,12 +68,13 @@ class Institution(models.Model):
 
     year = models.SmallIntegerField(db_index=True)
     respondent_id = models.CharField(max_length=10)
-    agency = models.ForeignKey('Agency')
+    agency = models.ForeignKey('Agency', models.CASCADE)
     institution_id = models.CharField(max_length=15, primary_key=True)
     tax_id = models.CharField(max_length=10)
     name = models.CharField(max_length=128)
     mailing_address = models.CharField(max_length=64)
-    zip_code = models.ForeignKey('ZipCodeCityStateYear', null=False)
+    zip_code = models.ForeignKey(
+        'ZipCodeCityStateYear', models.CASCADE, null=False)
     assets = models.BigIntegerField(
         blank=True,
         help_text='Prior year reported assets in thousands of dollars',
@@ -88,18 +89,21 @@ class Institution(models.Model):
     )
     parent = models.ForeignKey(
         'self',
+        models.SET_NULL,
         blank=True,
         null=True,
         related_name='children',
         help_text='The parent institution')
     non_reporting_parent = models.ForeignKey(
         'ParentInstitution',
+        models.SET_NULL,
         blank=True,
         null=True,
         related_name='children',
         help_text='Non-HMDA reporting parent')
     top_holder = models.ForeignKey(
         'ParentInstitution',
+        models.SET_NULL,
         related_name='descendants',
         blank=True,
         null=True,
@@ -134,13 +138,15 @@ class Institution(models.Model):
 
 
 class LenderHierarchy(models.Model):
-    institution = models.ForeignKey('Institution', to_field='institution_id')
+    institution = models.ForeignKey(
+        'Institution', models.CASCADE, to_field='institution_id')
     organization_id = models.IntegerField()
 
 
 class Branch(models.Model):
     year = models.SmallIntegerField()
-    institution = models.ForeignKey('Institution', to_field='institution_id')
+    institution = models.ForeignKey(
+        'Institution', models.CASCADE, to_field='institution_id')
     name = models.CharField(max_length=100)
     street = models.CharField(max_length=100)
     city = models.CharField(max_length=25)

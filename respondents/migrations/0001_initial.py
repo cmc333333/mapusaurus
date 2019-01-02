@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 ('mailing_address', models.CharField(max_length=40)),
                 ('assets', models.PositiveIntegerField(default=0, help_text=b'Prior year reported assets in thousands of dollars')),
                 ('rssd_id', models.CharField(help_text=b'From Reporter Panel. Id on the National Information Center repository', max_length=10, null=True)),
-                ('agency', models.ForeignKey(to='respondents.Agency')),
+                ('agency', models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.Agency')),
             ],
             options={
             },
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('organization_id', models.IntegerField()),
-                ('institution', models.ForeignKey(to='respondents.Institution')),
+                ('institution', models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.Institution')),
             ],
             options={
             },
@@ -108,25 +108,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='institution',
             name='non_reporting_parent',
-            field=models.ForeignKey(related_name=b'children', to='respondents.ParentInstitution', help_text=b'Non-HMDA reporting parent', null=True),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, related_name=b'children', to='respondents.ParentInstitution', help_text=b'Non-HMDA reporting parent', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='institution',
             name='parent',
-            field=models.ForeignKey(related_name=b'children', to='respondents.Institution', help_text=b'The parent institution', null=True),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, related_name=b'children', to='respondents.Institution', help_text=b'The parent institution', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='institution',
             name='top_holder',
-            field=models.ForeignKey(related_name=b'descendants', to='respondents.ParentInstitution', help_text=b'The company at the top of the ownership chain.', null=True),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, related_name=b'descendants', to='respondents.ParentInstitution', help_text=b'The company at the top of the ownership chain.', null=True),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='institution',
             name='zip_code',
-            field=models.ForeignKey(to='respondents.ZipcodeCityStateYear'),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.ZipcodeCityStateYear'),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='branch',
             name='institution',
-            field=models.ForeignKey(to='respondents.Institution'),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.Institution'),
             preserve_default=True,
         ),
     ]

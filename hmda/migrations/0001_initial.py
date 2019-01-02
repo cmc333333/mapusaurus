@@ -74,8 +74,8 @@ class Migration(migrations.Migration):
                 ('lar_count', models.PositiveIntegerField(help_text=b'Total HMDA LAR count')),
                 ('fha_count', models.PositiveIntegerField(help_text=b'Total HMDA LAR count where loan_type=2(FHA)')),
                 ('fha_bucket', models.PositiveIntegerField(help_text=b'Predetermined buckets calculated by find fha % of total lar count')),
-                ('geo', models.ForeignKey(to='geo.Geo')),
-                ('institution', models.ForeignKey(to='respondents.Institution')),
+                ('geo', models.ForeignKey(on_delete=models.deletion.CASCADE, to='geo.Geo')),
+                ('institution', models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.Institution')),
             ],
             options={
             },
@@ -104,13 +104,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='hmdarecord',
             name='geo',
-            field=models.ForeignKey(to='geo.Geo'),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, to='geo.Geo'),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='hmdarecord',
             name='institution',
-            field=models.ForeignKey(to='respondents.Institution'),
+            field=models.ForeignKey(on_delete=models.deletion.CASCADE, to='respondents.Institution'),
             preserve_default=True,
         ),
         migrations.AlterIndexTogether(
