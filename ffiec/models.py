@@ -39,15 +39,9 @@ class TractDemographics(models.Model):
 
     # households
     households = models.PositiveIntegerField()
-    households_with_employment = models.PositiveIntegerField(
-        help_text="Total households with wage or salary income")
-    self_employed_households = models.PositiveIntegerField(
-        help_text="Total households with self employment income")
-    public_assistance = models.PositiveIntegerField(
-        help_text="Total households with public assistance income")
+    single_family_homes = models.PositiveIntegerField()
+    single_family_occupied = models.PositiveIntegerField()
     poverty_households = models.PositiveIntegerField()
-    occupied = models.PositiveIntegerField()
-    owner_occupied = models.PositiveIntegerField()
     one_to_four_households = models.PositiveIntegerField(
         help_text="Total housing unit - 1 to 4")
 
@@ -62,7 +56,7 @@ class TractDemographics(models.Model):
     non_white = models.PositiveIntegerField(
         help_text="Total population minus white alone population")
     hispanic_only = models.PositiveIntegerField()
-    non_hispanic = models.PositiveIntegerField()
+    non_hispanic_white = models.PositiveIntegerField()
     black = models.PositiveIntegerField()
     american_indian = models.PositiveIntegerField(
         help_text="Total population American Indian / Alaska Native")

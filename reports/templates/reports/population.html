@@ -1,0 +1,27 @@
+{% comment %}
+Population table for a single county or CBSA.
+Expects a "report" variable, of type reports.models.PopulationReport
+{% endcomment %}
+{% load humanize %}
+<table class="population">
+  <thead>
+    <tr>
+      <td />
+      <th>Population</th>
+      <th>Percent of Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>All Population</th>
+      <td>{{report.total|intcomma}}</td>
+    </tr>
+    {% for title, population in report.features %}
+      <tr>
+        <th>{{title}}</th>
+        <td>{{population|intcomma}}</td>
+        <td>{% widthratio population report.total 100 %}%</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
