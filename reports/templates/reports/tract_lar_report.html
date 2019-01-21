@@ -1,0 +1,39 @@
+{% comment %}
+Tract LAR Report for a single county or CBSA.
+Expects a "report" variable, of type reports.models.TractLARReport
+{% endcomment %}
+{% load humanize %}
+<table style="border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>{{year}}</th>
+      <th>Home Purchase Applications</th>
+      <th>Applications (percent of total)</th>
+      <th>Home Purchase Originations</th>
+      <th>Approval Rate</th>
+      <th>Denial Disparity Ratio</th>
+      <th>Compared to:</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for compare_name, rows in row_groups %}
+      {% for row in rows %}
+        <tr style="
+          {% if forloop.first %}border-top: solid 1px black;{% endif %}
+          {% if forloop.last %}border-bottom: solid 1px black;{% endif %}
+        ">
+          <th>{{row.feature}}</th>
+          <td>{{row.feature_total|intcomma}}</td>
+          <td>{% widthratio row.feature_total row.total 100 %}%</td>
+          <td>{{row.feature_approved|intcomma}}</td>
+          <td>{% widthratio row.feature_approved row.feature_total 100 %}%</td>
+          <td style="text-align: center;">{{row.disparity_ratio}}</td>
+          {% if forloop.first %}
+            <th rowspan="{{rows|length}}">{{compare_name}}</th>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>
+

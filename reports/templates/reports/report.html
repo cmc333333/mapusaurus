@@ -23,6 +23,12 @@ Expects the variables:
       td, thead th {
         text-align: center;
       }
+      tr.top td, tr.top th {
+        border-top: 1px solid black;
+      }
+      tr.bottom td, tr.bottom th {
+        border-bottom: 1px solid black;
+      }
       .cell {
         display: inline-block;
         float: left;
@@ -68,6 +74,7 @@ Expects the variables:
             </div>
           </div>
           <hr style="clear: both;"/>
+          {% tract_lar_report division year %}
         </div>
         <div class="sidebar">
           <h2>{{ division.name }}</h2>

@@ -114,3 +114,109 @@ class IncomeHousingReportRow(NamedTuple):
                 data[title],
                 100 * data[title] // data["pop_total"],
             )
+
+
+class DisparityRow(NamedTuple):
+    feature: str
+    feature_total: int
+    feature_approved: int
+    total: int
+
+    compare_total: int
+    compare_approved: int
+
+    @staticmethod
+    def race_features() -> Tuple[Tuple[str, Q], ...]:
+        return (
+            ("White", white_filter),
+            ("Black", non_hispanic_filter & Q(applicant_race_1="3")),
+            ("Hispanic/Latino", Q(applicant_ethnicity="1")),
+            ("Asian", non_hispanic_filter & Q(applicant_race_1="2")),
+            ("Minority", ~white_filter),
+        )
+
+    @staticmethod
+    def other_features(
+            year: int,
+            demographics: Optional[AggDemographics],
+            ) -> List[Tuple[str, Q, str, Q]]:
+        tract_dem_qs = TractDemographics.objects.filter(year=year)
+        result: List[Tuple[str, Q, str, Q]] = []
+        if demographics is not None:
+            mui_boundary = (demographics.ffiec_est_med_fam_income * .8) // 1000
+            result.append((
+                "LMI Applicant",
+                Q(applicant_income_000s__lt=mui_boundary),
+                "MUI Borrowers",
+                Q(applicant_income_000s__gte=mui_boundary),
+            ))
+
+        return result + [
+            ("Female", Q(applicant_sex=2), "Male", Q(applicant_sex=1)),
+            (
+                "Applicant in LMI Tract",
+                Q(tract__in=Tract.objects.filter(
+                    demographics__in=tract_dem_qs.filter(lmi_filter))),
+                "MUI Tracts",
+                Q(tract__in=Tract.objects.filter(
+                    demographics__in=tract_dem_qs.filter(~lmi_filter))),
+            ),
+            (
+                "Applicant in Minority Tract",
+                Q(tract__in=Tract.objects.filter(
+                    demographics__in=tract_dem_qs.filter(minority_filter))),
+                "White Majority Tracts",
+                Q(tract__in=Tract.objects.filter(
+                    demographics__in=tract_dem_qs.filter(~minority_filter))),
+            ),
+        ]
+
+    def disparity_ratio(self) -> str:
+        feature_denial = 1 - self.feature_approved / self.feature_total
+        compare_denial = 1 - self.compare_approved / self.compare_total
+        ratio = feature_denial / compare_denial
+        return f"{ratio:.1f}"
+
+    @classmethod
+    def groups_for(
+            cls,
+            division: Division,
+            year: int) -> Iterator[Tuple[str, List["DisparityRow"]]]:
+        queryset = LoanApplicationRecord.objects.filter(
+            action_taken__lte=5,
+            tract__in=division.tract_set.all(),
+            as_of_year=year,
+        )
+        demographics = AggDemographics.for_division(division, year)
+
+        agg_args = {
+            name: Count("pk", filter=filter)
+            for name, filter in cls.race_features()
+        }
+        others = list(cls.other_features(year, demographics))
+        for l_name, l_filter, r_name, r_filter in others:
+            agg_args[l_name] = Count("pk", filter=l_filter)
+            agg_args[r_name] = Count("pk", filter=r_filter)
+        agg_args["all"] = Count("pk")
+        totals = queryset.aggregate(**agg_args)
+        approvals = queryset.filter(action_taken=1).aggregate(**agg_args)
+
+        yield (
+            "White borrowers",
+            [
+                DisparityRow(
+                    name, totals[name], approvals[name],
+                    totals["all"],
+                    totals["White"], approvals["White"],
+                )
+                for name, _ in cls.race_features()
+            ],
+        )
+        for l_name, _, r_name, _ in others:
+            yield (
+                r_name,
+                [DisparityRow(
+                    l_name, totals[l_name], approvals[l_name],
+                    totals["all"],
+                    totals[r_name], approvals[r_name])],
+            )

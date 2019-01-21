@@ -1,8 +1,11 @@
+import random
 import pytest
 from model_mommy import mommy
+from model_mommy.recipe import Recipe
 
 from geo.models import MetroDivision
-from ffiec.models import TractDemographics
+from ffiec.models import MetDivDemographics, TractDemographics
+from hmda.models import LoanApplicationRecord
 from reports import models
 
 
@@ -109,3 +112,184 @@ def test_income_housing_report():
         ("Population in Minority Tracts",
             persons_minority, persons_minority * 100 // all_persons),
     ]
+
+
+NormalLAR = Recipe(
+    LoanApplicationRecord,
+    action_taken=lambda: random.choice("12"),
+    applicant_ethnicity=lambda: random.choice("12"),
+    applicant_race_1=lambda: random.choice("12345"),
+)
+
+
+@pytest.mark.django_db
+def test_disparity_row_applicant():
+    metdiv = mommy.make(MetroDivision)
+    lar = NormalLAR.make(
+        as_of_year=2010, tract__county__metdiv=metdiv, _quantity=100,
+    )
+
+    # Wrong year
+    NormalLAR.make(as_of_year=2011, tract__county__metdiv=metdiv)
+    # Not in metdiv
+    NormalLAR.make(as_of_year=2010)
+    non_hispanic = {l for l in lar if l.applicant_ethnicity == "2"}
+    white = {l for l in non_hispanic if l.applicant_race_1 == "5"}
+    black = {l for l in non_hispanic if l.applicant_race_1 == "3"}
+    hispanic = {l for l in lar if l.applicant_ethnicity == "1"}
+    asian = {l for l in non_hispanic if l.applicant_race_1 == "2"}
+    minority = set(lar) - white
+    men = {l for l in lar if l.applicant_sex == 1}
+    women = {l for l in lar if l.applicant_sex == 2}
+
+    assert len(white) > 0
+    assert len(black) > 0
+    assert len(hispanic) > 0
+    assert len(asian) > 0
+    assert len(minority) > 0
+    assert len(men) > 0
+    assert len(women) > 0
+
+    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    assert len(result) == 4
+    assert result[0] == (
+        "White borrowers",
+        [
+            (
+                "White", len(white),
+                len([l for l in white if l.action_taken == "1"]),
+                len(lar), len(white),
+                len([l for l in white if l.action_taken == "1"]),
+            ),
+            (
+                "Black", len(black),
+                len([l for l in black if l.action_taken == "1"]),
+                len(lar), len(white),
+                len([l for l in white if l.action_taken == "1"]),
+            ),
+            (
+                "Hispanic/Latino", len(hispanic),
+                len([l for l in hispanic if l.action_taken == "1"]),
+                len(lar), len(white),
+                len([l for l in white if l.action_taken == "1"]),
+            ),
+            (
+                "Asian", len(asian),
+                len([l for l in asian if l.action_taken == "1"]),
+                len(lar), len(white),
+                len([l for l in white if l.action_taken == "1"]),
+            ),
+            (
+                "Minority", len(minority),
+                len([l for l in minority if l.action_taken == "1"]),
+                len(lar), len(white),
+                len([l for l in white if l.action_taken == "1"]),
+            ),
+        ],
+    )
+    assert result[1] == (
+        "Male",
+        [
+            (
+                "Female", len(women),
+                len([l for l in women if l.action_taken == "1"]),
+                len(lar), len(men),
+                len([l for l in men if l.action_taken == "1"]),
+            ),
+        ],
+    )
+
+
+@pytest.mark.django_db
+def test_disparity_row_lmi_applicant():
+    metdiv = mommy.make(MetroDivision)
+    lar = NormalLAR.make(
+        as_of_year=2010, tract__county__metdiv=metdiv,
+        _fill_optional=["applicant_income_000s"], _quantity=25,
+    )
+    avg_income = sum(l.applicant_income_000s for l in lar) // len(lar)
+    mommy.make(
+        MetDivDemographics, metdiv=metdiv, year=2010,
+        ffiec_est_med_fam_income=avg_income * 1000,
+    )
+    # Wrong year
+    mommy.make(MetDivDemographics, metdiv=metdiv, year=2011)
+    below = {
+        l for l in lar if l.applicant_income_000s < avg_income * .8}
+    above = {
+        l for l in lar if l.applicant_income_000s >= avg_income * .8}
+    assert len(below) > 0
+    assert len(above) > 0
+
+    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    assert len(result) == 5
+    assert result[1] == (
+        "MUI Borrowers",
+        [(
+            "LMI Applicant", len(below),
+            len([l for l in below if l.action_taken == "1"]),
+            len(lar), len(above),
+            len([l for l in above if l.action_taken == "1"]),
+        )],
+    )
+
+
+@pytest.mark.django_db
+def test_disparity_row_tracts():
+    metdiv = mommy.make(MetroDivision)
+    mommy.make(     # wrong year
+        TractDemographics, year=2011, tract__county__metdiv=metdiv)
+
+    lm_lar = NormalLAR.make(
+        as_of_year=2010, _quantity=10, tract=mommy.make(
+            TractDemographics, year=2010, income_indicator="low", persons=10,
+            non_hispanic_white=2, tract__county__metdiv=metdiv,
+        ).tract,
+    )
+    mw_lar = NormalLAR.make(
+        as_of_year=2010, _quantity=12, tract=mommy.make(
+            TractDemographics, year=2010, income_indicator="mod", persons=15,
+            non_hispanic_white=10, tract__county__metdiv=metdiv,
+        ).tract,
+    )
+    mm_lar = NormalLAR.make(
+        as_of_year=2010, _quantity=14, tract=mommy.make(
+            TractDemographics, year=2010, income_indicator="mid", persons=20,
+            non_hispanic_white=5, tract__county__metdiv=metdiv,
+        ).tract,
+    )
+    hw_lar = NormalLAR.make(
+        as_of_year=2010, _quantity=16, tract=mommy.make(
+            TractDemographics, year=2010, income_indicator="high", persons=25,
+            non_hispanic_white=20, tract__county__metdiv=metdiv,
+        ).tract,
+    )
+
+    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    assert result[-2:] == [
+        (
+            "MUI Tracts",
+            [(
+                "Applicant in LMI Tract", 10 + 12,
+                len([l for l in lm_lar + mw_lar if l.action_taken == "1"]),
+                10 + 12 + 14 + 16, 14 + 16,
+                len([l for l in mm_lar + hw_lar if l.action_taken == "1"]),
+            )],
+        ),
+        (
+            "White Majority Tracts",
+            [(
+                "Applicant in Minority Tract", 10 + 14,
+                len([l for l in lm_lar + mm_lar if l.action_taken == "1"]),
+                10 + 12 + 14 + 16, 12 + 16,
+                len([l for l in mw_lar + hw_lar if l.action_taken == "1"]),
+            )],
+        ),
+    ]
+
+
+@pytest.mark.django_db
+def test_disparity_row_disparity_ratio():
+    row = models.DisparityRow("AAA", 100, 75, 900, 200, 100)
+    # 25% compared to 50%
+    assert row.disparity_ratio() == "0.5"
