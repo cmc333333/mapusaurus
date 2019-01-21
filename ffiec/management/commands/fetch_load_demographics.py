@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 def parse_tract_demographics(
         rows: Iterator[List[str]]) -> Iterator[TractDemographics]:
     for row in tqdm(rows, desc="Tracts Pass"):
-        if row[1] == "99999":   # Small counties
+        if row[4] == "999999" or not row[14] or not row[17]:
             continue
         model = TractDemographics(
             year=int(row[0]),
@@ -51,11 +51,9 @@ def parse_tract_demographics(
             poverty=int(row[750]),
             poverty_households=int(row[809]),
             poverty_families=int(row[810]),
-            single_family_homes=(
-                int(row[889]) + int(row[890]) + int(row[897]) + int(row[898])),
+            single_family_homes=int(row[889]) + int(row[890]),
             one_to_four_households=int(row[899]),
-            single_family_occupied=(
-                int(row[916]) + int(row[917]) + int(row[924]) + int(row[925])),
+            single_family_occupied=int(row[916]) + int(row[917]),
             median_year_house_built=int(row[952]),
             median_gross_rent=int(row[1002]),
             median_oo_housing_value=int(row[1086]),
