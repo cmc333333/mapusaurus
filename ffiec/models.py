@@ -1,6 +1,9 @@
+from typing import Optional
+
 from django.db import models
 
-from geo.models import CoreBasedStatisticalArea, Tract
+from geo.models import (
+    CoreBasedStatisticalArea, County, Division, MetroDivision, State, Tract)
 
 INCOME_CHOICES = [
     ("low", "Low"), ("mod", "Moderate"), ("mid", "Middle"), ("high", "High")]
@@ -75,13 +78,57 @@ class TractDemographics(models.Model):
         help_text="Total female population 16 and over - employed")
 
 
-class CBSADemographics(models.Model):
-    composite_key = models.CharField(max_length=4 + 5, primary_key=True)
-    cbsa = models.ForeignKey(
-        CoreBasedStatisticalArea, models.CASCADE, related_name="demographics")
+class AggDemographics(models.Model):
+    """Base class for CBSA, MetDiv, etc. demographics."""
     year = models.PositiveSmallIntegerField(db_index=True)
-
     median_family_income = models.PositiveIntegerField()
     median_household_income = models.PositiveIntegerField()
     ffiec_est_med_fam_income = models.PositiveIntegerField(
         help_text="FFIEC Estimated Median Family Income")
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def for_division(
+            cls, division: Division, year: int) -> Optional["AggDemographics"]:
+        if isinstance(division, County):
+            if division.metdiv:
+                return cls.for_division(division.metdiv, year)
+            if division.cbsa:
+                return cls.for_division(division.cbsa, year)
+            demographic_qs = division.state.low_pop_demographics
+        else:
+            demographic_qs = division.demographics
+        return demographic_qs.filter(year=year).first()
+
+
+class CBSADemographics(AggDemographics):
+    composite_key = models.CharField(max_length=4 + 5, primary_key=True)
+    cbsa = models.ForeignKey(
+        CoreBasedStatisticalArea, models.CASCADE, related_name="demographics")
+
+    @property
+    def geo(self) -> CoreBasedStatisticalArea:
+        return self.cbsa
+
+
+class MetDivDemographics(AggDemographics):
+    composite_key = models.CharField(max_length=4 + 5, primary_key=True)
+    metdiv = models.ForeignKey(
+        MetroDivision, models.CASCADE, related_name="demographics")
+
+    @property
+    def geo(self) -> MetroDivision:
+        return self.metdiv
+
+
+class LowPopulationDemographics(AggDemographics):
+    """Counties outside of MSAs are lumped together by state."""
+    composite_key = models.CharField(max_length=4 + 2, primary_key=True)
+    state = models.ForeignKey(
+        State, models.CASCADE, related_name="low_pop_demographics")
+
+    @property
+    def geo(self) -> State:
+        return self.state
