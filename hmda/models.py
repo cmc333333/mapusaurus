@@ -345,11 +345,11 @@ class LoanApplicationRecord(models.Model):
         choices=SEX_CHOICES,
         help_text="A code representing the sex of the co-applicant.",
     )
-    applicant_income_000s = models.CharField(
-        max_length=8,
+    applicant_income_000s = models.PositiveIntegerField(
         help_text=("The gross annual income that the lender relied on when "
                    "evaluating the creditworthiness of the applicant, "
                    "rounded to the nearest thousand."),
+        blank=True, null=True,
     )
     purchaser_type = models.CharField(
         choices=TYPE_OF_PURCHASER_CHOICES,
