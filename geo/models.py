@@ -1,3 +1,5 @@
+from typing import Union
+
 import us
 from django.contrib.gis.db import models
 from django.core.validators import RegexValidator
@@ -44,6 +46,21 @@ class CoreBasedStatisticalArea(GeoModel):
         validators=[RegexValidator(r"\d{5}")], max_length=5, primary_key=True)
     metro = models.BooleanField()   # metro- vs micro-politan
 
+    @property
+    def tract_set(self):
+        return Tract.objects.filter(county__cbsa=self)
+
+
+class MetroDivision(GeoModel):
+    # shares the same namespace as CBSAs
+    geoid = models.CharField(
+        validators=[RegexValidator(r"\d{5}")], max_length=5, primary_key=True)
+    metro = models.ForeignKey(CoreBasedStatisticalArea, models.CASCADE)
+
+    @property
+    def tract_set(self):
+        return Tract.objects.filter(county__metdiv=self)
+
 
 class County(GeoModel):
     geoid = models.CharField(
@@ -53,6 +70,11 @@ class County(GeoModel):
         validators=[RegexValidator(r"\d{3}")], max_length=3)
     cbsa = models.ForeignKey(
         CoreBasedStatisticalArea, models.SET_NULL, blank=True, null=True)
+    metdiv = models.ForeignKey(
+        MetroDivision, models.SET_NULL, blank=True, null=True)
+
+
+Division = Union[CoreBasedStatisticalArea, County, MetroDivision]
 
 
 class Tract(GeoModel):

@@ -13,7 +13,8 @@ from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
-from geo.models import CoreBasedStatisticalArea, County, State, Tract
+from geo.models import (
+    CoreBasedStatisticalArea, County, MetroDivision, State, Tract)
 from mapusaurus.batch_utils import DjangoModel, save_batches
 from mapusaurus.fetch_zip import fetch_and_unzip_dir
 
@@ -23,6 +24,8 @@ state_tpl = partial(
     ZIP_TPL.format, shape="STATE", state="us", shape_lower="state")
 cbsa_tpl = partial(
     ZIP_TPL.format, shape="CBSA", state="us", shape_lower="cbsa")
+metdiv_tpl = partial(
+    ZIP_TPL.format, shape="METDIV", state="us", shape_lower="metdiv")
 county_tpl = partial(
     ZIP_TPL.format, shape="COUNTY", state="us", shape_lower="county")
 tract_tpl = partial(ZIP_TPL.format, shape="TRACT", shape_lower="tract")
@@ -73,6 +76,21 @@ def parse_cbsas(layer: Layer) -> Iterator[CoreBasedStatisticalArea]:
         yield model
 
 
+def parse_metdivs(layer: Layer) -> Iterator[MetroDivision]:
+    for feature in tqdm(layer, desc='MetDivs'):
+        model = MetroDivision(
+            name=feature.get("NAME"),
+            geom=load_geometry(feature),
+            interior_lat=float(feature.get("INTPTLAT")),
+            interior_lon=float(feature.get("INTPTLON")),
+            geoid=feature.get("METDIVFP"),
+            metro_id=feature.get("CBSAFP"),
+        )
+        model.autofields()
+        model.full_clean(exclude=["metro"], validate_unique=False)
+        yield model
+
+
 def parse_states(layer: Layer, only_states: Iterator[str]) -> Iterator[State]:
     for feature in tqdm(layer, desc='State Shapes'):
         fips = feature.get("GEOID")
@@ -92,8 +110,7 @@ def parse_states(layer: Layer, only_states: Iterator[str]) -> Iterator[State]:
 def parse_counties(
         layer: Layer, only_states: Iterator[str]) -> Iterator[County]:
     for feature in tqdm(layer, desc='County Shapes'):
-        state_fips = feature.get("STATEFP")
-        if state_fips in only_states:
+        if feature.get("STATEFP") in only_states:
             model = County(
                 name=feature.get("NAME"),
                 geom=load_geometry(feature),
@@ -103,9 +120,11 @@ def parse_counties(
                 state_id=feature.get("STATEFP"),
                 county_only=feature.get("COUNTYFP"),
                 cbsa_id=feature.get("CBSAFP") or None,
+                metdiv_id=feature.get("METDIVFP") or None,
             )
             model.autofields()
-            model.full_clean(exclude=["state", "cbsa"], validate_unique=False)
+            model.full_clean(
+                exclude=["cbsa", "metdiv", "state"], validate_unique=False)
             yield model
 
 
@@ -158,6 +177,10 @@ class Command(BaseCommand):
             help="Do not load CBSA geos",
         )
         parser.add_argument(
+            "--no-metdivs", dest="metdiv_shapes", action="store_false",
+            help="Do not load Metro Division geos",
+        )
+        parser.add_argument(
             "--no-counties", dest="county_shapes", action="store_false",
             help="Do not load County geos",
         )
@@ -179,6 +202,8 @@ class Command(BaseCommand):
                         partial(parse_states, only_states=relevant_fips))
         if options["cbsa_shapes"]:
             load_shapes(cbsa_tpl(year=year), replace, 100, parse_cbsas)
+        if options["metdiv_shapes"]:
+            load_shapes(metdiv_tpl(year=year), replace, 100, parse_metdivs)
         if options["county_shapes"]:
             load_shapes(county_tpl(year=year), replace, 100,
                         partial(parse_counties, only_states=relevant_fips))

@@ -202,6 +202,7 @@ def test_fetch_flags(monkeypatch):
         '--state', '17', 'DC', 'Puerto Rico',
         '--year', '2014',
         '--no-cbsas',
+        '--no-metdivs',
     )
     # States, Counties, + 1 call for each state/territory
     assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 3
@@ -217,8 +218,8 @@ def test_fetch_flags_default(monkeypatch):
 
     call_command('fetch_load_geos')
 
-    # States, CBSAs, Counties, + 1 call for each state/territory
-    assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 1 + 56
+    # States, CBSAs, Metdivs, Counties, + 1 call for each state/territory
+    assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 1 + 1 + 56
     calls = fetch_load_geos.load_shapes.call_args_list
     urls = [call[0][0] for call in calls]
     assert all("2016" in url for url in urls)
