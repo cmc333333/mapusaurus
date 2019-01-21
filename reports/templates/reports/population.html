@@ -1,6 +1,6 @@
 {% comment %}
-Population table for a single county or CBSA.
-Expects a "report" variable, of type reports.models.PopulationReport
+Population table for a single county or CBSA. Expects:
+* rows: Iterator[PopulationReportRow]
 {% endcomment %}
 {% load humanize %}
 <table class="population">
@@ -12,15 +12,11 @@ Expects a "report" variable, of type reports.models.PopulationReport
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <th>All Population</th>
-      <td>{{report.total|intcomma}}</td>
-    </tr>
-    {% for title, population in report.features %}
+    {% for title, population, percent in rows %}
       <tr>
         <th>{{title}}</th>
         <td>{{population|intcomma}}</td>
-        <td>{% widthratio population report.total 100 %}%</td>
+        <td>{{percent}}%</td>
       </tr>
     {% endfor %}
   </tbody>

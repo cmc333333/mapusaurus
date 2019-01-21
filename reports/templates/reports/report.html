@@ -1,4 +1,8 @@
-{% load reports %}<!DOCTYPE html>
+{% comment %}
+Expects the variables:
+* divisions: List[geo.models.Division]
+* year: int
+{% endcomment %}{% load reports %}<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -50,42 +54,23 @@
     </style>
   </head>
   <body>
-    {% for metro in metros %}
+    {% for division in divisions %}
       <div class="page">
         <div class="main-content">
           <div>
             <div class="cell half">
-              {% population metro year %}
+              {% population division year %}
             </div>
             <div class="cell half" style="border-left: solid 1px black;">
-              <h3>Income and Housing Statistics</h3>
-              {% msa_median_income metro year %}
-              {% income_housing metro year %}
+              <h3 style="text-align: center;">Income and Housing Statistics</h3>
+              {% median_income division year %}
+              {% income_housing division year %}
             </div>
           </div>
           <hr style="clear: both;"/>
         </div>
         <div class="sidebar">
-          <h2>{{ metro.name }}</h2>
-        </div>
-      </div>
-    {% endfor %}
-    {% for county in counties %}
-      <div class="page">
-        <div class="main-content">
-          <div>
-            <div class="cell half">
-              {% population county year %}
-            </div>
-            <div class="cell half" style="border-left: solid 1px black;">
-              <h3>Income and Housing Statistics</h3>
-              {% income_housing county year %}
-            </div>
-          </div>
-          <hr style="clear: both;"/>
-        </div>
-        <div class="sidebar">
-          <h2>{{ county.name }} County, {{ county.state.name }}</h2>
+          <h2>{{ division.name }}</h2>
         </div>
       </div>
     {% endfor %}
