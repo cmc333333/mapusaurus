@@ -18,16 +18,16 @@ def test_default_args(monkeypatch):
     ]
     assert years == [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019]
     assert fetch_load_demographics.load_demographics.call_args == \
-        call(2019, True, True, False)
+        call(2019, True, True, True, True, False)
 
 
 def test_custom_args(monkeypatch):
     monkeypatch.setattr(fetch_load_demographics, "load_demographics", Mock())
     call_command("fetch_load_demographics", "--year", "2013", "2014",
-                 "--no-cbsa", "--replace")
+                 "--no-cbsa", "--no-low-pops", "--replace")
     assert fetch_load_demographics.load_demographics.call_count == 2
     assert fetch_load_demographics.load_demographics.call_args == \
-        call(2014, True, False, True)
+        call(2014, True, False, True, False, True)
 
 
 @pytest.mark.parametrize("exception", (

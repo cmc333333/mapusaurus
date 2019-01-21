@@ -1,38 +1,35 @@
-from typing import Union
-
 from django import template
 
-from geo.models import CoreBasedStatisticalArea, County, Tract
+from geo.models import Division
+from ffiec.models import AggDemographics
 from reports.models import (
-    HomeReport, PopulationByTractReport, PopulationReport, TractReport)
+    DisparityRow, IncomeHousingReportRow, PopulationReportRow)
 
-CBSAOrCounty = Union[CoreBasedStatisticalArea, County]
 register = template.Library()
 
 
 @register.inclusion_tag("reports/population.html")
-def population(cbsa_or_county: CBSAOrCounty, year: int):
-    if isinstance(cbsa_or_county, County):
-        tract_qs = cbsa_or_county.tract_set.all()
-    else:
-        tract_qs = Tract.objects.filter(county__cbsa=cbsa_or_county)
-    return {"report": PopulationReport.load(tract_qs, year)}
-
-
-@register.inclusion_tag("reports/income_housing.html")
-def income_housing(cbsa_or_county: CBSAOrCounty, year: int):
-    if isinstance(cbsa_or_county, County):
-        tract_qs = cbsa_or_county.tract_set.all()
-    else:
-        tract_qs = Tract.objects.filter(county__cbsa=cbsa_or_county)
+def population(division: Division, year: int):
     return {
-        "home_report": HomeReport.load(tract_qs, year),
-        "poptract_report": PopulationByTractReport.load(tract_qs, year),
-        "tract_report": TractReport.load(tract_qs, year),
+        "rows": PopulationReportRow.generate_for(division, year),
     }
 
 
-@register.inclusion_tag("reports/msa_median_income.html")
-def msa_median_income(cbsa: CoreBasedStatisticalArea, year: int):
-    stats = cbsa.demographics.filter(year=year).first()
-    return {"income": stats.median_family_income if stats else 0}
+@register.inclusion_tag("reports/median_income.html")
+def median_income(division: Division, year: int):
+    return {"demographics": AggDemographics.for_division(division, year)}
+
+
+@register.inclusion_tag("reports/income_housing.html")
+def income_housing(division: Division, year: int):
+    return {
+        "rows": IncomeHousingReportRow.generate_for(division, year),
+    }
+
+
+@register.inclusion_tag("reports/tract_lar_report.html")
+def tract_lar_report(division: Division, year: int):
+    return {
+        "row_groups": DisparityRow.groups_for(division, year),
+        "year": year,
+    }

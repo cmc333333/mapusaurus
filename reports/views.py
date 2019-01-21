@@ -12,8 +12,7 @@ def report(request, pdf: str) -> HttpResponse:
     html = render_to_string(
         "reports/report.html",
         {
-            "counties": serializer.validated_data["county"],
-            "metros": serializer.validated_data["metro"],
+            "divisions": serializer.save(),
             "year": serializer.validated_data["year"],
         },
     )

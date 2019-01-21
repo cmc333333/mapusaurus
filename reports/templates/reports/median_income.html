@@ -1,0 +1,14 @@
+{% comment %}
+Median Income for a geography. Expects:
+* demographics: Optional[AggDemographics]
+{% endcomment %}
+{% load humanize %}
+{% if demographics %}
+  <div style="text-align: center;">
+    <span style="font-weight: bold;">Median Family Income</span>
+    <br />
+    ({{demographics.geo.name}})
+    <br />
+    ${{demographics.ffiec_est_med_fam_income|intcomma}}
+  </div>
+{% endif %}
