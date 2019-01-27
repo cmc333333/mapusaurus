@@ -1,27 +1,31 @@
-from django.http.response import HttpResponse
-from django.template.loader import render_to_string
-from weasyprint import HTML
+import secrets
+from urllib.parse import urljoin
 
-from reports.serializers import ReportSerializer
+from django.conf import settings
+from rest_framework import serializers
+from rest_framework.decorators import api_view
+from rest_framework.request import Request
+from rest_framework.response import Response
+
+from reports.tasks import generate_report
 
 
-def report(request, pdf: str) -> HttpResponse:
-    serializer = ReportSerializer(data=request.GET)
+class ReportSerializer(serializers.Serializer):
+    county = serializers.ListField(child=serializers.CharField(), default=list)
+    metro = serializers.ListField(child=serializers.CharField(), default=list)
+    year = serializers.IntegerField()
+
+
+@api_view(["POST"])
+def create_report(request: Request) -> Response:
+    serializer = ReportSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    html = render_to_string(
-        "reports/report.html",
-        {
-            "divisions": serializer.save(),
-            "year": serializer.validated_data["year"],
-        },
+    filename = secrets.token_urlsafe(16)
+    generate_report(
+        filename=filename,
+        county_ids=serializer.data["county"],
+        metro_ids=serializer.data["metro"],
+        year=serializer.data["year"],
     )
-    if pdf:
-        response = HttpResponse(
-            HTML(string=html).write_pdf(),
-            content_type="application/pdf",
-        )
-        response["Content-Disposition"] = "attachment; filename=report.pdf"
-    else:
-        response = HttpResponse(html)
-    return response
+    return Response({"url": urljoin(settings.MEDIA_URL, f"{filename}.pdf")})
