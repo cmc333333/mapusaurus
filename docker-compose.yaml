@@ -6,7 +6,7 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
     - data:/var/lib/postgresql/data
-  app:
+  app: &APP
     build: .
     volumes:
     - .:/app
@@ -23,11 +23,18 @@ services:
       PYTHONUNBUFFERED: "1"
       USING_SSL: "False"
     command: .docker/wait_for_db_then pipenv run .docker/start_server.sh
+  worker:
+    <<: *APP
+    command: .docker/wait_for_db_then pipenv run python manage.py process_tasks
+    volumes:
+    - .:/app
+    - media:/app/media/
   proxy:
     image: nginx:1.13-alpine
     volumes:
     - .docker/nginx.conf.tpl:/etc/nginx/nginx.conf.tpl:ro
     - .docker/start_proxy.sh:/usr/sbin/start_proxy.sh
+    - media:/etc/nginx/html/media/
     ports:
     - 8000:8000
     depends_on:
@@ -38,3 +45,4 @@ services:
 
 volumes:
   data:
+  media:
