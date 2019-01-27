@@ -45,7 +45,7 @@ def load_from_csv(csv_file: TextIO) -> Iterator[LoanApplicationRecord]:
             applicant_sex=int(row[26]),
             co_applicant_sex=int(row[27]),
             applicant_income_000s=(
-                None if row[28] == "NA" else int(row[28].strip())),
+                None if row[28].strip() == "NA" else int(row[28])),
             purchaser_type=row[29].strip(),
             denial_reason_1=row[30].strip(),
             denial_reason_2=row[31].strip(),

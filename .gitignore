@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .pytest_cache
+.mypy_cache
 
 # C extensions
 *.so
@@ -71,3 +72,4 @@ frontend/bower_components
 .venv
 data
 mapusaurus/public
+media/
