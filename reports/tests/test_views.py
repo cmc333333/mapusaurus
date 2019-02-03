@@ -4,18 +4,20 @@ from reports import views
 
 
 def test_create_report(client, monkeypatch, settings):
+    settings.MEDIA_URL = "http://example.com/a/path/"
     monkeypatch.setattr(views, "generate_report", Mock())
-    settings.MEDIA_URL = "/some/path/here/"
-    result = client.post(
-        "/api/reports/",
-        {"county": ["1", "2"], "metro": ["3", "4", "5"], "year": 123},
-        "application/json",
-    )
+    request_data = {
+        "county_ids": ["1", "2"],
+        "email": "someone@example.com",
+        "metro_ids": ["3", "4", "5"],
+        "other": "value",
+        "year": 123,
+    }
+    result = client.post("/api/reports/", request_data, "application/json")
 
-    filename = views.generate_report.call_args[1].get("filename")
-    assert filename
-    assert views.generate_report.call_args[1]["county_ids"] == ["1", "2"]
-    assert views.generate_report.call_args[1]["metro_ids"] == ["3", "4", "5"]
-    assert views.generate_report.call_args[1]["year"] == 123
+    file_id = views.generate_report.call_args[1].get("file_id")
+    assert file_id
+    assert views.generate_report.call_args[1].get("request_params")\
+        == request_data
 
-    assert result.data == {"url": f"/some/path/here/{filename}.pdf"}
+    assert result.data == {"url": f"http://example.com/a/path/{file_id}.pdf"}

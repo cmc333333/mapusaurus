@@ -1,48 +1,67 @@
 from datetime import timedelta
-from typing import List
+from typing import Any, BinaryIO, Dict
+from urllib.parse import urljoin
 
 from background_task import background
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
-from geo.models import (
-    CoreBasedStatisticalArea, County, Division, MetroDivision)
+from geo.models import CoreBasedStatisticalArea, County
+from reports.serializers import ReportSerializer
 
 
-def divisions_for_metros(metro_ids: List[str]) -> List[Division]:
-    metros: List[CoreBasedStatisticalArea] = []
-    metdivs: List[MetroDivision] = []
-    for metro in CoreBasedStatisticalArea.objects.filter(pk__in=metro_ids):
-        if metro.metrodivision_set.exists():
-            metdivs.extend(metro.metrodivision_set.all())
-        else:
-            metros.append(metro)
+def report_url(filename: str) -> str:
+    return urljoin(settings.MEDIA_URL, f"{filename}.pdf")
 
-    metros = sorted(metros, key=lambda m: m.name)
-    metdivs = sorted(metdivs, key=lambda m: m.name)
-    return metros + metdivs
+
+def send_email(report: BinaryIO, file_id: str, serializer: ReportSerializer):
+    context = {
+        "county_names": (
+            County.objects
+            .filter(pk__in=serializer.validated_data["county_ids"])
+            .values_list("name", flat=True)
+            .order_by("name")
+        ),
+        "metro_names": (
+            CoreBasedStatisticalArea.objects
+            .filter(pk__in=serializer.validated_data["metro_ids"])
+            .values_list("name", flat=True)
+            .order_by("name")
+        ),
+        "url": report_url(file_id),
+        "year": serializer.validated_data["year"],
+    }
+    email = EmailMultiAlternatives(
+        body=render_to_string("reports/email.txt", context),
+        to=[serializer.validated_data["email"]],
+        attachments=[("report.pdf", report, "application/pdf")],
+        **settings.REPORT_EMAIL_KWARGS,
+    )
+    email.attach_alternative(
+        render_to_string("reports/email.html", context), "text/html")
+    email.send()
 
 
 @background()
-def generate_report(
-        filename: str, county_ids: List[str], metro_ids: List[str], year: int):
-    divisions = divisions_for_metros(metro_ids)
-    divisions.extend(
-        County.objects
-        .filter(pk__in=county_ids)
-        .select_related("cbsa", "metdiv", "state")
-    )
-    html = render_to_string(
-        "reports/report.html",
-        {"divisions": divisions, "year": year},
-    )
-    pdf = HTML(string=html).write_pdf()
-    default_storage.save(f"{filename}.pdf", ContentFile(pdf))
-    delete_report(filename)
+def generate_report(file_id: str, request_params: Dict[str, Any]):
+    serializer = ReportSerializer(data=request_params)
+    serializer.is_valid(raise_exception=True)   # re-validate from the DB
+
+    context = {
+        "divisions": serializer.divisions(),
+        "year": serializer.validated_data["year"],
+    }
+    report_html = render_to_string("reports/report.html", context)
+    pdf = HTML(string=report_html).write_pdf()
+    default_storage.save(f"{file_id}.pdf", ContentFile(pdf))
+    delete_report(file_id)
+    send_email(pdf, file_id, serializer)
 
 
 @background(schedule=timedelta(days=7))
-def delete_report(filename: str):
-    default_storage.delete(f"{filename}.pdf")
+def delete_report(file_id: str):
+    default_storage.delete(f"{file_id}.pdf")
