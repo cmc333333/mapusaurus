@@ -1,0 +1,15 @@
+<p>
+  The requested report for
+  {% if metro_names %}
+    {{metro_names|join:", "}}
+    {% if county_names %}and{% endif %}
+  {% endif %}
+  {% if county_names %}
+    {{county_names|join:", "}} Count{{ county_names|length|pluralize:"y,ies"}}
+  {% endif %}
+  in {{year}} is attached.
+</p>
+<p>
+  This report is also available <a href="{{url}}">online</a> for the next
+  seven days.
+</p>
