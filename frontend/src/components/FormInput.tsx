@@ -20,6 +20,7 @@ export const inputStyle = css({
   paddingRight: mediumSpace,
   paddingTop: smallSpace,
 });
+export const inputWidth = "150px";
 
 export default function FormInput({ children, fullWidth = false, name }) {
   return (

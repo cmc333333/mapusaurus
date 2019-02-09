@@ -7,10 +7,11 @@ import { largeSpace } from "../../theme";
 import CountySelector from "./CountySelector";
 import LenderSelector from "./LenderSelector";
 import MetroSelector from "./MetroSelector";
+import SendReport from "./SendReport";
 import StateSelector from "./StateSelector";
 import YearSelector from "./YearSelector";
 
-export function HMDAFilters({ showLenders }) {
+export function HMDAFilters({ showLenders, showSendReport }) {
   const larContent = showLenders && (
     <>
       <YearSelector />
@@ -26,6 +27,7 @@ export function HMDAFilters({ showLenders }) {
       <CountySelector />
       <hr />
       {larContent}
+      {showSendReport && <SendReport />}
     </glamorous.Div>
   );
 }
@@ -33,5 +35,6 @@ export function HMDAFilters({ showLenders }) {
 export default connect(
   ({ lar: { filters: { county, lender, metro } } }: State) => ({
     showLenders: county.size + lender.size + metro.size > 0,
+    showSendReport: county.size + metro.size > 0,
   }),
 )(HMDAFilters);

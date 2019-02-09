@@ -3,6 +3,9 @@ import { createSelector } from "reselect";
 import actionCreatorFactory from "typescript-fsa";
 import { reducerWithInitialState } from "typescript-fsa-reducers";
 
+import { createReport } from "../../apis/reports";
+import Filters, { addFilter, removeFilter, setFilters } from "./Filters";
+
 export const groupNames = {
   custom: "Custom",
   homePurchase: "Home Purchase",
@@ -67,26 +70,48 @@ export type StateFips = keyof typeof stateNames;
 
 export default interface UIOnly {
   group: FilterGroup;
+  reportEmail: string;
+  reportSent: boolean;
   state: StateFips;
 }
 
 export const SAFE_INIT: UIOnly = {
   group: "homePurchase",
+  reportEmail: "",
+  reportSent: false,
   state: "01",
 };
 
 const actionCreator = actionCreatorFactory("LAR/UI_ONLY");
 
+export const sendReport = actionCreator<Filters>("SEND_REPORT");
 export const setGroup = actionCreator<FilterGroup>("SET_GROUP");
+export const setReportEmail = actionCreator<string>("SET_REPORT_EMAIL");
 export const setState = actionCreator<StateFips>("SET_STATE");
 
 export const reducer = reducerWithInitialState(SAFE_INIT)
+  .case(sendReport, (original, filters) => {
+    createReport(original.reportEmail, filters);
+    return {
+      ...original,
+      reportSent: true,
+    };
+  })
   .case(setGroup, (original, group) => ({
     ...original,
     group,
   }))
+  .case(setReportEmail, (original, reportEmail) => ({
+    ...original,
+    reportEmail,
+    reportSent: false,
+  }))
   .case(setState, (original, state) => ({
     ...original,
     state,
+  }))
+  .cases([addFilter, removeFilter, setFilters], original => ({
+    ...original,
+    reportSent: false,
   }))
   .build();

@@ -13,13 +13,13 @@ import {
   textBg,
   typography,
 } from "../theme";
-import { inputStyle } from "./FormInput";
+import { inputStyle, inputWidth } from "./FormInput";
 import Loading from "./Loading";
 
 const autosuggestTheme = {
   input: css(inputStyle, {
     paddingRight: typography.rhythm(1.5),
-    width: "150px",
+    width: inputWidth,
   }).toString(),
   suggestion: css({
     borderBottom: softBorder,
