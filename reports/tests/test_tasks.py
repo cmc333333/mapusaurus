@@ -20,9 +20,9 @@ def test_send_email(mailoutbox, monkeypatch, settings):
     }
 
     tasks.send_email(b"content", "a_filename", Mock(validated_data={
-        "county_ids": ["aaaaa", "bbbbb"],
+        "county": ["aaaaa", "bbbbb"],
         "email": "abcdef@exmple.com",
-        "metro_ids": ["mmmmm"],
+        "metro": ["mmmmm"],
         "year": 1999,
     }))
 
@@ -57,9 +57,9 @@ def test_generate_report(monkeypatch):
     tasks.generate_report.now(
         "abcdef",
         {
-            "county_ids": [c.pk for c in counties[:3]],
+            "county": [c.pk for c in counties[:3]],
             "email": "xyz@example.com",
-            "metro_ids": [m.pk for m in metros],
+            "metro": [m.pk for m in metros],
             "year": 2008,
         },
     )

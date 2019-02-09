@@ -22,13 +22,13 @@ def send_email(report: BinaryIO, file_id: str, serializer: ReportSerializer):
     context = {
         "county_names": (
             County.objects
-            .filter(pk__in=serializer.validated_data["county_ids"])
+            .filter(pk__in=serializer.validated_data["county"])
             .values_list("name", flat=True)
             .order_by("name")
         ),
         "metro_names": (
             CoreBasedStatisticalArea.objects
-            .filter(pk__in=serializer.validated_data["metro_ids"])
+            .filter(pk__in=serializer.validated_data["metro"])
             .values_list("name", flat=True)
             .order_by("name")
         ),

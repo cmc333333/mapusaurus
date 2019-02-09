@@ -6,11 +6,9 @@ from geo.models import (
 
 
 class ReportSerializer(serializers.Serializer):
-    county_ids = serializers.ListField(
-        child=serializers.CharField(), default=list)
+    county = serializers.ListField(child=serializers.CharField(), default=list)
     email = serializers.EmailField()
-    metro_ids = serializers.ListField(
-        child=serializers.CharField(), default=list)
+    metro = serializers.ListField(child=serializers.CharField(), default=list)
     year = serializers.IntegerField()
 
     def divisions(self) -> List[Division]:
@@ -19,7 +17,7 @@ class ReportSerializer(serializers.Serializer):
         metros: List[CoreBasedStatisticalArea] = []
         metdivs: List[MetroDivision] = []
         requested_cbsas = CoreBasedStatisticalArea.objects\
-            .filter(pk__in=self.validated_data["metro_ids"])
+            .filter(pk__in=self.validated_data["metro"])
         for metro in requested_cbsas:
             if metro.metrodivision_set.exists():
                 metdivs.extend(metro.metrodivision_set.all())
@@ -30,7 +28,7 @@ class ReportSerializer(serializers.Serializer):
         metdivs = sorted(metdivs, key=lambda m: m.name)
         return metros + metdivs + list(
             County.objects
-            .filter(pk__in=self.validated_data["county_ids"])
+            .filter(pk__in=self.validated_data["county"])
             # Useful to prefetch these -- they'll speed up the report
             .select_related("cbsa", "metdiv", "state")
             .order_by("name")

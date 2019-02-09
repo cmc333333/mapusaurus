@@ -3,7 +3,7 @@ import * as React from "react";
 import { connect } from "react-redux";
 
 import { setState, stateNames } from "../../store/Lar/UIOnly";
-import FormInput, { inputStyle } from "../FormInput";
+import FormInput, { inputStyle, inputWidth } from "../FormInput";
 
 export function StateSelector({ onChange, value }) {
   const stateOptions = Object.keys(stateNames).sort().map(
@@ -16,7 +16,7 @@ export function StateSelector({ onChange, value }) {
         css={inputStyle}
         onChange={onChange}
         value={value}
-        width="150px"
+        width={inputWidth}
       >
         {stateOptions}
       </glamorous.Select>
