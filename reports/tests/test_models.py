@@ -29,17 +29,12 @@ def test_population_report():
     hispanic = sum(d.hispanic_only for d in demographics)
     black = sum(d.black for d in demographics)
     asian = sum(d.asian for d in demographics)
-    unemployed = sum(
-        d.male_adult - d.male_employed + d.female_adult - d.female_employed
-        for d in demographics
-    )
     poverty = sum(d.poverty for d in demographics)
     assert total != 0
     assert white != 0
     assert hispanic != 0
     assert black != 0
     assert asian != 0
-    assert unemployed != 0
     assert poverty != 0
 
     assert list(models.PopulationReportRow.generate_for(metdiv, 2010)) == [
@@ -49,7 +44,6 @@ def test_population_report():
         ("Black", black, black * 100 // total),
         ("Asian", asian, asian * 100 // total),
         ("Minority", total - white, (total - white) * 100 // total),
-        ("Unemployed 16+", unemployed, unemployed * 100 // total),
         ("People living in Poverty", poverty, poverty * 100 // total),
     ]
 

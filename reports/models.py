@@ -28,10 +28,6 @@ class PopulationReportRow(NamedTuple):
             ("Asian", Coalesce(Sum("asian"), 0)),
             ("Minority",
                 Coalesce(Sum("persons") - Sum("non_hispanic_white"), 0)),
-            ("Unemployed 16+", Coalesce(
-                Sum("male_adult") - Sum("male_employed")
-                + Sum("female_adult") - Sum("female_employed"),
-                0,)),
             ("People living in Poverty", Coalesce(Sum("poverty"), 0)),
         )
 
