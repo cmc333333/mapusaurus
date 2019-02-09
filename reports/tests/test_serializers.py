@@ -13,9 +13,9 @@ def test_divisions():
     counties = mommy.make(County, _quantity=6)
 
     serializer = serializers.ReportSerializer(data={
-        "county_ids": ["12345"] + [c.pk for c in counties[2:]],
+        "county": ["12345"] + [c.pk for c in counties[2:]],
         "email": "someone@example.com",
-        "metro_ids": ["45678"] + [m.pk for m in metros[:2]],
+        "metro": ["45678"] + [m.pk for m in metros[:2]],
         "year": 1234,
     })
     assert serializer.is_valid()
