@@ -153,19 +153,18 @@ def branch_locations_as_json(request):
 def branch_locations(request):
     """This endpoint returns geocoded branch locations"""
     lender = escape(request.GET.get("lender"))
-    northEastLat = escape(request.GET.get("neLat"))
-    northEastLon = escape(request.GET.get("neLon"))
-    southWestLat = escape(request.GET.get("swLat"))
-    southWestLon = escape(request.GET.get("swLon"))
+    ne_lat = escape(request.GET.get("neLat"))
+    ne_lon = escape(request.GET.get("neLon"))
+    sw_lat = escape(request.GET.get("swLat"))
+    sw_lon = escape(request.GET.get("swLon"))
     try:
-        maxlat = float(northEastLat)
-        minlon = float(southWestLon)
-        minlat = float(southWestLat)
-        maxlon = float(northEastLon)
+        maxlat = float(ne_lat)
+        minlon = float(sw_lon)
+        minlat = float(sw_lat)
+        maxlon = float(ne_lon)
     except ValueError:
         return HttpResponseBadRequest(
-            "Bad or missing values: northEastLat, northEastLon, "
-            "southWestLat, southWestLon")
+            "Bad or missing values: neLat, neLon, swLat, swLon")
     query = Q(lat__gte=minlat, lat__lte=maxlat,
               lon__gte=minlon, lon__lte=maxlon)
     branches = Branch.objects.filter(institution_id=lender).filter(query)

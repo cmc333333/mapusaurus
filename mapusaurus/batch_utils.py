@@ -49,12 +49,12 @@ def save_batches(models: Iterator[DjangoModel], replace: bool = False,
 
 
 def make_filter_fn(
-        FkModel: Type[DjangoModel], fk_field: str = "pk") -> FilterFn:
+        fk_model_cls: Type[DjangoModel], fk_field: str = "pk") -> FilterFn:
     """Generate a save_batches-compatible filter function based on entries in
     the database."""
     def fn(batch: List[DjangoModel]) -> List[DjangoModel]:
         ids = set(
-            FkModel.objects
+            fk_model_cls.objects
             .filter(pk__in={getattr(m, fk_field) for m in batch})
             .values_list("pk", flat=True)
             .distinct(),
