@@ -57,7 +57,7 @@ def make_filter_fn(
             FkModel.objects
             .filter(pk__in={getattr(m, fk_field) for m in batch})
             .values_list("pk", flat=True)
-            .distinct()
+            .distinct(),
         )
         return [m for m in batch if getattr(m, fk_field) in ids]
     return fn

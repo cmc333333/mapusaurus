@@ -70,7 +70,7 @@ def test_parse_cbsa(monkeypatch):
             "INTPTLON": "44.44",
             "LSAD": "M2",
             "NAME": "MicroMicro",
-        }
+        },
     ]
 
     result = list(fetch_load_geos.parse_cbsas(layer))
@@ -129,7 +129,7 @@ def test_parse_counties(monkeypatch):
             "INTPTLON": "44.44",
             "NAME": "Another",
             "STATEFP": "22",
-        }
+        },
     ]
 
     result = list(

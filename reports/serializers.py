@@ -32,5 +32,5 @@ class ReportSerializer(serializers.Serializer):
             .filter(pk__in=self.validated_data["county"])
             # Useful to prefetch these -- they'll speed up the report
             .select_related("cbsa", "metdiv", "state")
-            .order_by("name")
+            .order_by("name"),
         )

@@ -162,7 +162,7 @@ class LARQuerySet(models.QuerySet):
         return self.filter(
             models.Q(applicant_ethnicity__in=("3", "4"))
             | models.Q(applicant_ethnicity="2",
-                       applicant_race_1__in=("6", "7"))
+                       applicant_race_1__in=("6", "7")),
         )
 
     def female(self):

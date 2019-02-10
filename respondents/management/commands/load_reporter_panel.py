@@ -116,7 +116,7 @@ class ReporterRow(NamedTuple):
                 "city": self.parent_city,
                 "state": self.parent_state,
                 "rssd_id": self.parent_rssd_id,
-            }
+            },
         )
         return parent
 

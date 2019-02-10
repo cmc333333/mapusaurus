@@ -74,7 +74,7 @@ def filter_by_fks(
     associated bank."""
     tract_ids = set(
         Tract.objects.filter(pk__in={m.tract_id for m in batch})
-        .values_list("pk", flat=True).distinct()
+        .values_list("pk", flat=True).distinct(),
     )
     inst_ids = set(Institution.objects
                    .filter(pk__in={m.institution_id for m in batch})

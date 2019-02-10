@@ -27,7 +27,7 @@ class ParentInstitutionAdmin(admin.ModelAdmin):
         "city",
         "state",
         "country",
-        "rssd_id"
+        "rssd_id",
     )
 
 

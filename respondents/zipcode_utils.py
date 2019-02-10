@@ -2,7 +2,7 @@ from respondents.models import ZipcodeCityStateYear
 
 
 def create_zipcode(
-        zip_code: str, city: str, state: str, year: int
+        zip_code: str, city: str, state: str, year: int,
         ) -> ZipcodeCityStateYear:
     plus_four = ""
     if "-" in zip_code:
@@ -20,6 +20,6 @@ def create_zipcode(
         defaults={
             "plus_four": int(plus_four) if plus_four else None,
             "state": state,
-        }
+        },
     )
     return model

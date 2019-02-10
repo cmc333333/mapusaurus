@@ -46,7 +46,7 @@ def test_search_empty(client):
     mommy.make(Institution, name="AAAAA", year=2010, num_loans=1)
 
     result = client.get(
-        reverse("respondents:search_results"), {"format": "json"}
+        reverse("respondents:search_results"), {"format": "json"},
     ).json()["institutions"]
     assert result == []
 
