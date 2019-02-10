@@ -36,7 +36,7 @@ class ReporterRow(NamedTuple):
     respondent_fips_state: str
 
     @classmethod
-    def from_line(cls, line: str) -> 'ReporterRow':
+    def from_line(cls, line: str) -> "ReporterRow":
         """Parse a line from the FFIEC HMDA reporterpanel.dat file. The format
         of this file is pre-determined by the FFIEC."""
         return cls(
@@ -67,7 +67,7 @@ class ReporterRow(NamedTuple):
         )
 
     @classmethod
-    def from_csv_row(cls, line: List[str]) -> 'ReporterRow':
+    def from_csv_row(cls, line: List[str]) -> "ReporterRow":
         """Parse a line from the CFPB HMDA CSV."""
         transformed = [cell.strip() for cell in line]
         # fillers
@@ -96,9 +96,9 @@ class ReporterRow(NamedTuple):
         if parent:
             return parent
         else:
-            # Use the RSSD ID to look for the parent. There's at least one
+            # Use the RSSD ID to look for the parent. There"s at least one
             # case where the RSSD ID matches, but the FFIEC ID does not. Also,
-            # in cases where the RSSD ID matches, the state does not. We'll go
+            # in cases where the RSSD ID matches, the state does not. We"ll go
             # based on RSSD ID - but that still indicates weirdness in the
             # data.
             return Institution.objects.filter(
@@ -111,33 +111,33 @@ class ReporterRow(NamedTuple):
             rssd_id=self.parent_rssd_id,
             year=self.year,
             defaults={
-                'year': self.year,
-                'name': self.parent_name,
-                'city': self.parent_city,
-                'state': self.parent_state,
-                'rssd_id': self.parent_rssd_id,
-            }
+                "year": self.year,
+                "name": self.parent_name,
+                "city": self.parent_city,
+                "state": self.parent_state,
+                "rssd_id": self.parent_rssd_id,
+            },
         )
         return parent
 
     def top_holder(self):
-        state = self.top_holder_state if self.top_holder_state != '0' else None
+        state = self.top_holder_state if self.top_holder_state != "0" else None
         parent, _ = ParentInstitution.objects.get_or_create(
             rssd_id=self.top_holder_rssd_id,
             year=self.year,
             defaults={
-                'year': self.year,
-                'name': self.top_holder_name,
-                'city': self.top_holder_city,
-                'rssd_id': self.top_holder_rssd_id,
-                'country': self.top_holder_country,
-                'state': state,
+                "year": self.year,
+                "name": self.top_holder_name,
+                "city": self.top_holder_city,
+                "rssd_id": self.top_holder_rssd_id,
+                "country": self.top_holder_country,
+                "state": state,
             },
         )
         return parent
 
     def assign_parent(self, bank):
-        if self.parent_id == '':
+        if self.parent_id == "":
             bank.parent = None
         else:
             parent = self.parent()
@@ -148,7 +148,7 @@ class ReporterRow(NamedTuple):
         return bank
 
     def assign_top_holder(self, bank):
-        if self.top_holder_name == '':
+        if self.top_holder_name == "":
             bank.top_holder = None
         else:
             bank.top_holder = self.top_holder()
@@ -158,11 +158,11 @@ class ReporterRow(NamedTuple):
         """Add the National Information Center RSSD ID to each institution."""
         bank = self.institution()
         if not bank:
-            logger.warning('Missing institution %s %s %s',
+            logger.warning("Missing institution %s %s %s",
                            self.year, self.agency_code, self.respondent_id)
             return
 
-        if self.respondent_rssd_id == '0000000000':
+        if self.respondent_rssd_id == "0000000000":
             bank.rssd_id = None
         else:
             bank.rssd_id = self.respondent_rssd_id
@@ -173,11 +173,11 @@ class ReporterRow(NamedTuple):
 
 
 class Command(BaseCommand):
-    help = "Reporter panel contains parent information. Loads that."
+    help = "Reporter panel contains parent information. Loads that."    # noqa
 
     def add_arguments(self, parser):
-        parser.add_argument('file_name', type=argparse.FileType('r'))
+        parser.add_argument("file_name", type=argparse.FileType("r"))
 
     def handle(self, *args, **options):
-        for line in options['file_name']:
+        for line in options["file_name"]:
             ReporterRow.from_line(line).update_institution()

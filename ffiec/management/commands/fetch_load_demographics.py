@@ -8,11 +8,11 @@ import requests
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
-from geo.models import CoreBasedStatisticalArea, MetroDivision, State, Tract
 from ffiec.models import (
     CBSADemographics, INCOME_CHOICES, LowPopulationDemographics,
     MetDivDemographics, TractDemographics,
 )
+from geo.models import CoreBasedStatisticalArea, MetroDivision, State, Tract
 from mapusaurus.batch_utils import make_filter_fn, save_batches
 from mapusaurus.fetch_zip import fetch_and_unzip_dir
 
@@ -185,11 +185,11 @@ def load_demographics(
 
 
 class Command(BaseCommand):
-    help = "Fetches and loads FFIEC demographics data"
+    help = "Fetches and loads FFIEC demographics data"  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--years', type=int, nargs='*', help="FFIEC Demographics Years",
+            "--years", type=int, nargs="*", help="FFIEC Demographics Years",
             default=range(2012, date.today().year + 1),
         )
         parser.add_argument("--replace", action="store_true",

@@ -1,7 +1,7 @@
 from django import template
 
-from geo.models import Division
 from ffiec.models import AggDemographics
+from geo.models import Division
 from reports.models import (
     DisparityRow, IncomeHousingReportRow, PopulationReportRow)
 

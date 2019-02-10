@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, call
+from unittest.mock import call, MagicMock, Mock
 
 import pytest
 import requests
@@ -14,11 +14,11 @@ from geo.management.commands import fetch_load_geos
 
 
 def test_load_shapes_shapefile(monkeypatch):
-    monkeypatch.setattr(fetch_load_geos, 'fetch_and_unzip_dir', MagicMock())
-    monkeypatch.setattr(fetch_load_geos, 'parse_layer', Mock())
-    monkeypatch.setattr(fetch_load_geos, 'save_batches', Mock())
+    monkeypatch.setattr(fetch_load_geos, "fetch_and_unzip_dir", MagicMock())
+    monkeypatch.setattr(fetch_load_geos, "parse_layer", Mock())
+    monkeypatch.setattr(fetch_load_geos, "save_batches", Mock())
     fetch_load_geos.fetch_and_unzip_dir.return_value.__enter__.return_value =\
-        Path('/path/here')
+        Path("/path/here")
 
     fetch_load_geos.load_shapes(
         "https://example.com/some/sort/of.zip", False, 100, Mock())
@@ -26,15 +26,15 @@ def test_load_shapes_shapefile(monkeypatch):
     assert fetch_load_geos.parse_layer.call_args == call("/path/here/of.shp")
 
 
-@pytest.mark.parametrize('exception', (
+@pytest.mark.parametrize("exception", (
     requests.exceptions.ConnectionError(),
     requests.exceptions.ConnectTimeout(),
     requests.exceptions.ReadTimeout(),
     requests.exceptions.HTTPError(),
 ))
 def test_load_shapes_handles_exceptions(monkeypatch, exception):
-    monkeypatch.setattr(fetch_load_geos, 'fetch_and_unzip_dir', MagicMock())
-    monkeypatch.setattr(fetch_load_geos, 'logger', Mock())
+    monkeypatch.setattr(fetch_load_geos, "fetch_and_unzip_dir", MagicMock())
+    monkeypatch.setattr(fetch_load_geos, "logger", Mock())
     context = fetch_load_geos.fetch_and_unzip_dir.return_value.__enter__
     context.side_effect = exception
 
@@ -45,7 +45,7 @@ def test_load_shapes_handles_exceptions(monkeypatch, exception):
 
 def test_load_geometry():
     result = fetch_load_geos.load_geometry(
-        Mock(geom=OGRGeometry('POLYGON((0 0, 0 2, -1 2, 0 0))')))
+        Mock(geom=OGRGeometry("POLYGON((0 0, 0 2, -1 2, 0 0))")))
     points = [pt for polygon in result.coords for ln in polygon for pt in ln]
     lons, lats = zip(*points)
     assert min(lats) == 0
@@ -56,7 +56,7 @@ def test_load_geometry():
 
 def test_parse_cbsa(monkeypatch):
     monkeypatch.setattr(fetch_load_geos, "load_geometry", Mock(
-        return_value=GEOSGeometry('MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))')))
+        return_value=GEOSGeometry("MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))")))
     layer = [
         {
             "GEOID": "12345",
@@ -70,7 +70,7 @@ def test_parse_cbsa(monkeypatch):
             "INTPTLON": "44.44",
             "LSAD": "M2",
             "NAME": "MicroMicro",
-        }
+        },
     ]
 
     result = list(fetch_load_geos.parse_cbsas(layer))
@@ -92,7 +92,7 @@ def test_parse_cbsa(monkeypatch):
 
 def test_parse_states(monkeypatch):
     monkeypatch.setattr(fetch_load_geos, "load_geometry", Mock(
-        return_value=GEOSGeometry('MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))')))
+        return_value=GEOSGeometry("MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))")))
     layer = [{
         "GEOID": "12",
         "INTPTLAT": "11.11",
@@ -111,7 +111,7 @@ def test_parse_states(monkeypatch):
 
 def test_parse_counties(monkeypatch):
     monkeypatch.setattr(fetch_load_geos, "load_geometry", Mock(
-        return_value=GEOSGeometry('MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))')))
+        return_value=GEOSGeometry("MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))")))
     layer = [
         {
             "CBSAFP": "",
@@ -129,7 +129,7 @@ def test_parse_counties(monkeypatch):
             "INTPTLON": "44.44",
             "NAME": "Another",
             "STATEFP": "22",
-        }
+        },
     ]
 
     result = list(
@@ -156,7 +156,7 @@ def test_parse_counties(monkeypatch):
 
 def test_parse_tracts(monkeypatch):
     monkeypatch.setattr(fetch_load_geos, "load_geometry", Mock(
-        return_value=GEOSGeometry('MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))')))
+        return_value=GEOSGeometry("MULTIPOLYGON(((0 0, 0 2, -1 2, 0 0)))")))
     layer = [{
         "COUNTYFP": "222",
         "GEOID": "11222333333",
@@ -179,30 +179,30 @@ def test_parse_tracts(monkeypatch):
 
 
 def test_default_year_now():
-    with freeze_time('2017-02-03'), requests_mock.mock() as r_mock:
+    with freeze_time("2017-02-03"), requests_mock.mock() as r_mock:
         r_mock.head(
-            'https://www2.census.gov/geo/tiger/TIGER2017/STATE/'
-            'tl_2017_us_state.zip')
+            "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
+            "tl_2017_us_state.zip")
         assert fetch_load_geos.default_year() == 2017
 
 
 def test_default_year_past():
-    with freeze_time('2017-02-03'), requests_mock.mock() as r_mock:
+    with freeze_time("2017-02-03"), requests_mock.mock() as r_mock:
         r_mock.head(
-            'https://www2.census.gov/geo/tiger/TIGER2017/STATE/'
-            'tl_2017_us_state.zip',
+            "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
+            "tl_2017_us_state.zip",
             status_code=404)
         assert fetch_load_geos.default_year() == 2016
 
 
 def test_fetch_flags(monkeypatch):
-    monkeypatch.setattr(fetch_load_geos, 'load_shapes', Mock())
+    monkeypatch.setattr(fetch_load_geos, "load_shapes", Mock())
     call_command(
-        'fetch_load_geos',
-        '--state', '17', 'DC', 'Puerto Rico',
-        '--year', '2014',
-        '--no-cbsas',
-        '--no-metdivs',
+        "fetch_load_geos",
+        "--state", "17", "DC", "Puerto Rico",
+        "--year", "2014",
+        "--no-cbsas",
+        "--no-metdivs",
     )
     # States, Counties, + 1 call for each state/territory
     assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 3
@@ -212,11 +212,11 @@ def test_fetch_flags(monkeypatch):
 
 
 def test_fetch_flags_default(monkeypatch):
-    monkeypatch.setattr(fetch_load_geos, 'load_shapes', Mock())
+    monkeypatch.setattr(fetch_load_geos, "load_shapes", Mock())
     monkeypatch.setattr(
-        fetch_load_geos, 'default_year', Mock(return_value=2016))
+        fetch_load_geos, "default_year", Mock(return_value=2016))
 
-    call_command('fetch_load_geos')
+    call_command("fetch_load_geos")
 
     # States, CBSAs, Metdivs, Counties, + 1 call for each state/territory
     assert fetch_load_geos.load_shapes.call_count == 1 + 1 + 1 + 1 + 56

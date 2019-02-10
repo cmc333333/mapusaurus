@@ -4,10 +4,10 @@ from django.core.management import call_command
 from respondents.models import Institution
 
 
-@pytest.mark.usefixtures('load_agencies')
+@pytest.mark.usefixtures("load_agencies")
 def test_get_lender_hierarchy():
     """Case: Institution has no hierarchy"""
-    call_command('loaddata', 'fake_respondents', 'fake_hierarchy')
+    call_command("loaddata", "fake_respondents", "fake_hierarchy")
     institution = Institution.objects.filter(
         institution_id="201311000000002").first()
     hierarchy_list = institution.get_lender_hierarchy(False, False)

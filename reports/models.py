@@ -28,10 +28,6 @@ class PopulationReportRow(NamedTuple):
             ("Asian", Coalesce(Sum("asian"), 0)),
             ("Minority",
                 Coalesce(Sum("persons") - Sum("non_hispanic_white"), 0)),
-            ("Unemployed 16+", Coalesce(
-                Sum("male_adult") - Sum("male_employed")
-                + Sum("female_adult") - Sum("female_employed"),
-                0,)),
             ("People living in Poverty", Coalesce(Sum("poverty"), 0)),
         )
 
@@ -181,7 +177,7 @@ class DisparityRow(NamedTuple):
     def groups_for(
             cls,
             division: Division,
-            year: int) -> Iterator[Tuple[str, List["DisparityRow"]]]:
+            year: int) -> Iterator["GroupedDisparityRows"]:
         queryset = LoanApplicationRecord.objects.filter(
             action_taken__lte=5,
             tract__in=division.tract_set.all(),
@@ -201,7 +197,7 @@ class DisparityRow(NamedTuple):
         totals = queryset.aggregate(**agg_args)
         approvals = queryset.filter(action_taken=1).aggregate(**agg_args)
 
-        yield (
+        yield GroupedDisparityRows(
             "White borrowers",
             [
                 DisparityRow(
@@ -213,10 +209,15 @@ class DisparityRow(NamedTuple):
             ],
         )
         for l_name, _, r_name, _ in others:
-            yield (
+            yield GroupedDisparityRows(
                 r_name,
                 [DisparityRow(
                     l_name, totals[l_name], approvals[l_name],
                     totals["all"],
                     totals[r_name], approvals[r_name])],
             )
+
+
+class GroupedDisparityRows(NamedTuple):
+    comparison_label: str
+    rows: List[DisparityRow]

@@ -25,14 +25,14 @@ FILE_URLS[2017] = (
 
 
 class Command(BaseCommand):
-    help = "Download and load HMDA LARs."""
+    help = "Download and load HMDA LARs."""     # noqa
 
     def add_arguments(self, parser):
         choices = list(range(2012, 2018))
-        parser.add_argument('--year', type=int, nargs='*', default=choices,
+        parser.add_argument("--year", type=int, nargs="*", default=choices,
                             choices=choices,
                             help="Years to download. Defaults to >=2012")
-        parser.add_argument('--replace', action='store_true')
+        parser.add_argument("--replace", action="store_true")
 
     def handle(self, *args, **options):
         year_pbar = tqdm(options["year"])
@@ -40,8 +40,8 @@ class Command(BaseCommand):
             year_pbar.set_description(f"{year}")
             try:
                 with fetch_and_unzip_file(FILE_URLS[year]) as lar_file:
-                    models = load_from_csv(TextIOWrapper(lar_file, 'utf-8'))
-                    save_batches(models, options['replace'], filter_by_fks,
+                    models = load_from_csv(TextIOWrapper(lar_file, "utf-8"))
+                    save_batches(models, options["replace"], filter_by_fks,
                                  batch_size=10000)
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)

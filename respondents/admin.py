@@ -3,54 +3,54 @@ from django.contrib import admin
 from respondents.models import (
     Agency, Institution, ParentInstitution, ZipcodeCityStateYear)
 
-admin.site.disable_action('delete_selected')
+admin.site.disable_action("delete_selected")
 # Register your models here.
 
 
 class ZipcodeCityStateYearAdmin(admin.ModelAdmin):
-    readonly_fields = ('zip_code', 'plus_four', 'city', 'state', 'year')
-    list_display = ['unique_name', 'zip_code', 'city', 'state', 'year']
-    search_fields = ['zip_code']
+    readonly_fields = ("zip_code", "plus_four", "city", "state", "year")
+    list_display = ["unique_name", "zip_code", "city", "state", "year"]
+    search_fields = ["zip_code"]
 
 
 class AgencyAdmin(admin.ModelAdmin):
-    list_display = ('acronym', 'full_name')
-    readonly_fields = ('hmda_id', 'acronym', 'full_name')
+    list_display = ("acronym", "full_name")
+    readonly_fields = ("hmda_id", "acronym", "full_name")
 
 
 class ParentInstitutionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'city', 'country', 'rssd_id']
-    search_fields = ['name']
+    list_display = ["name", "city", "country", "rssd_id"]
+    search_fields = ["name"]
     readonly_fields = (
-        'year',
-        'name',
-        'city',
-        'state',
-        'country',
-        'rssd_id'
+        "year",
+        "name",
+        "city",
+        "state",
+        "country",
+        "rssd_id",
     )
 
 
 class InstitutionAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'agency', 'assets', 'mailing_address', 'zip_code',
-        'respondent_id', 'rssd_id',
+        "name", "agency", "assets", "mailing_address", "zip_code",
+        "respondent_id", "rssd_id",
     ]
-    search_fields = ['name']
+    search_fields = ["name"]
     readonly_fields = (
-        'year',
-        'respondent_id',
-        'agency',
-        'assets',
-        'tax_id',
-        'name',
-        'mailing_address',
-        'zip_code',
-        'assets',
-        'rssd_id',
-        'parent',
-        'non_reporting_parent',
-        'top_holder',
+        "year",
+        "respondent_id",
+        "agency",
+        "assets",
+        "tax_id",
+        "name",
+        "mailing_address",
+        "zip_code",
+        "assets",
+        "rssd_id",
+        "parent",
+        "non_reporting_parent",
+        "top_holder",
     )
 
 

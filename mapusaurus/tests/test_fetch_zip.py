@@ -8,15 +8,15 @@ from mapusaurus import fetch_zip
 
 def test_fetch_and_unzip_file():
     content = BytesIO()
-    with ZipFile(content, 'w') as archive:
-        with archive.open('contents.txt', 'w') as contained_file:
-            contained_file.write(b'Some contents')
+    with ZipFile(content, "w") as archive:
+        with archive.open("contents.txt", "w") as contained_file:
+            contained_file.write(b"Some contents")
 
     with requests_mock.mock() as api:
         api.get(requests_mock.ANY, content=content.getvalue())
-        url = 'http://example.com/something.zip'
+        url = "http://example.com/something.zip"
         with fetch_zip.fetch_and_unzip_file(url) as unzipped:
-            assert unzipped.read() == b'Some contents'
+            assert unzipped.read() == b"Some contents"
 
 
 def test_unzip_archive_is_recursive():

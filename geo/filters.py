@@ -6,9 +6,9 @@ from geo.models import CoreBasedStatisticalArea, County
 
 def filter_to_search_term(queryset, name, value):
     return queryset\
-        .annotate(similarity=TrigramSimilarity('name', value))\
+        .annotate(similarity=TrigramSimilarity("name", value))\
         .filter(similarity__gte=0.01)\
-        .order_by('-similarity')
+        .order_by("-similarity")
 
 
 class CBSAFilters(django_filters.FilterSet):

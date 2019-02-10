@@ -3,181 +3,181 @@ from typing import Iterator, Tuple
 from django.db import models
 
 AGENCY_CHOICES = (
-    ('1', 'Office of the Comptroller of the Currency (OCC)'),
-    ('2', 'Federal Reserve System (FRS)'),
-    ('3', 'Federal Deposit Insurance Corporation (FDIC)'),
-    ('5', 'National Credit Union Administration (NCUA)'),
-    ('7', 'Department of Housing and Urban Development (HUD)'),
-    ('9', 'Consumer Financial Protection Bureau (CFPB)'),
+    ("1", "Office of the Comptroller of the Currency (OCC)"),
+    ("2", "Federal Reserve System (FRS)"),
+    ("3", "Federal Deposit Insurance Corporation (FDIC)"),
+    ("5", "National Credit Union Administration (NCUA)"),
+    ("7", "Department of Housing and Urban Development (HUD)"),
+    ("9", "Consumer Financial Protection Bureau (CFPB)"),
 )
 
 EDIT_STATUS_CHOICES = (
-    ('', 'No edit failures'),
-    ('5', 'Validity edit failure only'),
-    ('6', 'Quality edit failure only'),
-    ('7', 'Validity and quality edit failures'),
+    ("", "No edit failures"),
+    ("5", "Validity edit failure only"),
+    ("6", "Quality edit failure only"),
+    ("7", "Validity and quality edit failures"),
 )
 
 LOAN_TYPE_CHOICES = (
-    (1, 'Conventional (any loan other than FHA, VA, FSA, or RHS loans)'),
-    (2, 'FHA-insured (Federal Housing Administration)'),
-    (3, 'VA-guaranteed (Veterans Administration)'),
-    (4, 'FSA/RHS (Farm Service Agency or Rural Housing Service)'),
+    (1, "Conventional (any loan other than FHA, VA, FSA, or RHS loans)"),
+    (2, "FHA-insured (Federal Housing Administration)"),
+    (3, "VA-guaranteed (Veterans Administration)"),
+    (4, "FSA/RHS (Farm Service Agency or Rural Housing Service)"),
 )
 
 PROPERTY_TYPE_CHOICES = (
-    ('1', 'One to four-family (other than manufactured housing)'),
-    ('2', 'Manufactured housing'),
-    ('3', 'Multifamily'),
+    ("1", "One to four-family (other than manufactured housing)"),
+    ("2", "Manufactured housing"),
+    ("3", "Multifamily"),
 )
 
 LOAN_PURPOSE_CHOICES = (
-    (1, 'Home purchase'),
-    (2, 'Home improvement'),
-    (3, 'Refinancing'),
+    (1, "Home purchase"),
+    (2, "Home improvement"),
+    (3, "Refinancing"),
 )
 
 OWNER_OCCUPANCY_CHOICES = (
-    (1, 'Owner-occupied as a principal dwelling'),
-    (2, 'Not owner-occupied'),
-    (3, 'Not applicable'),
+    (1, "Owner-occupied as a principal dwelling"),
+    (2, "Not owner-occupied"),
+    (3, "Not applicable"),
 )
 
 PREAPROVAL_CHOICES = (
-    ('1', 'Preapproval was requested'),
-    ('2', 'Preapproval was not requested'),
-    ('3', 'Not applicable'),
+    ("1", "Preapproval was requested"),
+    ("2", "Preapproval was not requested"),
+    ("3", "Not applicable"),
 )
 ACTION_TAKEN_CHOICES = (
-    (1, 'Loan originated'),
-    (2, 'Application approved but not accepted'),
-    (3, 'Application denied by financial institution'),
-    (4, 'Application withdrawn by applicant'),
-    (5, 'File closed for incompleteness'),
-    (6, 'Loan purchased by the institution'),
-    (7, 'Preapproval request denied by financial institution'),
-    (8, 'Preapproval request approved but not accepted (optional reporting)'),
+    (1, "Loan originated"),
+    (2, "Application approved but not accepted"),
+    (3, "Application denied by financial institution"),
+    (4, "Application withdrawn by applicant"),
+    (5, "File closed for incompleteness"),
+    (6, "Loan purchased by the institution"),
+    (7, "Preapproval request denied by financial institution"),
+    (8, "Preapproval request approved but not accepted (optional reporting)"),
 )
 
 ETHNICITY_CHOICES = (
-    ('1', 'Hispanic or Latino'),
-    ('2', 'Not Hispanic or Latino'),
-    ('3', ('Information not provided by applicant in mail, Internet, or '
-           'telephone application')),
-    ('4', 'Not applicable'),
-    ('5', 'No co-applicant'),
+    ("1", "Hispanic or Latino"),
+    ("2", "Not Hispanic or Latino"),
+    ("3", ("Information not provided by applicant in mail, Internet, or "
+           "telephone application")),
+    ("4", "Not applicable"),
+    ("5", "No co-applicant"),
 )
 
 RACE_CHOICES = (
-    ('1', 'American Indian or Alaska Native'),
-    ('2', 'Asian'),
-    ('3', 'Black or African American'),
-    ('4', 'Native Hawaiian or Other Pacific Islander '),
-    ('5', 'White'),
-    ('6', ('Information not provided by applicant in mail, Internet, or '
-           'telephone application')),
-    ('7', 'Not applicable'),
-    ('8', 'No co-applicant'),
+    ("1", "American Indian or Alaska Native"),
+    ("2", "Asian"),
+    ("3", "Black or African American"),
+    ("4", "Native Hawaiian or Other Pacific Islander "),
+    ("5", "White"),
+    ("6", ("Information not provided by applicant in mail, Internet, or "
+           "telephone application")),
+    ("7", "Not applicable"),
+    ("8", "No co-applicant"),
 )
 
 SEX_CHOICES = (
-    (1, 'Male'),
-    (2, 'Female'),
-    (3, ('Information not provided by applicant in mail, Internet, or '
-         'telephone application')),
-    (4, 'Not applicable'),
-    (5, 'No co-applicant'),
+    (1, "Male"),
+    (2, "Female"),
+    (3, ("Information not provided by applicant in mail, Internet, or "
+         "telephone application")),
+    (4, "Not applicable"),
+    (5, "No co-applicant"),
 )
 
 
 TYPE_OF_PURCHASER_CHOICES = (
-    ('0', ('Loan was not originated or was not sold in calendar year covered '
-           'by register')),
-    ('1', 'Fannie Mae (FNMA)'),
-    ('2', 'Ginnie Mae (GNMA)'),
-    ('3', 'Freddie Mac (FHLMC)'),
-    ('4', 'Farmer Mac (FAMC)'),
-    ('5', 'Private securitization'),
-    ('6', 'Commercial bank, savings bank or savings association'),
-    ('7', ('Life insurance company, credit union, mortgage bank, or finance '
-           'company')),
-    ('8', 'Affiliate institution'),
-    ('9', 'Other type of purchaser'),
+    ("0", ("Loan was not originated or was not sold in calendar year covered "
+           "by register")),
+    ("1", "Fannie Mae (FNMA)"),
+    ("2", "Ginnie Mae (GNMA)"),
+    ("3", "Freddie Mac (FHLMC)"),
+    ("4", "Farmer Mac (FAMC)"),
+    ("5", "Private securitization"),
+    ("6", "Commercial bank, savings bank or savings association"),
+    ("7", ("Life insurance company, credit union, mortgage bank, or finance "
+           "company")),
+    ("8", "Affiliate institution"),
+    ("9", "Other type of purchaser"),
 )
 
 REASONS_FOR_DENIAL_CHOICES = (
-    ('1', 'Debt-to-income ratio'),
-    ('2', 'Employment history'),
-    ('3', 'Credit history'),
-    ('4', 'Collateral'),
-    ('5', 'Insufficient cash (downpayment, closing costs)'),
-    ('6', 'Unverifiable information'),
-    ('7', 'Credit application incomplete'),
-    ('8', 'Mortgage insurance denied'),
-    ('9', 'Other'),
+    ("1", "Debt-to-income ratio"),
+    ("2", "Employment history"),
+    ("3", "Credit history"),
+    ("4", "Collateral"),
+    ("5", "Insufficient cash (downpayment, closing costs)"),
+    ("6", "Unverifiable information"),
+    ("7", "Credit application incomplete"),
+    ("8", "Mortgage insurance denied"),
+    ("9", "Other"),
 )
 
 HOEPA_STATUS_CHOICES = (
-    ('1', 'HOEPA loan'),
-    ('2', 'Not a HOEPA loan'),
+    ("1", "HOEPA loan"),
+    ("2", "Not a HOEPA loan"),
 )
 
 LIEN_STATUS_CHOICES = (
-    ('1', 'Secured by a first lien'),
-    ('2', 'Secured by a subordinate lien'),
-    ('3', 'Not secured by a lien'),
-    ('4', 'Not applicable (purchased loans)'),
+    ("1", "Secured by a first lien"),
+    ("2", "Secured by a subordinate lien"),
+    ("3", "Not secured by a lien"),
+    ("4", "Not applicable (purchased loans)"),
 )
 
 APPLICATION_DATE_INDICATOR_CHOICES = (
-    (0, 'Application Date >= 01-01-2004'),
-    (1, 'Application Date < 01-01-2004'),
-    (2, 'Application Date = NA (Not Available)'),
+    (0, "Application Date >= 01-01-2004"),
+    (1, "Application Date < 01-01-2004"),
+    (2, "Application Date = NA (Not Available)"),
 )
 
 
 class LARQuerySet(models.QuerySet):
     def white(self):
-        return self.filter(applicant_ethnicity='2', applicant_race_1='5')
+        return self.filter(applicant_ethnicity="2", applicant_race_1="5")
 
     def black(self):
-        return self.filter(applicant_ethnicity='2', applicant_race_1='3')
+        return self.filter(applicant_ethnicity="2", applicant_race_1="3")
 
     def hispanic(self):
-        return self.filter(applicant_ethnicity='1')
+        return self.filter(applicant_ethnicity="1")
 
     def native_american(self):
-        return self.filter(applicant_ethnicity='2', applicant_race_1='1')
+        return self.filter(applicant_ethnicity="2", applicant_race_1="1")
 
     def asian(self):
-        return self.filter(applicant_ethnicity='2', applicant_race_1='2')
+        return self.filter(applicant_ethnicity="2", applicant_race_1="2")
 
     def hopi(self):
-        return self.filter(applicant_ethnicity='2', applicant_race_1='4')
+        return self.filter(applicant_ethnicity="2", applicant_race_1="4")
 
     def minority(self):
-        return self.exclude(applicant_ethnicity='2', applicant_race_1='5')
+        return self.exclude(applicant_ethnicity="2", applicant_race_1="5")
 
     def no_demographic_data(self):
         return self.filter(
-            models.Q(applicant_ethnicity__in=('3', '4'))
-            | models.Q(applicant_ethnicity='2',
-                       applicant_race_1__in=('6', '7'))
+            models.Q(applicant_ethnicity__in=("3", "4"))
+            | models.Q(applicant_ethnicity="2",
+                       applicant_race_1__in=("6", "7")),
         )
 
     def female(self):
         return self.filter(applicant_sex=2)
 
-    def demographics(self) -> Iterator[Tuple[str, 'LARQuerySet']]:
-        yield 'White', self.white()
-        yield 'Black', self.black()
-        yield 'Hispanic/Latino', self.hispanic()
-        yield 'Native American', self.native_american()
-        yield 'Asian', self.asian()
-        yield 'HOPI', self.hopi()
-        yield 'Minority', self.minority()
-        yield 'No Demographic Data', self.no_demographic_data()
-        yield 'Female', self.female()
+    def demographics(self) -> Iterator[Tuple[str, "LARQuerySet"]]:
+        yield "White", self.white()
+        yield "Black", self.black()
+        yield "Hispanic/Latino", self.hispanic()
+        yield "Native American", self.native_american()
+        yield "Asian", self.asian()
+        yield "HOPI", self.hopi()
+        yield "Minority", self.minority()
+        yield "No Demographic Data", self.no_demographic_data()
+        yield "Female", self.female()
 
 
 class LoanApplicationRecord(models.Model):
@@ -226,8 +226,8 @@ class LoanApplicationRecord(models.Model):
         choices=OWNER_OCCUPANCY_CHOICES,
         help_text=("A code representing the owner-occupancy status of the "
                    "property. Second homes, vacation homes, and rental "
-                   "properties are classified as 'not owner-occupied as a "
-                   "principal dwelling'."),
+                   'properties are classified as "not owner-occupied as a '
+                   'principal dwelling".'),
     )
     loan_amount_000s = models.PositiveIntegerField(
         help_text=("The amount of the loan applied for, in thousands of "
@@ -418,14 +418,14 @@ class LoanApplicationRecord(models.Model):
     )
     application_date_indicator = models.PositiveIntegerField(
         choices=APPLICATION_DATE_INDICATOR_CHOICES,
-        help_text=("A code representing the date of the application. '0' "
-                   "means the application was made on or after 1/1/2004; '1' "
-                   "means the application was made before 1/1/2004; '2' "
+        help_text=('A code representing the date of the application. "0" '
+                   'means the application was made on or after 1/1/2004; "1" '
+                   'means the application was made before 1/1/2004; "2" '
                    "means the application date is not available."),
     )
 
     institution = models.ForeignKey(
-        'respondents.Institution', models.CASCADE, to_field='institution_id')
+        "respondents.Institution", models.CASCADE, to_field="institution_id")
     tract = models.ForeignKey("geo.Tract", models.CASCADE)
 
     class Meta:
@@ -445,8 +445,8 @@ class LARYear(models.Model):
     def rebuild_all(cls):
         cls.objects.all().delete()
         years = LoanApplicationRecord.objects\
-            .order_by('-as_of_year')\
-            .distinct('as_of_year')\
-            .values_list('as_of_year', flat=True)
+            .order_by("-as_of_year")\
+            .distinct("as_of_year")\
+            .values_list("as_of_year", flat=True)
         for year in years:
             LARYear.objects.create(year=year)

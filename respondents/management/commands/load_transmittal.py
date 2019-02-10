@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 
 from mapusaurus.batch_utils import save_batches
-from respondents.models import Institution, Agency
+from respondents.models import Agency, Institution
 from respondents.zipcode_utils import create_zipcode
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def fixup(line):
     """Account for misformatted data from FFIEC with one-off fixups"""
-    if line[0] == '2016' and line[1] == '0000021122' and len(line) == 23:
+    if line[0] == "2016" and line[1] == "0000021122" and len(line) == 23:
         return line[:6] + line[7:]
     return line
 
@@ -61,26 +61,26 @@ def load_from_csv(
             assets=int(line[17]) if len(line) == 22 else None,
         )
         try:
-            inst.full_clean(exclude=['agency'], validate_unique=False)
+            inst.full_clean(exclude=["agency"], validate_unique=False)
         except ValidationError:
-            logger.exception('Line %s has invalid data:', line_number)
+            logger.exception("Line %s has invalid data:", line_number)
             break
 
         yield inst
 
 
 class Command(BaseCommand):
-    help = "Loads data from a HMDA Transmittal Sheet."
+    help = "Loads data from a HMDA Transmittal Sheet."  # noqa
 
     def add_arguments(self, parser):
-        parser.add_argument('file_name', type=argparse.FileType('r'))
-        parser.add_argument('--replace', action='store_true')
-        parser.add_argument('--delimiter', default='\t')
+        parser.add_argument("file_name", type=argparse.FileType("r"))
+        parser.add_argument("--replace", action="store_true")
+        parser.add_argument("--delimiter", default="\t")
 
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
         transmittal_reader = csv.reader(
-            options['file_name'], delimiter=options['delimiter'])
+            options["file_name"], delimiter=options["delimiter"])
         institutions = load_from_csv(agencies, transmittal_reader)
-        save_batches(institutions, options['replace'], batch_size=1000)
-        options['file_name'].close()
+        save_batches(institutions, options["replace"], batch_size=1000)
+        options["file_name"].close()

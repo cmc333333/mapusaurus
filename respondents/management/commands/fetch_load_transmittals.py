@@ -24,27 +24,27 @@ FILE_URLS[2017] = (
 
 
 class Command(BaseCommand):
-    help = "Download and load HMDA Transmittal Sheets."
+    help = "Download and load HMDA Transmittal Sheets."     # noqa
 
     def add_arguments(self, parser):
         choices = list(range(2012, 2018))
-        parser.add_argument('--year', type=int, nargs='*', default=choices,
+        parser.add_argument("--year", type=int, nargs="*", default=choices,
                             choices=choices,
                             help="Years to download. Defaults to >=2012")
-        parser.add_argument('--replace', action='store_true')
+        parser.add_argument("--replace", action="store_true")
 
     def handle(self, *args, **options):
         agencies = Agency.objects.get_all_by_code()
-        for year in options['year']:
-            delimiter = ',' if year >= 2017 else '\t'
+        for year in options["year"]:
+            delimiter = "," if year >= 2017 else "\t"
             logger.info("Loading Transmittal Sheet for %s", year)
             try:
                 with fetch_and_unzip_file(FILE_URLS[year]) as transmittal_file:
                     csv_file = csv.reader(
-                        TextIOWrapper(transmittal_file, 'utf-8'),
+                        TextIOWrapper(transmittal_file, "utf-8"),
                         delimiter=delimiter,
                     )
                     institutions = load_from_csv(agencies, csv_file)
-                    save_batches(institutions, options['replace'])
+                    save_batches(institutions, options["replace"])
             except requests.exceptions.RequestException:
                 logger.exception("Couldn't process year %s", year)
