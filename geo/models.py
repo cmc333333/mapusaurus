@@ -3,6 +3,7 @@ from typing import Union
 import us
 from django.contrib.gis.db import models
 from django.core.validators import RegexValidator
+from django.db.models import QuerySet
 
 
 class GeoModel(models.Model):
@@ -47,7 +48,7 @@ class CoreBasedStatisticalArea(GeoModel):
     metro = models.BooleanField()   # metro- vs micro-politan
 
     @property
-    def tract_set(self):
+    def tract_set(self) -> QuerySet:
         return Tract.objects.filter(county__cbsa=self)
 
 
@@ -58,7 +59,7 @@ class MetroDivision(GeoModel):
     metro = models.ForeignKey(CoreBasedStatisticalArea, models.CASCADE)
 
     @property
-    def tract_set(self):
+    def tract_set(self) -> QuerySet:
         return Tract.objects.filter(county__metdiv=self)
 
 

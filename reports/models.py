@@ -1,11 +1,10 @@
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
-from django.db.models import Count, Expression, F, Q, Sum
+from django.db.models import Count, Expression, F, Q, QuerySet, Sum
 from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
 from geo.models import Division, Tract
-from hmda.models import LoanApplicationRecord
 
 lmi_filter = Q(income_indicator__in=["low", "mod"])
 minority_filter = Q(non_hispanic_white__lt=F("persons") / 2)
@@ -177,11 +176,10 @@ class DisparityRow(NamedTuple):
     def groups_for(
             cls,
             division: Division,
+            lar_queryset: QuerySet,
             year: int) -> Iterator["GroupedDisparityRows"]:
-        queryset = LoanApplicationRecord.objects.filter(
-            action_taken__lte=5,
+        lar_queryset = lar_queryset.filter(
             tract__in=division.tract_set.all(),
-            as_of_year=year,
         )
         demographics = AggDemographics.for_division(division, year)
 
@@ -194,8 +192,8 @@ class DisparityRow(NamedTuple):
             agg_args[l_name] = Count("pk", filter=l_filter)
             agg_args[r_name] = Count("pk", filter=r_filter)
         agg_args["all"] = Count("pk")
-        totals = queryset.aggregate(**agg_args)
-        approvals = queryset.filter(action_taken=1).aggregate(**agg_args)
+        totals = lar_queryset.aggregate(**agg_args)
+        approvals = lar_queryset.filter(action_taken=1).aggregate(**agg_args)
 
         yield GroupedDisparityRows(
             "White borrowers",

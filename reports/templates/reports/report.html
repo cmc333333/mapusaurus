@@ -1,7 +1,6 @@
 {% comment %}
 Expects the variables:
-* divisions: List[geo.models.Division]
-* year: int
+* report_input: ReportInput
 {% endcomment %}{% load reports %}<!DOCTYPE html>
 <html>
   <head>
@@ -60,21 +59,21 @@ Expects the variables:
     </style>
   </head>
   <body>
-    {% for division in divisions %}
+    {% for division in report_input.divisions %}
       <div class="page">
         <div class="main-content">
           <div>
             <div class="cell half">
-              {% population division year %}
+              {% population division report_input.year %}
             </div>
             <div class="cell half" style="border-left: solid 1px black;">
               <h3 style="text-align: center;">Income and Housing Statistics</h3>
-              {% median_income division year %}
-              {% income_housing division year %}
+              {% median_income division report_input.year %}
+              {% income_housing division report_input.year %}
             </div>
           </div>
           <hr style="clear: both;"/>
-          {% tract_lar_report division year %}
+          {% tract_lar_report division report_input %}
         </div>
         <div class="sidebar">
           <h2>{{ division.name }}</h2>
