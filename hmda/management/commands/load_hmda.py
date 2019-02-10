@@ -89,7 +89,7 @@ def update_num_loans():
         FROM hmda_loanapplicationrecord
         WHERE hmda_loanapplicationrecord.institution_id =
             respondents_institution.institution_id
-    """, tuple()))
+    """, ()))
 
 
 class Command(BaseCommand):

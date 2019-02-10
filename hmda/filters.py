@@ -37,7 +37,7 @@ class LARFilters(django_filters.FilterSet):
 
     class Meta:
         model = LoanApplicationRecord
-        fields: Tuple[str, ...] = tuple()
+        fields: Tuple[str, ...] = ()
 
     @property
     def qs(self):

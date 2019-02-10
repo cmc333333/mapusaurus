@@ -30,7 +30,7 @@ def batches(elts: Iterator[T], batch_size: int = 100) -> Iterator[List[T]]:
 def save_batches(models: Iterator[DjangoModel], replace: bool = False,
                  filter_fn: Optional[FilterFn] = None, batch_size: int = 100):
     """Save (optionally, replacing) batches of models."""
-    for batch_idx, batch in enumerate(batches(models, batch_size)):
+    for batch in batches(models, batch_size):
         with transaction.atomic():
             if filter_fn:
                 batch = filter_fn(batch)
