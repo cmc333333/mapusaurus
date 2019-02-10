@@ -1,8 +1,8 @@
 import pytest
 from model_mommy import mommy
 
-from respondents.models import Institution, ZipcodeCityStateYear
 from respondents.management.commands import load_reporter_panel
+from respondents.models import Institution, ZipcodeCityStateYear
 
 
 def test_from_line():

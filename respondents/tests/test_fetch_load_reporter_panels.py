@@ -1,5 +1,5 @@
 from io import BytesIO
-from unittest.mock import MagicMock, Mock, call
+from unittest.mock import call, MagicMock, Mock
 
 import pytest
 import requests

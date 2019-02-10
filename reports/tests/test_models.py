@@ -1,10 +1,11 @@
 import random
+
 import pytest
 from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
-from geo.models import MetroDivision
 from ffiec.models import MetDivDemographics, TractDemographics
+from geo.models import MetroDivision
 from hmda.models import LoanApplicationRecord
 from reports import models
 

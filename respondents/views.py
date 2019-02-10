@@ -1,5 +1,5 @@
-import re
 import json
+import re
 from datetime import date
 
 from django.contrib.postgres.search import TrigramSimilarity
@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
-from respondents.models import Institution, Branch
+from respondents.models import Branch, Institution
 
 
 class InstitutionSerializer(serializers.ModelSerializer):

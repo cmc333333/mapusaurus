@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 
 from mapusaurus.batch_utils import save_batches
-from respondents.models import Institution, Agency
+from respondents.models import Agency, Institution
 from respondents.zipcode_utils import create_zipcode
 
 logger = logging.getLogger(__name__)

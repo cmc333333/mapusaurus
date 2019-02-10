@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from typing import List
+
+from rest_framework import serializers
 
 from geo.models import (
     CoreBasedStatisticalArea, County, Division, MetroDivision)

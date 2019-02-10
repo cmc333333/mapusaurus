@@ -1,7 +1,7 @@
 from typing import Any, Callable, Iterator, List, Optional, Type, TypeVar
-from typing_extensions import Protocol
 
 from django.db import transaction
+from typing_extensions import Protocol
 
 T = TypeVar('T')
 FilterFn = Callable[[List["DjangoModel"]], List["DjangoModel"]]

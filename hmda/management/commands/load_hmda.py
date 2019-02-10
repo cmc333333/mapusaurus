@@ -5,13 +5,13 @@ from typing import Iterator, List, TextIO
 
 from django.core.management.base import BaseCommand
 from django.db.models.expressions import RawSQL
+from tqdm import tqdm
 
 from geo import errors
 from geo.models import Tract
 from hmda.models import LARYear, LoanApplicationRecord
 from mapusaurus.batch_utils import save_batches
 from respondents.models import Institution
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 

@@ -4,8 +4,8 @@ import django_filters
 from django.db.models import Count, Sum
 
 from hmda.models import (
-    ACTION_TAKEN_CHOICES, LIEN_STATUS_CHOICES, LoanApplicationRecord,
-    LOAN_PURPOSE_CHOICES, OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
+    ACTION_TAKEN_CHOICES, LIEN_STATUS_CHOICES, LOAN_PURPOSE_CHOICES,
+    LoanApplicationRecord, OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
 )
 
 
