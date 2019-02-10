@@ -51,6 +51,10 @@ class CoreBasedStatisticalArea(GeoModel):
     def tract_set(self) -> QuerySet:
         return Tract.objects.filter(county__cbsa=self)
 
+    @property
+    def counties(self) -> QuerySet:
+        return self.county_set.order_by("name")
+
 
 class MetroDivision(GeoModel):
     # shares the same namespace as CBSAs
@@ -61,6 +65,10 @@ class MetroDivision(GeoModel):
     @property
     def tract_set(self) -> QuerySet:
         return Tract.objects.filter(county__metdiv=self)
+
+    @property
+    def counties(self) -> QuerySet:
+        return self.county_set.order_by("name")
 
 
 class County(GeoModel):
@@ -73,6 +81,10 @@ class County(GeoModel):
         CoreBasedStatisticalArea, models.SET_NULL, blank=True, null=True)
     metdiv = models.ForeignKey(
         MetroDivision, models.SET_NULL, blank=True, null=True)
+
+    @property
+    def counties(self) -> QuerySet:
+        return County.objects.none()
 
 
 Division = Union[CoreBasedStatisticalArea, County, MetroDivision]

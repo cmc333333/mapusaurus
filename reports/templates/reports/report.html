@@ -77,6 +77,11 @@ Expects the variables:
         </div>
         <div class="sidebar">
           <h2>{{ division.name }}</h2>
+          <ul>
+          {% for county in division.counties %}
+            <li>{{ county.name }} County</li>
+          {% endfor %}
+          </ul>
         </div>
       </div>
     {% endfor %}
