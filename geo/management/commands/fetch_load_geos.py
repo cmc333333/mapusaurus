@@ -156,7 +156,7 @@ def default_year() -> int:
 
 
 class Command(BaseCommand):
-    help = "Fetches and loads shape files from TIGER."
+    help = "Fetches and loads shape files from TIGER."  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument("--year", type=int, default=default_year(),

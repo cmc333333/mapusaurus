@@ -173,7 +173,7 @@ class ReporterRow(NamedTuple):
 
 
 class Command(BaseCommand):
-    help = "Reporter panel contains parent information. Loads that."
+    help = "Reporter panel contains parent information. Loads that."    # noqa
 
     def add_arguments(self, parser):
         parser.add_argument("file_name", type=argparse.FileType("r"))

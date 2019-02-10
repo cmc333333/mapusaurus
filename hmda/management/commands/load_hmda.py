@@ -93,7 +93,7 @@ def update_num_loans():
 
 
 class Command(BaseCommand):
-    help = """ Load HMDA data (for all states)."""
+    help = """ Load HMDA data (for all states)."""  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument("file_name", type=argparse.FileType("r"))

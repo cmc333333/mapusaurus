@@ -185,7 +185,7 @@ def load_demographics(
 
 
 class Command(BaseCommand):
-    help = "Fetches and loads FFIEC demographics data"
+    help = "Fetches and loads FFIEC demographics data"  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument(

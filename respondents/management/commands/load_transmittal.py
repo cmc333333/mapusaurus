@@ -70,7 +70,7 @@ def load_from_csv(
 
 
 class Command(BaseCommand):
-    help = "Loads data from a HMDA Transmittal Sheet."
+    help = "Loads data from a HMDA Transmittal Sheet."  # noqa
 
     def add_arguments(self, parser):
         parser.add_argument("file_name", type=argparse.FileType("r"))

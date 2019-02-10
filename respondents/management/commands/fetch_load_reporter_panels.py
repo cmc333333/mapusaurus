@@ -30,7 +30,7 @@ def fetch_post_2016(year: int):
 
 
 class Command(BaseCommand):
-    help = "Download and load HMDA Reporter relationship files."
+    help = "Download and load HMDA Reporter relationship files."    # noqa
 
     def add_arguments(self, parser):
         choices = list(range(2012, 2018))

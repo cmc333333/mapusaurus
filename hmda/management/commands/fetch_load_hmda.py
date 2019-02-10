@@ -25,7 +25,7 @@ FILE_URLS[2017] = (
 
 
 class Command(BaseCommand):
-    help = "Download and load HMDA LARs."""
+    help = "Download and load HMDA LARs."""     # noqa
 
     def add_arguments(self, parser):
         choices = list(range(2012, 2018))
