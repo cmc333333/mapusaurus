@@ -6,10 +6,10 @@ from reports.views import create_report
 
 
 urlpatterns = [
-    url(r'^$', single_page_app),
-    url(r'^api/reports/?$', create_report),
-    url(r'^api/', include('api.urls')),
-    url(r'^institutions/', include('respondents.urls',
-                                   namespace='respondents')),
-    url(r'^map/spa/$', RedirectView.as_view(url="/", permanent=False)),
+    url(r"^$", single_page_app),
+    url(r"^api/reports/?$", create_report),
+    url(r"^api/", include("api.urls")),
+    url(r"^institutions/", include("respondents.urls",
+                                   namespace="respondents")),
+    url(r"^map/spa/$", RedirectView.as_view(url="/", permanent=False)),
 ]

@@ -189,7 +189,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--years', type=int, nargs='*', help="FFIEC Demographics Years",
+            "--years", type=int, nargs="*", help="FFIEC Demographics Years",
             default=range(2012, date.today().year + 1),
         )
         parser.add_argument("--replace", action="store_true",

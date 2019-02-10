@@ -7,17 +7,17 @@ app_name = "respondents"
 
 
 urlpatterns = [
-    url(r'^search/$', views.search_results, name='search_results'),
+    url(r"^search/$", views.search_results, name="search_results"),
     url(
-        r'/'.join([
-            r'^branchLocations',
-            r'(?P<northEastLat>-?\d+\.\d{6})',
-            r'(?P<northEastLon>-?\d+\.\d{6})',
-            r'(?P<southWestLat>-?\d+\.\d{6})',
-            r'(?P<southWestLon>-?\d+\.\d{6})$',
+        r"/".join([
+            r"^branchLocations",
+            r"(?P<northEastLat>-?\d+\.\d{6})",
+            r"(?P<northEastLon>-?\d+\.\d{6})",
+            r"(?P<southWestLat>-?\d+\.\d{6})",
+            r"(?P<southWestLon>-?\d+\.\d{6})$",
         ]),
         views.branch_locations_as_json,
-        name='branch_locations',
+        name="branch_locations",
     ),
 ]
 

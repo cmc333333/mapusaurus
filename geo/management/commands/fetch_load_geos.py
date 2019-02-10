@@ -18,8 +18,8 @@ from geo.models import (
 from mapusaurus.batch_utils import DjangoModel, save_batches
 from mapusaurus.fetch_zip import fetch_and_unzip_dir
 
-ZIP_TPL = ('https://www2.census.gov/geo/tiger/TIGER{year}/{shape}/'
-           'tl_{year}_{state}_{shape_lower}.zip')
+ZIP_TPL = ("https://www2.census.gov/geo/tiger/TIGER{year}/{shape}/"
+           "tl_{year}_{state}_{shape_lower}.zip")
 state_tpl = partial(
     ZIP_TPL.format, shape="STATE", state="us", shape_lower="state")
 cbsa_tpl = partial(
@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 
 def parse_layer(file_name: str) -> Layer:
     """Pull single Layer out of DataSource."""
-    data_source = DataSource(file_name, encoding='iso-8859-1')
+    data_source = DataSource(file_name, encoding="iso-8859-1")
     if data_source.layer_count > 1:
-        logger.warning('More than one layer in %s. Using first', file_name)
+        logger.warning("More than one layer in %s. Using first", file_name)
     return data_source[0]
 
 
@@ -62,7 +62,7 @@ def load_geometry(feature: Feature) -> MultiPolygon:
 
 
 def parse_cbsas(layer: Layer) -> Iterator[CoreBasedStatisticalArea]:
-    for feature in tqdm(layer, desc='CBSAs'):
+    for feature in tqdm(layer, desc="CBSAs"):
         model = CoreBasedStatisticalArea(
             name=feature.get("NAME"),
             geom=load_geometry(feature),
@@ -77,7 +77,7 @@ def parse_cbsas(layer: Layer) -> Iterator[CoreBasedStatisticalArea]:
 
 
 def parse_metdivs(layer: Layer) -> Iterator[MetroDivision]:
-    for feature in tqdm(layer, desc='MetDivs'):
+    for feature in tqdm(layer, desc="MetDivs"):
         model = MetroDivision(
             name=feature.get("NAME"),
             geom=load_geometry(feature),
@@ -92,7 +92,7 @@ def parse_metdivs(layer: Layer) -> Iterator[MetroDivision]:
 
 
 def parse_states(layer: Layer, only_states: Iterator[str]) -> Iterator[State]:
-    for feature in tqdm(layer, desc='State Shapes'):
+    for feature in tqdm(layer, desc="State Shapes"):
         fips = feature.get("GEOID")
         if fips in only_states:
             model = State(
@@ -109,7 +109,7 @@ def parse_states(layer: Layer, only_states: Iterator[str]) -> Iterator[State]:
 
 def parse_counties(
         layer: Layer, only_states: Iterator[str]) -> Iterator[County]:
-    for feature in tqdm(layer, desc='County Shapes'):
+    for feature in tqdm(layer, desc="County Shapes"):
         if feature.get("STATEFP") in only_states:
             model = County(
                 name=feature.get("NAME"),
@@ -129,7 +129,7 @@ def parse_counties(
 
 
 def parse_tracts(layer: Layer, state: us.states.State) -> Iterator[Tract]:
-    for feature in tqdm(layer, desc=f'{state.name} Tract Shapes'):
+    for feature in tqdm(layer, desc=f"{state.name} Tract Shapes"):
         model = Tract(
             name=feature.get("NAME"),
             geom=load_geometry(feature),
@@ -145,7 +145,7 @@ def parse_tracts(layer: Layer, state: us.states.State) -> Iterator[Tract]:
 
 
 def default_year() -> int:
-    """Try the current year of TIGER files, but use last year if it's not
+    """Try the current year of TIGER files, but use last year if it"s not
     published yet."""
     this_year = date.today().year
     response = requests.head(state_tpl(year=this_year))
@@ -159,11 +159,11 @@ class Command(BaseCommand):
     help = "Fetches and loads shape files from TIGER."
 
     def add_arguments(self, parser):
-        parser.add_argument('--year', type=int, default=default_year(),
+        parser.add_argument("--year", type=int, default=default_year(),
                             help="TIGER source year")
         choices = us.STATES + us.TERRITORIES
         parser.add_argument(
-            "--states", type=us.states.lookup, nargs='*', default=choices,
+            "--states", type=us.states.lookup, nargs="*", default=choices,
             choices=choices, help="States to load",
         )
         parser.add_argument("--replace", action="store_true",

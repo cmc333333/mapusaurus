@@ -16,6 +16,6 @@ def single_page_app(request):
         token=settings.MAPBOX_TOKEN,
         years=list(LARYear.objects.all().values_list("year", flat=True)),
     )
-    return render(request, 'new-map.html', {
-        'SPA_CONFIG': json.dumps(config),
+    return render(request, "new-map.html", {
+        "SPA_CONFIG": json.dumps(config),
     })

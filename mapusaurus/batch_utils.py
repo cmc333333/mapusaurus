@@ -3,7 +3,7 @@ from typing import Any, Callable, Iterator, List, Optional, Type, TypeVar
 from django.db import transaction
 from typing_extensions import Protocol
 
-T = TypeVar('T')
+T = TypeVar("T")
 FilterFn = Callable[[List["DjangoModel"]], List["DjangoModel"]]
 
 
@@ -43,7 +43,7 @@ def save_batches(models: Iterator[DjangoModel], replace: bool = False,
             if replace:
                 existing.delete()
             else:
-                existing_ids = set(existing.values_list('pk', flat=True))
+                existing_ids = set(existing.values_list("pk", flat=True))
                 batch = [m for m in batch if m.pk not in existing_ids]
             model_class.objects.bulk_create(batch)
 
@@ -56,7 +56,7 @@ def make_filter_fn(
         ids = set(
             FkModel.objects
             .filter(pk__in={getattr(m, fk_field) for m in batch})
-            .values_list('pk', flat=True)
+            .values_list("pk", flat=True)
             .distinct()
         )
         return [m for m in batch if getattr(m, fk_field) in ids]

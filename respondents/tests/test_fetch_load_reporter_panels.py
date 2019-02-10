@@ -9,34 +9,34 @@ from respondents.management.commands import fetch_load_reporter_panels
 
 
 def test_handle_no_args(monkeypatch):
-    monkeypatch.setattr(fetch_load_reporter_panels, 'fetch_post_2016', Mock())
-    monkeypatch.setattr(fetch_load_reporter_panels, 'fetch_pre_2017', Mock())
-    call_command('fetch_load_reporter_panels')
+    monkeypatch.setattr(fetch_load_reporter_panels, "fetch_post_2016", Mock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "fetch_pre_2017", Mock())
+    call_command("fetch_load_reporter_panels")
 
     assert fetch_load_reporter_panels.fetch_post_2016.call_count == 1
     assert fetch_load_reporter_panels.fetch_pre_2017.call_count == 5
 
 
 def test_handle_specific_args(monkeypatch):
-    monkeypatch.setattr(fetch_load_reporter_panels, 'fetch_post_2016', Mock())
-    monkeypatch.setattr(fetch_load_reporter_panels, 'fetch_pre_2017', Mock())
-    call_command('fetch_load_reporter_panels', '--year', '2014', '2017')
+    monkeypatch.setattr(fetch_load_reporter_panels, "fetch_post_2016", Mock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "fetch_pre_2017", Mock())
+    call_command("fetch_load_reporter_panels", "--year", "2014", "2017")
 
     assert fetch_load_reporter_panels.fetch_post_2016.call_count == 1
     assert fetch_load_reporter_panels.fetch_pre_2017.call_count == 1
 
 
-@pytest.mark.parametrize('exception', (
+@pytest.mark.parametrize("exception", (
     requests.exceptions.ConnectionError(),
     requests.exceptions.ConnectTimeout(),
     requests.exceptions.ReadTimeout(),
     requests.exceptions.HTTPError(),
 ))
 def test_handle_404(monkeypatch, exception):
-    monkeypatch.setattr(fetch_load_reporter_panels, 'fetch_pre_2017', Mock())
-    monkeypatch.setattr(fetch_load_reporter_panels, 'logger', Mock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "fetch_pre_2017", Mock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "logger", Mock())
     fetch_load_reporter_panels.fetch_pre_2017.side_effect = exception
-    call_command('fetch_load_reporter_panels', '--year', '2013', '2015')
+    call_command("fetch_load_reporter_panels", "--year", "2013", "2015")
 
     assert fetch_load_reporter_panels.fetch_pre_2017.call_count == 2
     assert fetch_load_reporter_panels.logger.exception.call_count == 2
@@ -44,8 +44,8 @@ def test_handle_404(monkeypatch, exception):
 
 def test_fetch_pre_2017(monkeypatch):
     monkeypatch.setattr(
-        fetch_load_reporter_panels, 'fetch_and_unzip_file', MagicMock())
-    monkeypatch.setattr(fetch_load_reporter_panels, 'ReporterRow', Mock())
+        fetch_load_reporter_panels, "fetch_and_unzip_file", MagicMock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "ReporterRow", Mock())
     fetch_mock = fetch_load_reporter_panels.fetch_and_unzip_file
     fetch_mock.return_value.__enter__.return_value = BytesIO(b"line1\nline2\n")
 
@@ -58,8 +58,8 @@ def test_fetch_pre_2017(monkeypatch):
 
 def test_fetch_post_2016(monkeypatch):
     monkeypatch.setattr(
-        fetch_load_reporter_panels, 'fetch_and_unzip_file', MagicMock())
-    monkeypatch.setattr(fetch_load_reporter_panels, 'ReporterRow', Mock())
+        fetch_load_reporter_panels, "fetch_and_unzip_file", MagicMock())
+    monkeypatch.setattr(fetch_load_reporter_panels, "ReporterRow", Mock())
     fetch_mock = fetch_load_reporter_panels.fetch_and_unzip_file
     fetch_mock.return_value.__enter__.return_value = \
         BytesIO(b"one,two,three\nfour,five,six\n")

@@ -16,7 +16,7 @@ class ZipcodeCityStateYear(models.Model):
     year = models.SmallIntegerField()
 
     class Meta:
-        unique_together = ('zip_code', 'city', 'year')
+        unique_together = ("zip_code", "city", "year")
 
     @property
     def unique_name(self):
@@ -51,63 +51,63 @@ class ParentInstitution(models.Model):
     country = models.CharField(max_length=40, blank=True, null=True)
     rssd_id = models.CharField(
         max_length=10,
-        help_text='Id on the National Information Center repository',
+        help_text="Id on the National Information Center repository",
         blank=True,
         null=True)
 
     class Meta:
-        unique_together = ('rssd_id', 'year')
+        unique_together = ("rssd_id", "year")
 
     def __unicode__(self):
         return self.name
 
 
 class Institution(models.Model):
-    """ An institution's (aka respondent) details. These can change per year.
+    """ An institution"s (aka respondent) details. These can change per year.
     """
 
     year = models.SmallIntegerField(db_index=True)
     respondent_id = models.CharField(max_length=10)
-    agency = models.ForeignKey('Agency', models.CASCADE)
+    agency = models.ForeignKey("Agency", models.CASCADE)
     institution_id = models.CharField(max_length=15, primary_key=True)
     tax_id = models.CharField(max_length=10)
     name = models.CharField(max_length=128)
     mailing_address = models.CharField(max_length=64)
     zip_code = models.ForeignKey(
-        'ZipCodeCityStateYear', models.CASCADE, null=False)
+        "ZipCodeCityStateYear", models.CASCADE, null=False)
     assets = models.BigIntegerField(
         blank=True,
-        help_text='Prior year reported assets in thousands of dollars',
+        help_text="Prior year reported assets in thousands of dollars",
         null=True,
     )
     rssd_id = models.CharField(
         blank=True,
         max_length=10,
         null=True,
-        help_text=('From Reporter Panel. Id on the National Information '
-                   'Center repository'),
+        help_text=("From Reporter Panel. Id on the National Information "
+                   "Center repository"),
     )
     parent = models.ForeignKey(
-        'self',
+        "self",
         models.SET_NULL,
         blank=True,
         null=True,
-        related_name='children',
-        help_text='The parent institution')
+        related_name="children",
+        help_text="The parent institution")
     non_reporting_parent = models.ForeignKey(
-        'ParentInstitution',
+        "ParentInstitution",
         models.SET_NULL,
         blank=True,
         null=True,
-        related_name='children',
-        help_text='Non-HMDA reporting parent')
+        related_name="children",
+        help_text="Non-HMDA reporting parent")
     top_holder = models.ForeignKey(
-        'ParentInstitution',
+        "ParentInstitution",
         models.SET_NULL,
-        related_name='descendants',
+        related_name="descendants",
         blank=True,
         null=True,
-        help_text='The company at the top of the ownership chain.')
+        help_text="The company at the top of the ownership chain.")
     num_loans = models.PositiveIntegerField(default=0)
 
     def formatted_name(self):
@@ -118,18 +118,18 @@ class Institution(models.Model):
     def get_lender_hierarchy(self, exclude, order):
         """Returns a list of related institutions for the selected
         institution. Allows to exclude selected institution/lender and order
-        by institution's assets """
+        by institution"s assets """
         lender_hierarchy = self.lenderhierarchy_set.first()
         if lender_hierarchy:
             org_id = lender_hierarchy.organization_id
             hierarchy_list = LenderHierarchy.objects\
-                .select_related('institution')\
+                .select_related("institution")\
                 .filter(organization_id=org_id, institution__year=self.year)
             if exclude:
                 hierarchy_list = hierarchy_list.exclude(institution=self)
             if order:
                 hierarchy_list = hierarchy_list.order_by(
-                    '-institution__assets')
+                    "-institution__assets")
             return hierarchy_list
         return LenderHierarchy.objects.none()
 
@@ -139,34 +139,34 @@ class Institution(models.Model):
 
 class LenderHierarchy(models.Model):
     institution = models.ForeignKey(
-        'Institution', models.CASCADE, to_field='institution_id')
+        "Institution", models.CASCADE, to_field="institution_id")
     organization_id = models.IntegerField()
 
 
 class Branch(models.Model):
     year = models.SmallIntegerField()
     institution = models.ForeignKey(
-        'Institution', models.CASCADE, to_field='institution_id')
+        "Institution", models.CASCADE, to_field="institution_id")
     name = models.CharField(max_length=100)
     street = models.CharField(max_length=100)
     city = models.CharField(max_length=25)
     state = USStateField()
     zipcode = models.IntegerField()
-    lat = models.FloatField(help_text='y')
-    lon = models.FloatField(help_text='x')
+    lat = models.FloatField(help_text="y")
+    lon = models.FloatField(help_text="x")
 
     def branch_as_geojson(self):
         """Convert this model into a geojson string"""
-        geojson = {'type': 'Feature',
-                   'properties': {
-                       'year': self.year,
-                       'institution_id': self.institution_id,
-                       'name': self.name,
-                       'street': self.street,
-                       'city': self.city,
-                       'state': self.state,
-                       'zipcode': self.zipcode,
-                       'lat': self.lat,
-                       'lon': self.lon}}
+        geojson = {"type": "Feature",
+                   "properties": {
+                       "year": self.year,
+                       "institution_id": self.institution_id,
+                       "name": self.name,
+                       "street": self.street,
+                       "city": self.city,
+                       "state": self.state,
+                       "zipcode": self.zipcode,
+                       "lat": self.lat,
+                       "lon": self.lon}}
         geojson = json.dumps(geojson)
         return geojson

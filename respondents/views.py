@@ -21,16 +21,16 @@ class InstitutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
         fields = (
-            'year',
-            'respondent_id',
-            'institution_id',
-            'tax_id',
-            'name',
-            'mailing_address',
-            'zip_code',
-            'assets',
-            'rssd_id',
-            'formatted_name',
+            "year",
+            "respondent_id",
+            "institution_id",
+            "tax_id",
+            "name",
+            "mailing_address",
+            "zip_code",
+            "assets",
+            "rssd_id",
+            "formatted_name",
         )
 
 
@@ -41,14 +41,14 @@ PAREN_RE = re.compile(r"^.*\((?P<agency>[0-9])(?P<respondent>[0-9-]{10})\)$")
 # 0123456789 (Respondent ID Only)
 RESP_RE = re.compile(r"^(?P<respondent>[0-9-]{10})$")
 LENDER_REGEXES = [PREFIX_RE, PAREN_RE]
-SORT_WHITELIST = ('assets', '-assets', 'num_loans', '-num_loans')
+SORT_WHITELIST = ("assets", "-assets", "num_loans", "-num_loans")
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @renderer_classes((JSONRenderer,))
 def search_results(request):
-    query_str = escape(request.GET.get('q', '')).strip()
-    year = escape(request.GET.get('year', '')).strip()
+    query_str = escape(request.GET.get("q", "")).strip()
+    year = escape(request.GET.get("year", "")).strip()
     if not year:
         year = str(date.today().year)
 
@@ -58,13 +58,13 @@ def search_results(request):
         match = regex.match(query_str)
         if match:
             lender_id = (
-                year + match.group('agency') + match.group('respondent'))
+                year + match.group("agency") + match.group("respondent"))
     resp_only_match = RESP_RE.match(query_str)
     if resp_only_match:
-        respondent_id = resp_only_match.group('respondent')
+        respondent_id = resp_only_match.group("respondent")
 
     query = Institution.objects\
-        .order_by('-assets')\
+        .order_by("-assets")\
         .filter(num_loans__gt=0, year=year)
 
     if lender_id:
@@ -73,27 +73,27 @@ def search_results(request):
         query = query.filter(respondent_id=respondent_id)
     elif query_str:
         query = query\
-            .annotate(similarity=TrigramSimilarity('name', query_str))\
+            .annotate(similarity=TrigramSimilarity("name", query_str))\
             .filter(similarity__gte=0.3)\
-            .order_by('-similarity')
+            .order_by("-similarity")
     else:
         query = query.none()
 
-    if request.GET.get('sort') in SORT_WHITELIST:
-        query = query.order_by(request.GET['sort'])
-        sort = current_sort = request.GET['sort']
+    if request.GET.get("sort") in SORT_WHITELIST:
+        query = query.order_by(request.GET["sort"])
+        sort = current_sort = request.GET["sort"]
     else:
-        sort = current_sort = ''
+        sort = current_sort = ""
 
     # number of results per page
     try:
-        num_results = int(request.GET.get('num_results', '25'))
+        num_results = int(request.GET.get("num_results", "25"))
     except ValueError:
         num_results = 25
 
     # page number
     try:
-        page = int(request.GET.get('page', '1'))
+        page = int(request.GET.get("page", "1"))
     except ValueError:
         page = 1
 
@@ -129,20 +129,20 @@ def search_results(request):
 
     results = query
 
-    if request.accepted_renderer.format != 'html':
+    if request.accepted_renderer.format != "html":
         results = InstitutionSerializer(results, many=True).data
 
     # to adjust for template
     start_results = start_results + 1
 
     return Response(
-        {'institutions': results, 'query_str': query_str,
-         'num_results': num_results, 'start_results': start_results,
-         'end_results': end_results, 'sort': sort,
-         'page_num': page, 'total_results': total_results,
-         'next_page': next_page, 'prev_page': prev_page,
-         'total_pages': total_pages, 'current_sort': current_sort,
-         'year': year},
+        {"institutions": results, "query_str": query_str,
+         "num_results": num_results, "start_results": start_results,
+         "end_results": end_results, "sort": sort,
+         "page_num": page, "total_results": total_results,
+         "next_page": next_page, "prev_page": prev_page,
+         "total_pages": total_pages, "current_sort": current_sort,
+         "year": year},
     )
 
 
@@ -152,11 +152,11 @@ def branch_locations_as_json(request):
 
 def branch_locations(request):
     """This endpoint returns geocoded branch locations"""
-    lender = escape(request.GET.get('lender'))
-    northEastLat = escape(request.GET.get('neLat'))
-    northEastLon = escape(request.GET.get('neLon'))
-    southWestLat = escape(request.GET.get('swLat'))
-    southWestLon = escape(request.GET.get('swLon'))
+    lender = escape(request.GET.get("lender"))
+    northEastLat = escape(request.GET.get("neLat"))
+    northEastLon = escape(request.GET.get("neLon"))
+    southWestLat = escape(request.GET.get("swLat"))
+    southWestLon = escape(request.GET.get("swLon"))
     try:
         maxlat = float(northEastLat)
         minlon = float(southWestLon)
@@ -172,5 +172,5 @@ def branch_locations(request):
     response = '{"crs": {"type": "link", "properties": {"href": '
     response += '"http://spatialreference.org/ref/epsg/4326/", "type": '
     response += '"proj4"}}, "type": "FeatureCollection", "features": [%s]}'
-    return response % ', '.join(
+    return response % ", ".join(
         branch.branch_as_geojson() for branch in branches)

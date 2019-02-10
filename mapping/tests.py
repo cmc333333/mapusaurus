@@ -16,7 +16,7 @@ def test_spa_contains_years(monkeypatch):
 
     views.single_page_app(Mock())
     context = views.render.call_args[0][2]
-    assert json.loads(context['SPA_CONFIG'])['years'] == [2013, 2011, 2010]
+    assert json.loads(context["SPA_CONFIG"])["years"] == [2013, 2011, 2010]
 
 
 @pytest.mark.django_db

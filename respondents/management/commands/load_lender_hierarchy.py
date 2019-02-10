@@ -8,13 +8,13 @@ from respondents.models import LenderHierarchy
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument('year', type=int)
-        parser.add_argument('file_name', type=argparse.FileType('r'))
+        parser.add_argument("year", type=int)
+        parser.add_argument("file_name", type=argparse.FileType("r"))
 
     def handle(self, *args, **options):
-        year = str(options['year'])
+        year = str(options["year"])
 
-        hierarchy_reader = csv.reader(options['file_name'], delimiter=',')
+        hierarchy_reader = csv.reader(options["file_name"], delimiter=",")
         hierarchy = []
         for hierarchy_line in hierarchy_reader:
             record = LenderHierarchy(
@@ -24,4 +24,4 @@ class Command(BaseCommand):
                 year + hierarchy_line[0] + hierarchy_line[1].replace("'", ""))
             hierarchy.append(record)
         LenderHierarchy.objects.bulk_create(hierarchy)
-        options['file_name'].close()
+        options["file_name"].close()

@@ -7,7 +7,7 @@ class RespondentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Institution
         fields = (
-            'institution_id',
-            'name',
-            'num_loans',
+            "institution_id",
+            "name",
+            "num_loans",
         )
