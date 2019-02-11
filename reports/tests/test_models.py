@@ -8,6 +8,7 @@ from ffiec.models import MetDivDemographics, TractDemographics
 from geo.models import MetroDivision
 from hmda.models import LoanApplicationRecord
 from reports import models
+from reports.serializers import ReportInput
 
 
 @pytest.mark.django_db
@@ -145,7 +146,9 @@ def test_disparity_row_applicant():
     assert len(men) > 0
     assert len(women) > 0
 
-    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    report_input = ReportInput(
+        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+    result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert len(result) == 4
     assert result[0] == (
         "White borrowers",
@@ -216,7 +219,9 @@ def test_disparity_row_lmi_applicant():
     assert len(below) > 0
     assert len(above) > 0
 
-    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    report_input = ReportInput(
+        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+    result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert len(result) == 5
     assert result[1] == (
         "MUI Borrowers",
@@ -260,7 +265,9 @@ def test_disparity_row_tracts():
         ).tract,
     )
 
-    result = list(models.DisparityRow.groups_for(metdiv, 2010))
+    report_input = ReportInput(
+        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+    result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert result[-2:] == [
         (
             "MUI Tracts",

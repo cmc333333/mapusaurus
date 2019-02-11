@@ -27,10 +27,6 @@ def income_housing(division: Division, year: int):
 @register.inclusion_tag("reports/tract_lar_report.html")
 def tract_lar_report(division: Division, report_input: ReportInput):
     return {
-        "row_groups": DisparityRow.groups_for(
-            division,
-            report_input.lar_queryset,
-            report_input.year,
-        ),
+        "row_groups": DisparityRow.groups_for(division, report_input),
         "year": report_input.year,
     }

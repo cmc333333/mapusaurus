@@ -1,17 +1,29 @@
 from typing import List, NamedTuple, Set
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from rest_framework import serializers
 
 from geo.models import (
-    CoreBasedStatisticalArea, County, Division, MetroDivision, Tract)
-from hmda.models import LoanApplicationRecord
+    CoreBasedStatisticalArea, County, Division, MetroDivision)
+from hmda.models import (
+    ACTION_TAKEN_CHOICES, LIEN_STATUS_CHOICES, LOAN_PURPOSE_CHOICES,
+    LoanApplicationRecord, OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
+)
+
+
+class LarFilterDesc(NamedTuple):
+    label: str
+    values: List[str]
 
 
 class ReportInput(NamedTuple):
     county_ids: Set[str]
     email: str
+    lien_status: Set[str]
+    loan_purpose: Set[int]
     metro_ids: Set[str]
+    owner_occupancy: Set[int]
+    property_type: Set[str]
     year: int
 
     def divisions(self) -> List[Division]:
@@ -37,36 +49,84 @@ class ReportInput(NamedTuple):
         )
 
     @property
-    def tractset(self) -> QuerySet:
-        county_q = Q(county_id__in=self.county_ids)
-        metro_q = Q(county__cbsa_id__in=self.metro_ids)
-        if self.county_ids and self.metro_ids:
-            return Tract.objects.filter(county_q | metro_q)
-        elif self.county_ids:
-            return Tract.objects.filter(county_q)
-        elif self.metro_ids:
-            return Tract.objects.filter(metro_q)
-        return Tract.objects.all()
+    def lien_status_ids(self) -> Set[str]:
+        return self.lien_status or {k for k, _ in LIEN_STATUS_CHOICES}
 
     @property
-    def lar_queryset(self) -> QuerySet:
+    def loan_purpose_ids(self) -> Set[int]:
+        return self.loan_purpose or {k for k, _ in LOAN_PURPOSE_CHOICES}
+
+    @property
+    def owner_occupancy_ids(self) -> Set[int]:
+        return self.owner_occupancy or {k for k, _ in OWNER_OCCUPANCY_CHOICES}
+
+    @property
+    def property_type_ids(self) -> Set[str]:
+        return self.property_type or {k for k, _ in PROPERTY_TYPE_CHOICES}
+
+    def lar_queryset(self, division: Division) -> QuerySet:
         return LoanApplicationRecord.objects.filter(
             action_taken__lte=5,
-            tract__in=self.tractset,
             as_of_year=self.year,
+            lien_status__in=self.lien_status_ids,
+            loan_purpose__in=self.loan_purpose_ids,
+            owner_occupancy__in=self.owner_occupancy_ids,
+            property_type__in=self.property_type_ids,
+            tract__in=division.tract_set.all(),
         )
+
+    @property
+    def lar_filter_descs(self) -> List[LarFilterDesc]:
+        return [
+            LarFilterDesc(
+                "Action Taken",
+                [name for key, name in ACTION_TAKEN_CHOICES if key <= 5],
+            ),
+            LarFilterDesc(
+                "Loan Purpose",
+                [name for key, name in LOAN_PURPOSE_CHOICES
+                 if key in self.loan_purpose_ids],
+            ),
+            LarFilterDesc(
+                "Property Type",
+                [name for key, name in PROPERTY_TYPE_CHOICES
+                 if key in self.property_type_ids],
+            ),
+            LarFilterDesc(
+                "Owner Occupancy",
+                [name for key, name in OWNER_OCCUPANCY_CHOICES
+                 if key in self.owner_occupancy_ids],
+            ),
+            LarFilterDesc(
+                "Lien Status",
+                [name for key, name in LIEN_STATUS_CHOICES
+                 if key in self.lien_status_ids],
+            ),
+        ]
 
 
 class ReportSerializer(serializers.Serializer):
     county = serializers.ListField(child=serializers.CharField(), default=list)
     email = serializers.EmailField()
+    lienStatus = serializers.ListField(     # noqa
+        child=serializers.CharField(), default=list)
+    loanPurpose = serializers.ListField(    # noqa
+        child=serializers.IntegerField(), default=list)
     metro = serializers.ListField(child=serializers.CharField(), default=list)
+    ownerOccupancy = serializers.ListField(     # noqa
+        child=serializers.IntegerField(), default=list)
+    propertyType = serializers.ListField(    # noqa
+        child=serializers.CharField(), default=list)
     year = serializers.IntegerField()
 
     def save(self) -> ReportInput:
         return ReportInput(
             set(self.validated_data["county"]),
             self.validated_data["email"],
+            set(self.validated_data["lienStatus"]),
+            set(self.validated_data["loanPurpose"]),
             set(self.validated_data["metro"]),
+            set(self.validated_data["ownerOccupancy"]),
+            set(self.validated_data["propertyType"]),
             self.validated_data["year"],
         )

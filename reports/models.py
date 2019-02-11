@@ -1,10 +1,11 @@
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
-from django.db.models import Count, Expression, F, Q, QuerySet, Sum
+from django.db.models import Count, Expression, F, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
 from geo.models import Division, Tract
+from reports.serializers import ReportInput
 
 lmi_filter = Q(income_indicator__in=["low", "mod"])
 minority_filter = Q(non_hispanic_white__lt=F("persons") / 2)
@@ -176,18 +177,16 @@ class DisparityRow(NamedTuple):
     def groups_for(
             cls,
             division: Division,
-            lar_queryset: QuerySet,
-            year: int) -> Iterator["GroupedDisparityRows"]:
-        lar_queryset = lar_queryset.filter(
-            tract__in=division.tract_set.all(),
-        )
-        demographics = AggDemographics.for_division(division, year)
+            report_input: ReportInput) -> Iterator["GroupedDisparityRows"]:
+        lar_queryset = report_input.lar_queryset(division)
+        demographics = AggDemographics.for_division(
+            division, report_input.year)
 
         agg_args = {
             name: Count("pk", filter=filter)
             for name, filter in cls.race_features()
         }
-        others = list(cls.other_features(year, demographics))
+        others = list(cls.other_features(report_input.year, demographics))
         for l_name, l_filter, r_name, r_filter in others:
             agg_args[l_name] = Count("pk", filter=l_filter)
             agg_args[r_name] = Count("pk", filter=r_filter)
