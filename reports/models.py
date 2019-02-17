@@ -1,16 +1,12 @@
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
-from django.db.models import Count, Expression, F, Q, Sum
+from django.db.models import Count, Expression, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
-from geo.models import Division, Tract
+from geo.models import Division
+from hmda.models import LoanApplicationRecord
 from reports.serializers import ReportInput
-
-lmi_filter = Q(income_indicator__in=["low", "mod"])
-minority_filter = Q(non_hispanic_white__lt=F("persons") / 2)
-non_hispanic_filter = Q(applicant_ethnicity="2")
-white_filter = non_hispanic_filter & Q(applicant_race_1="5")
 
 
 class PopulationReportRow(NamedTuple):
@@ -63,18 +59,29 @@ class IncomeHousingReportRow(NamedTuple):
     @staticmethod
     def tract_features() -> Tuple[Tuple[str, Expression], ...]:
         return (
-            ("LMI Tracts in Geography", Count("pk", filter=lmi_filter)),
+            ("LMI Tracts in Geography",
+                Count("pk", filter=TractDemographics.FILTERS.LMI)),
             ("Minority Tracts in Geography",
-                Count("pk", filter=minority_filter)),
+                Count("pk", filter=TractDemographics.FILTERS.MINORITY)),
         )
 
     @staticmethod
     def pop_features() -> Tuple[Tuple[str, Expression], ...]:
         return (
-            ("Population in LMI Tracts",
-                Coalesce(Sum("persons", filter=lmi_filter), 0)),
-            ("Population in Minority Tracts",
-                Coalesce(Sum("persons", filter=minority_filter), 0)),
+            (
+                "Population in LMI Tracts",
+                Coalesce(
+                    Sum("persons", filter=TractDemographics.FILTERS.LMI),
+                    0,
+                ),
+            ),
+            (
+                "Population in Minority Tracts",
+                Coalesce(
+                    Sum("persons", filter=TractDemographics.FILTERS.MINORITY),
+                    0,
+                ),
+            ),
         )
 
     @classmethod
@@ -124,11 +131,11 @@ class DisparityRow(NamedTuple):
     @staticmethod
     def race_features() -> Tuple[Tuple[str, Q], ...]:
         return (
-            ("White", white_filter),
-            ("Black", non_hispanic_filter & Q(applicant_race_1="3")),
-            ("Hispanic/Latino", Q(applicant_ethnicity="1")),
-            ("Asian", non_hispanic_filter & Q(applicant_race_1="2")),
-            ("Minority", ~white_filter),
+            ("White", LoanApplicationRecord.FILTERS.WHITE),
+            ("Black", LoanApplicationRecord.FILTERS.BLACK),
+            ("Hispanic/Latino", LoanApplicationRecord.FILTERS.HISPANIC),
+            ("Asian", LoanApplicationRecord.FILTERS.ASIAN),
+            ("Minority", LoanApplicationRecord.FILTERS.MINORITY),
         )
 
     @staticmethod
@@ -136,7 +143,9 @@ class DisparityRow(NamedTuple):
             year: int,
             demographics: Optional[AggDemographics],
             ) -> List[Tuple[str, Q, str, Q]]:
-        tract_dem_qs = TractDemographics.objects.filter(year=year)
+        tract_dem_qs = TractDemographics.objects\
+            .values("tract_id")\
+            .filter(year=year)
         result: List[Tuple[str, Q, str, Q]] = []
         if demographics is not None:
             mui_boundary = (demographics.ffiec_est_med_fam_income * .8) // 1000
@@ -148,22 +157,27 @@ class DisparityRow(NamedTuple):
             ))
 
         return result + [
-            ("Female", Q(applicant_sex=2), "Male", Q(applicant_sex=1)),
+            (
+                "Female",
+                LoanApplicationRecord.FILTERS.FEMALE,
+                "Male",
+                LoanApplicationRecord.FILTERS.MALE,
+            ),
             (
                 "Applicant in LMI Tract",
-                Q(tract__in=Tract.objects.filter(
-                    demographics__in=tract_dem_qs.filter(lmi_filter))),
+                Q(tract__in=tract_dem_qs.filter(
+                    TractDemographics.FILTERS.LMI)),
                 "MUI Tracts",
-                Q(tract__in=Tract.objects.filter(
-                    demographics__in=tract_dem_qs.filter(~lmi_filter))),
+                Q(tract__in=tract_dem_qs.filter(
+                    ~TractDemographics.FILTERS.LMI)),
             ),
             (
                 "Applicant in Minority Tract",
-                Q(tract__in=Tract.objects.filter(
-                    demographics__in=tract_dem_qs.filter(minority_filter))),
+                Q(tract__in=tract_dem_qs.filter(
+                        TractDemographics.FILTERS.MINORITY)),
                 "White Majority Tracts",
-                Q(tract__in=Tract.objects.filter(
-                    demographics__in=tract_dem_qs.filter(~minority_filter))),
+                Q(tract__in=tract_dem_qs.filter(
+                        ~TractDemographics.FILTERS.MINORITY)),
             ),
         ]
 
@@ -192,7 +206,9 @@ class DisparityRow(NamedTuple):
             agg_args[r_name] = Count("pk", filter=r_filter)
         agg_args["all"] = Count("pk")
         totals = lar_queryset.aggregate(**agg_args)
-        approvals = lar_queryset.filter(action_taken=1).aggregate(**agg_args)
+        approvals = lar_queryset\
+            .filter(LoanApplicationRecord.FILTERS.APPROVED)\
+            .aggregate(**agg_args)
 
         yield GroupedDisparityRows(
             "White borrowers",
