@@ -16,6 +16,7 @@ def test_divisions():
     report_input = serializers.ReportInput(
         county_ids={"12345"} | {c.pk for c in counties[2:]},
         email="someone@example.com",
+        lender_ids=set(),
         lien_status=set(),
         loan_purpose=set(),
         metro_ids={"45678"} | {m.pk for m in metros[:2]},
@@ -54,6 +55,7 @@ def test_lar_queryset():
     report_input = serializers.ReportInput(
         county_ids={county.pk},
         email="",
+        lender_ids=set(),
         lien_status={"1", "3"},
         loan_purpose={1, 2},
         metro_ids=set(),
@@ -68,6 +70,7 @@ def test_lar_filter_descs():
     report_input = serializers.ReportInput(
         county_ids=set(),
         email="",
+        lender_ids=set(),
         lien_status={"1", "2"},
         loan_purpose={2, 3},
         metro_ids=set(),

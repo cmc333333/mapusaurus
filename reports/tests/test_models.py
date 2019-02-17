@@ -147,7 +147,7 @@ def test_disparity_row_applicant():
     assert len(women) > 0
 
     report_input = ReportInput(
-        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+        set(), "", set(), set(), set(), {metdiv.metro_id}, set(), set(), 2010)
     result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert len(result) == 4
     assert result[0] == (
@@ -220,7 +220,7 @@ def test_disparity_row_lmi_applicant():
     assert len(above) > 0
 
     report_input = ReportInput(
-        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+        set(), "", set(), set(), set(), {metdiv.metro_id}, set(), set(), 2010)
     result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert len(result) == 5
     assert result[1] == (
@@ -266,7 +266,7 @@ def test_disparity_row_tracts():
     )
 
     report_input = ReportInput(
-        set(), "", set(), set(), {metdiv.metro_id}, set(), set(), 2010)
+        set(), "", set(), set(), set(), {metdiv.metro_id}, set(), set(), 2010)
     result = list(models.DisparityRow.groups_for(metdiv, report_input))
     assert result[-2:] == [
         (
