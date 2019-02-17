@@ -1,14 +1,17 @@
 import random
+from itertools import product
 
 import pytest
 from model_mommy import mommy
 from model_mommy.recipe import Recipe
 
-from ffiec.models import MetDivDemographics, TractDemographics
-from geo.models import MetroDivision
+from ffiec.models import (
+    CBSADemographics, MetDivDemographics, TractDemographics)
+from geo.models import CoreBasedStatisticalArea, MetroDivision, Tract
 from hmda.models import LoanApplicationRecord
 from reports import models
 from reports.serializers import ReportInput
+from respondents.models import Institution
 
 
 @pytest.mark.django_db
@@ -303,3 +306,109 @@ def test_disparity_row_disparity_ratio(feature, compare, expected):
     row = models.DisparityRow(
         "AAA", feature[1], feature[0], 1000, compare[1], compare[0])
     assert row.disparity_ratio() == expected
+
+
+@pytest.mark.django_db
+def test_top_lender_lender_selection():
+    lenders = mommy.make(Institution, _quantity=6)
+    tracts = mommy.make(Tract, _quantity=2)
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2012,
+               tract=tracts[0], institution=lenders[0], _quantity=5)
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2012,
+               tract=tracts[0], institution=lenders[1], _quantity=6)
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2012,
+               tract=tracts[0], institution=lenders[2], _quantity=4)
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2012,
+               tract=tracts[0], institution=lenders[3], _quantity=3)
+    # wrong year
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2011,
+               tract=tracts[0], institution=lenders[4], _quantity=10)
+    # wrong division
+    mommy.make(LoanApplicationRecord, action_taken=1, as_of_year=2012,
+               tract=tracts[1], institution=lenders[5], _quantity=10)
+    report_input = ReportInput(
+        set(), "", {lenders[3].pk}, set(), set(), set(), set(), set(), 2012)
+
+    rows = list(models.TopLenderRow.generate_for(
+        tracts[0].county, report_input, count=2))
+
+    assert len(rows) == 3
+    assert rows[0].lender_rank == 1
+    assert rows[0].name == lenders[1].name
+    assert rows[0].applications == 6
+    assert rows[1].lender_rank == 2
+    assert rows[1].name == lenders[0].name
+    assert rows[1].applications == 5
+    assert rows[2].lender_rank == 4
+    assert rows[2].name == lenders[3].name
+    assert rows[2].applications == 3
+
+
+@pytest.mark.django_db
+def test_top_lender_stats():
+    lender = mommy.make(Institution)
+    metro = mommy.make(CoreBasedStatisticalArea)
+    mommy.make(
+        CBSADemographics,
+        cbsa=metro, ffiec_est_med_fam_income=100000, year=2010,
+    )
+    low_white = mommy.make(
+        TractDemographics,
+        income_indicator="low", non_hispanic_white=8, persons=10,
+        tract__county__cbsa=metro, year=2010,
+    )
+    mod_minority = mommy.make(
+        TractDemographics,
+        income_indicator="mod", non_hispanic_white=2, persons=6,
+        tract__county__cbsa=metro, year=2010,
+    )
+    mid_white = mommy.make(
+        TractDemographics,
+        income_indicator="mid", non_hispanic_white=9, persons=11,
+        tract__county__cbsa=metro, year=2010,
+    )
+    high_minority = mommy.make(
+        TractDemographics,
+        income_indicator="high", non_hispanic_white=4, persons=20,
+        tract__county__cbsa=metro, year=2010,
+    )
+
+    applications, approvals, lmit, lmib, mint, minb = 0, 0, 0, 0, 0, 0
+    configurations = product(
+        (low_white, mod_minority, mid_white, high_minority),
+        (1, 2),
+        (60, 90),
+        ("1", "5"),
+    )
+    for idx, (dem, action_taken, income, race) in enumerate(configurations):
+        quantity = idx + 5
+        mommy.make(
+            LoanApplicationRecord,
+            action_taken=action_taken, as_of_year=2010,
+            tract=dem.tract, institution=lender, applicant_ethnicity="2",
+            applicant_income_000s=income, applicant_race_1=race,
+            _quantity=quantity,
+        )
+        applications += quantity
+        if action_taken == 1:
+            approvals += quantity
+            lmit += quantity if dem in (low_white, mod_minority) else 0
+            lmib += quantity if income == 60 else 0
+            mint += quantity if dem in (mod_minority, high_minority) else 0
+            minb += quantity if race == "1" else 0
+
+    report_input = ReportInput(
+        set(), "", set(), set(), set(), set(), set(), set(), 2010)
+
+    rows = list(models.TopLenderRow.generate_for(metro, report_input))
+
+    assert rows == [models.TopLenderRow(
+        lender_rank=1,
+        name=lender.name,
+        applications=applications,
+        approval_rate=100 * approvals // applications,
+        lmit_pct=100 * lmit // approvals,
+        lmib_pct=100 * lmib // approvals,
+        mint_pct=100 * mint // approvals,
+        minb_pct=100 * minb // approvals,
+    )]

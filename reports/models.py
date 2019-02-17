@@ -238,3 +238,78 @@ class DisparityRow(NamedTuple):
 class GroupedDisparityRows(NamedTuple):
     comparison_label: str
     rows: List[DisparityRow]
+
+
+class TopLenderRow(NamedTuple):
+    lender_rank: int
+    name: str
+    applications: int
+    approval_rate: int
+    lmit_pct: int
+    lmib_pct: int
+    mint_pct: int
+    minb_pct: int
+
+    @classmethod
+    def generate_for(
+            cls,
+            division: Division,
+            report_input: ReportInput,
+            count: int = 20) -> Iterator["TopLenderRow"]:
+        demographics = AggDemographics.for_division(
+            division, report_input.year)
+        if demographics:
+            mui_boundary = (demographics.ffiec_est_med_fam_income * .8) // 1000
+        else:
+            mui_boundary = 0
+        lmi_app_filter = Q(applicant_income_000s__lt=mui_boundary)
+        tract_dem_qs = TractDemographics.objects\
+            .values("tract_id")\
+            .filter(tract__in=division.tract_set.all(), year=report_input.year)
+        lmi_tracts = Q(tract__in=tract_dem_qs.filter(
+            TractDemographics.FILTERS.LMI))
+        min_tracts = Q(tract__in=tract_dem_qs.filter(
+            TractDemographics.FILTERS.MINORITY))
+
+        rows = report_input.lar_queryset(division)\
+            .values("institution_id", "institution__name")\
+            .annotate(
+                applications=Count("pk"),
+                approved=Count(
+                    "pk", filter=LoanApplicationRecord.FILTERS.APPROVED),
+                lmit_approved=Count(
+                    "pk",
+                    filter=lmi_tracts & LoanApplicationRecord.FILTERS.APPROVED,
+                ),
+                lmib_approved=Count(
+                    "pk",
+                    filter=(
+                        lmi_app_filter
+                        & LoanApplicationRecord.FILTERS.APPROVED
+                    ),
+                ),
+                mint_approved=Count(
+                    "pk",
+                    filter=min_tracts & LoanApplicationRecord.FILTERS.APPROVED,
+                ),
+                minb_approved=Count(
+                    "pk",
+                    filter=(
+                        LoanApplicationRecord.FILTERS.MINORITY
+                        & LoanApplicationRecord.FILTERS.APPROVED
+                    ),
+                ),
+            )\
+            .order_by("-applications")
+        for idx, row in enumerate(rows):
+            if idx < count or row["institution_id"] in report_input.lender_ids:
+                yield cls(
+                    idx + 1,
+                    row["institution__name"],
+                    row["applications"],
+                    100 * row["approved"] // (row["applications"] or 1),
+                    100 * row["lmit_approved"] // (row["approved"] or 1),
+                    100 * row["lmib_approved"] // (row["approved"] or 1),
+                    100 * row["mint_approved"] // (row["approved"] or 1),
+                    100 * row["minb_approved"] // (row["approved"] or 1),
+                )

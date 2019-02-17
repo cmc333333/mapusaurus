@@ -110,6 +110,29 @@ Expects the variables:
           {% endfor %}
         </div>
       </div>
+      <div class="page">
+        <div class="main-content">
+          {% top_lenders division report_input %}
+        </div>
+        <div class="sidebar">
+          <h2 style="margin-bottom: 0; padding-bottom: 0;">
+            {{ division.name }} ({{report_input.year}})
+          </h2>
+          <ul class="hanging-list">
+          {% for county in division.counties %}
+            <li>{{ county.name }} County</li>
+          {% endfor %}
+          </ul>
+          {% for label, values in report_input.lar_filter_descs %}
+            <h3 style="margin-bottom: 0; padding-bottom: 0;">{{ label }}</h3>
+            <ul class="hanging-list">
+            {% for value in values %}
+              <li>{{value}}</li>
+            {% endfor %}
+            </ul>
+          {% endfor %}
+        </div>
+      </div>
     {% endfor %}
   </body>
 </html>
