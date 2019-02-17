@@ -290,8 +290,16 @@ def test_disparity_row_tracts():
     ]
 
 
-@pytest.mark.django_db
-def test_disparity_row_disparity_ratio():
-    row = models.DisparityRow("AAA", 100, 75, 900, 200, 100)
-    # 25% compared to 50%
-    assert row.disparity_ratio() == "0.5"
+@pytest.mark.parametrize("feature, compare, expected", [
+    ((75, 100), (100, 200), "0.5"),     # 25% compared to 50%
+    ((0, 100), (100, 200), "2.0"),      # 100% compared to 50%
+    ((100, 100), (100, 200), "0.0"),    # 0% compared to 50%
+    ((0, 0), (100, 200), "N/A"),
+    ((70, 100), (0, 200), "0.3"),       # 30% compared to 100%
+    ((75, 100), (200, 200), "N/A"),     # 25% compared to 0%
+    ((75, 100), (0, 0), "N/A"),
+])
+def test_disparity_row_disparity_ratio(feature, compare, expected):
+    row = models.DisparityRow(
+        "AAA", feature[1], feature[0], 1000, compare[1], compare[0])
+    assert row.disparity_ratio() == expected

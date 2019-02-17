@@ -182,8 +182,12 @@ class DisparityRow(NamedTuple):
         ]
 
     def disparity_ratio(self) -> str:
+        if not self.feature_total or not self.compare_total:
+            return "N/A"
         feature_denial = 1 - self.feature_approved / self.feature_total
         compare_denial = 1 - self.compare_approved / self.compare_total
+        if not compare_denial:
+            return "N/A"
         ratio = feature_denial / compare_denial
         return f"{ratio:.1f}"
 
