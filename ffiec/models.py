@@ -77,6 +77,10 @@ class TractDemographics(models.Model):
     female_employed = models.PositiveIntegerField(
         help_text="Total female population 16 and over - employed")
 
+    class FILTERS:
+        LMI = models.Q(income_indicator__in=["low", "mod"])
+        MINORITY = models.Q(non_hispanic_white__lt=models.F("persons") / 2)
+
 
 class AggDemographics(models.Model):
     """Base class for CBSA, MetDiv, etc. demographics."""

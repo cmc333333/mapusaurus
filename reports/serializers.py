@@ -19,6 +19,7 @@ class LarFilterDesc(NamedTuple):
 class ReportInput(NamedTuple):
     county_ids: Set[str]
     email: str
+    lender_ids: Set[str]
     lien_status: Set[str]
     loan_purpose: Set[int]
     metro_ids: Set[str]
@@ -108,6 +109,7 @@ class ReportInput(NamedTuple):
 class ReportSerializer(serializers.Serializer):
     county = serializers.ListField(child=serializers.CharField(), default=list)
     email = serializers.EmailField()
+    lender = serializers.ListField(child=serializers.CharField(), default=list)
     lienStatus = serializers.ListField(     # noqa
         child=serializers.CharField(), default=list)
     loanPurpose = serializers.ListField(    # noqa
@@ -123,6 +125,7 @@ class ReportSerializer(serializers.Serializer):
         return ReportInput(
             set(self.validated_data["county"]),
             self.validated_data["email"],
+            set(self.validated_data["lender"]),
             set(self.validated_data["lienStatus"]),
             set(self.validated_data["loanPurpose"]),
             set(self.validated_data["metro"]),

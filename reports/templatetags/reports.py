@@ -3,7 +3,7 @@ from django import template
 from ffiec.models import AggDemographics
 from geo.models import Division
 from reports.models import (
-    DisparityRow, IncomeHousingReportRow, PopulationReportRow)
+    DisparityRow, IncomeHousingReportRow, PopulationReportRow, TopLenderRow)
 from reports.serializers import ReportInput
 
 register = template.Library()
@@ -30,3 +30,8 @@ def tract_lar_report(division: Division, report_input: ReportInput):
         "row_groups": DisparityRow.groups_for(division, report_input),
         "year": report_input.year,
     }
+
+
+@register.inclusion_tag("reports/top_lenders.html")
+def top_lenders(division: Division, report_input: ReportInput):
+    return {"rows": TopLenderRow.generate_for(division, report_input)}

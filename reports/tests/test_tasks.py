@@ -22,7 +22,8 @@ def test_send_email(mailoutbox, monkeypatch, settings):
 
     tasks.send_email(b"content", "a_filename", ReportInput(
         county_ids={"aaaaa", "bbbbb"},
-        email="abcdef@example.com",
+        email="abcde100f@example.com",
+        lender_ids=set(),
         lien_status=set(),
         loan_purpose=set(),
         metro_ids={"mmmmm"},
@@ -75,6 +76,7 @@ def test_generate_report(monkeypatch):
         "report_input": ReportInput(
             county_ids={c.pk for c in counties[:3]},
             email="xyz@example.com",
+            lender_ids=set(),
             lien_status=set(),
             loan_purpose={2, 3},
             metro_ids={m.pk for m in metros},

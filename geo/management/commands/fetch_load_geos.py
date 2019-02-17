@@ -159,8 +159,7 @@ class Command(BaseCommand):
     help = "Fetches and loads shape files from TIGER."  # noqa
 
     def add_arguments(self, parser):
-        parser.add_argument("--year", type=int, default=default_year(),
-                            help="TIGER source year")
+        parser.add_argument("--year", type=int, help="TIGER source year")
         choices = us.STATES + us.TERRITORIES
         parser.add_argument(
             "--states", type=us.states.lookup, nargs="*", default=choices,
@@ -195,6 +194,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         year, replace = options["year"], options["replace"]
+        if year is None:
+            year = default_year()
         relevant_fips = {state.fips for state in options["states"]}
 
         if options["state_shapes"]:
