@@ -5,6 +5,7 @@ from model_mommy import mommy
 
 from geo.models import CoreBasedStatisticalArea, County
 from reports import tasks
+from reports.serializers import ReportInput
 
 
 @pytest.mark.django_db
@@ -19,12 +20,16 @@ def test_send_email(mailoutbox, monkeypatch, settings):
         "subject": "Some Subject",
     }
 
-    tasks.send_email(b"content", "a_filename", Mock(validated_data={
-        "county": ["aaaaa", "bbbbb"],
-        "email": "abcdef@exmple.com",
-        "metro": ["mmmmm"],
-        "year": 1999,
-    }))
+    tasks.send_email(b"content", "a_filename", ReportInput(
+        county_ids={"aaaaa", "bbbbb"},
+        email="abcdef@example.com",
+        lien_status=set(),
+        loan_purpose=set(),
+        metro_ids={"mmmmm"},
+        owner_occupancy=set(),
+        property_type=set(),
+        year=1999,
+    ))
 
     assert len(mailoutbox) == 1
     message = mailoutbox[0]
@@ -59,17 +64,24 @@ def test_generate_report(monkeypatch):
         {
             "county": [c.pk for c in counties[:3]],
             "email": "xyz@example.com",
+            "loanPurpose": [2, 3],
             "metro": [m.pk for m in metros],
+            "propertyType": ["3", "1"],
             "year": 2008,
         },
     )
 
-    divisions = sorted(metros, key=lambda m: m.name) \
-        + sorted(counties[:3], key=lambda c: c.name)
-
     assert tasks.render_to_string.call_args[0][1] == {
-        "divisions": divisions,
-        "year": 2008,
+        "report_input": ReportInput(
+            county_ids={c.pk for c in counties[:3]},
+            email="xyz@example.com",
+            lien_status=set(),
+            loan_purpose={2, 3},
+            metro_ids={m.pk for m in metros},
+            owner_occupancy=set(),
+            property_type={"1", "3"},
+            year=2008,
+        ),
     }
     assert tasks.delete_report.call_args[0][0] == "abcdef"
     assert tasks.send_email.call_args[0][1] == "abcdef"

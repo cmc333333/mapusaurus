@@ -5,7 +5,7 @@ from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
 from geo.models import Division, Tract
-from hmda.models import LoanApplicationRecord
+from reports.serializers import ReportInput
 
 lmi_filter = Q(income_indicator__in=["low", "mod"])
 minority_filter = Q(non_hispanic_white__lt=F("persons") / 2)
@@ -177,25 +177,22 @@ class DisparityRow(NamedTuple):
     def groups_for(
             cls,
             division: Division,
-            year: int) -> Iterator["GroupedDisparityRows"]:
-        queryset = LoanApplicationRecord.objects.filter(
-            action_taken__lte=5,
-            tract__in=division.tract_set.all(),
-            as_of_year=year,
-        )
-        demographics = AggDemographics.for_division(division, year)
+            report_input: ReportInput) -> Iterator["GroupedDisparityRows"]:
+        lar_queryset = report_input.lar_queryset(division)
+        demographics = AggDemographics.for_division(
+            division, report_input.year)
 
         agg_args = {
             name: Count("pk", filter=filter)
             for name, filter in cls.race_features()
         }
-        others = list(cls.other_features(year, demographics))
+        others = list(cls.other_features(report_input.year, demographics))
         for l_name, l_filter, r_name, r_filter in others:
             agg_args[l_name] = Count("pk", filter=l_filter)
             agg_args[r_name] = Count("pk", filter=r_filter)
         agg_args["all"] = Count("pk")
-        totals = queryset.aggregate(**agg_args)
-        approvals = queryset.filter(action_taken=1).aggregate(**agg_args)
+        totals = lar_queryset.aggregate(**agg_args)
+        approvals = lar_queryset.filter(action_taken=1).aggregate(**agg_args)
 
         yield GroupedDisparityRows(
             "White borrowers",
