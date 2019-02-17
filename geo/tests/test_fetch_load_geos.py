@@ -3,7 +3,6 @@ from unittest.mock import call, MagicMock, Mock
 
 import pytest
 import requests
-import requests_mock
 import us
 from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
@@ -178,20 +177,24 @@ def test_parse_tracts(monkeypatch):
     assert result[0].tract_only == "333333"
 
 
-def test_default_year_now():
-    with freeze_time("2017-02-03"), requests_mock.mock() as r_mock:
-        r_mock.head(
-            "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
-            "tl_2017_us_state.zip")
+def test_default_year_now(responses):
+    responses.add(
+        responses.HEAD,
+        "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
+        "tl_2017_us_state.zip",
+    )
+    with freeze_time("2017-02-03"):
         assert fetch_load_geos.default_year() == 2017
 
 
-def test_default_year_past():
-    with freeze_time("2017-02-03"), requests_mock.mock() as r_mock:
-        r_mock.head(
-            "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
-            "tl_2017_us_state.zip",
-            status_code=404)
+def test_default_year_past(responses):
+    responses.add(
+        responses.HEAD,
+        "https://www2.census.gov/geo/tiger/TIGER2017/STATE/"
+        "tl_2017_us_state.zip",
+        status=404,
+    )
+    with freeze_time("2017-02-03"):
         assert fetch_load_geos.default_year() == 2016
 
 
