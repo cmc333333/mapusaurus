@@ -1,9 +1,8 @@
 import pytest
 from django.core.management import call_command
 from django.urls import reverse
-from model_mommy import mommy
 
-from respondents.models import Institution
+from respondents.tests.factories import InstitutionFactory
 
 
 @pytest.fixture
@@ -43,7 +42,7 @@ def test_branch_locations(client):
 
 @pytest.mark.usefixtures("data_setup")
 def test_search_empty(client):
-    mommy.make(Institution, name="AAAAA", year=2010, num_loans=1)
+    InstitutionFactory(name="AAAAA", year=2010, num_loans=1)
 
     result = client.get(
         reverse("respondents:search_results"), {"format": "json"},
@@ -56,15 +55,15 @@ def test_search_empty(client):
 
 @pytest.mark.django_db
 def test_search_requires_hmda(client):
-    mommy.make(Institution, name="AAAAA", year=2010, num_loans=1)
-    mommy.make(Institution, name="AAAAA AAAAA", year=2010, num_loans=0)
+    InstitutionFactory(name="AAAAA", year=2010, num_loans=1)
+    InstitutionFactory(name="AAAAA AAAAA", year=2010, num_loans=0)
     assert len(fetch_institutions(client, "aaaaa", year="2010")) == 1
 
 
 @pytest.mark.django_db
 def test_search_name(client):
-    mommy.make(Institution, name="Some Bank", year=2013, num_loans=1)
-    mommy.make(Institution, name="Bank & Loan", year=2013, num_loans=1)
+    InstitutionFactory(name="Some Bank", year=2013, num_loans=1)
+    InstitutionFactory(name="Bank & Loan", year=2013, num_loans=1)
 
     assert len(fetch_institutions(client, "Bank", year="2013")) == 2
     assert len(fetch_institutions(client, "Loan", year="2013")) == 1
@@ -72,16 +71,16 @@ def test_search_name(client):
 
 @pytest.mark.django_db
 def test_search_trigram(client):
-    mommy.make(Institution, name="This is a bank", year=2013, num_loans=1)
+    InstitutionFactory(name="This is a bank", year=2013, num_loans=1)
     assert len(fetch_institutions(client, "that bank", year="2013")) == 1
     assert fetch_institutions(client, "xxxx", year="2013") == []
 
 
 @pytest.mark.usefixtures("load_agencies")
 def test_search_id(client):
-    bank = mommy.make(
-        Institution, agency_id=3, institution_id="201331234543210",
-        name="Some Bank", respondent_id="123454321", year=2013, num_loans=1)
+    bank = InstitutionFactory(
+        agency_id=3, institution_id="201331234543210", name="Some Bank",
+        respondent_id="123454321", year=2013, num_loans=1)
 
     assert fetch_institutions(client, bank.respondent_id, year="2013") == []
 
@@ -96,9 +95,8 @@ def test_search_id(client):
 
 @pytest.mark.django_db
 def test_search_sort(client):
-    mommy.make(Institution, name="aaa", assets=1111, year=2013, num_loans=2)
-    mommy.make(Institution, name="aaa bbb", assets=2222, year=2013,
-               num_loans=1)
+    InstitutionFactory(name="aaa", assets=1111, year=2013, num_loans=2)
+    InstitutionFactory(name="aaa bbb", assets=2222, year=2013, num_loans=1)
 
     results = fetch_institutions(client, "aaa", year="2013")
     assert [r["name"] for r in results] == ["aaa", "aaa bbb"]
@@ -119,7 +117,7 @@ def test_search_sort(client):
 
 @pytest.mark.django_db
 def test_search_pagination(client):
-    mommy.make(Institution, name="ccc", year=2013, num_loans=1, _quantity=10)
+    InstitutionFactory.create_batch(10, name="ccc", year=2013, num_loans=1)
     # page number should default to 1
     results = fetch_search(client, "ccc", num_results="2", year="2013")
     assert results["page_num"] == 1
@@ -137,7 +135,7 @@ def test_search_pagination(client):
 
 @pytest.mark.usefixtures("load_agencies")
 def test_search_num_results(client):
-    mommy.make(Institution, name="ddd", year=2013, num_loans=1, _quantity=30)
+    InstitutionFactory.create_batch(30, name="ddd", year=2013, num_loans=1)
     results = fetch_search(client, "ddd", year="2013")
     # number of results should default to 25
     assert results["num_results"] == 25

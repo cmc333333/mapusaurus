@@ -1,18 +1,17 @@
 from unittest.mock import Mock
 
 import pytest
-from model_mommy import mommy
 
-from geo.models import CoreBasedStatisticalArea, County
+from geo.tests.factories import CBSAFactory, CountyFactory
 from reports import tasks
-from reports.serializers import ReportInput
+from reports.tests.factories import ReportInputFactory
 
 
 @pytest.mark.django_db
 def test_send_email(mailoutbox, monkeypatch, settings):
-    mommy.make(County, geoid="aaaaa", name="AaAaA")
-    mommy.make(County, geoid="bbbbb", name="bBbBb")
-    mommy.make(CoreBasedStatisticalArea, geoid="mmmmm", name="MmMmM")
+    CountyFactory(geoid="aaaaa", name="AaAaA")
+    CountyFactory(geoid="bbbbb", name="bBbBb")
+    CBSAFactory(geoid="mmmmm", name="MmMmM")
     settings.DEFAULT_FROM_EMAIL = "noreply@example.com"
     settings.REPORT_EMAIL_KWARGS = {
         "bcc": ["a_b_c@example.com"],
@@ -20,15 +19,10 @@ def test_send_email(mailoutbox, monkeypatch, settings):
         "subject": "Some Subject",
     }
 
-    tasks.send_email(b"content", "a_filename", ReportInput(
+    tasks.send_email(b"content", "a_filename", ReportInputFactory(
         county_ids={"aaaaa", "bbbbb"},
         email="abcde100f@example.com",
-        lender_ids=set(),
-        lien_status=set(),
-        loan_purpose=set(),
         metro_ids={"mmmmm"},
-        owner_occupancy=set(),
-        property_type=set(),
         year=1999,
     ))
 
@@ -53,8 +47,8 @@ def test_send_email(mailoutbox, monkeypatch, settings):
 
 @pytest.mark.django_db
 def test_generate_report(monkeypatch):
-    counties = mommy.make(County, _quantity=6)
-    metros = mommy.make(CoreBasedStatisticalArea, _quantity=2)
+    counties = CountyFactory.create_batch(6)
+    metros = CBSAFactory.create_batch(2)
     monkeypatch.setattr(tasks, "render_to_string", Mock(return_value=""))
     monkeypatch.setattr(tasks, "default_storage", Mock())
     monkeypatch.setattr(tasks, "delete_report", Mock())
@@ -73,14 +67,11 @@ def test_generate_report(monkeypatch):
     )
 
     assert tasks.render_to_string.call_args[0][1] == {
-        "report_input": ReportInput(
+        "report_input": ReportInputFactory(
             county_ids={c.pk for c in counties[:3]},
             email="xyz@example.com",
-            lender_ids=set(),
-            lien_status=set(),
             loan_purpose={2, 3},
             metro_ids={m.pk for m in metros},
-            owner_occupancy=set(),
             property_type={"1", "3"},
             year=2008,
         ),

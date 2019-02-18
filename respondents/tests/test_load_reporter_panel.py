@@ -1,8 +1,8 @@
 import pytest
-from model_mommy import mommy
 
 from respondents.management.commands import load_reporter_panel
-from respondents.models import Institution, ZipcodeCityStateYear
+from respondents.tests.factories import (
+    InstitutionFactory, ZipcodeCityStateYearFactory)
 
 
 def test_from_line():
@@ -16,14 +16,14 @@ def test_from_line():
 
 @pytest.mark.usefixtures("load_agencies")
 def test_institution():
-    bank1 = mommy.make(
-        Institution, year=2011, agency_id=3, respondent_id="1122334455")
-    bank2 = mommy.make(
-        Institution, year=2011, agency_id=3, respondent_id="1111111111")
-    bank3 = mommy.make(
-        Institution, year=2011, agency_id=1, respondent_id="1122334455")
-    bank4 = mommy.make(
-        Institution, year=2013, agency_id=3, respondent_id="1122334455")
+    bank1 = InstitutionFactory(
+        year=2011, agency_id=3, respondent_id="1122334455")
+    bank2 = InstitutionFactory(
+        year=2011, agency_id=3, respondent_id="1111111111")
+    bank3 = InstitutionFactory(
+        year=2011, agency_id=1, respondent_id="1122334455")
+    bank4 = InstitutionFactory(
+        year=2013, agency_id=3, respondent_id="1122334455")
 
     assert load_reporter_panel.ReporterRow.from_line(
         "201111223344553" + " "*325).institution().pk == bank1.pk
@@ -39,10 +39,10 @@ def test_institution():
 
 @pytest.mark.usefixtures("load_agencies")
 def test_parent():
-    zip_code = mommy.make(ZipcodeCityStateYear)
-    parent = mommy.make(Institution, year=2012, respondent_id="9988776655",
-                        zip_code=zip_code)
-    mommy.make(Institution, _quantity=5)    # random other institutions
+    zip_code = ZipcodeCityStateYearFactory()
+    parent = InstitutionFactory(
+        year=2012, respondent_id="9988776655", zip_code=zip_code)
+    InstitutionFactory.create_batch(5)  # random other institutions
     row = load_reporter_panel.ReporterRow.from_line("1"*340)
     row = row._replace(year="2012", parent_id="9988776655",
                        parent_state=zip_code.state)
@@ -51,8 +51,8 @@ def test_parent():
 
 @pytest.mark.usefixtures("load_agencies")
 def test_parent_rssd_id():
-    parent = mommy.make(Institution, year=2012, rssd_id="0011223344")
-    mommy.make(Institution, _quantity=5)    # random other institutions
+    parent = InstitutionFactory(year=2012, rssd_id="0011223344")
+    InstitutionFactory.create_batch(5)  # random other institutions
     row = load_reporter_panel.ReporterRow.from_line("1"*340)
     row = row._replace(year="2012", parent_rssd_id="0011223344")
     assert row.parent().pk == parent.pk
