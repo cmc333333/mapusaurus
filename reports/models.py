@@ -36,11 +36,11 @@ class PopulationReportRow(NamedTuple):
             .filter(tract__in=division.tract_set.all(), year=year)\
             .aggregate(**dict(cls.features()))
         for title, _ in cls.features():
-            total = data["All Population"]
-            if total:
-                yield cls(title, data[title], 100 * data[title] // total)
-            else:
-                yield cls(total, data[title], 0)
+            yield cls(
+                title,
+                data[title],
+                100 * data[title] // (data["All Population"] or 1),
+            )
 
 
 class IncomeHousingReportRow(NamedTuple):
@@ -103,19 +103,19 @@ class IncomeHousingReportRow(NamedTuple):
             yield cls(
                 title,
                 data[title],
-                100 * data[title] // data["Single Family Homes"],
+                100 * data[title] // (data["Single Family Homes"] or 1),
             )
         for title, _ in cls.tract_features():
             yield cls(
                 title,
                 data[title],
-                100 * data[title] // data["tract_total"],
+                100 * data[title] // (data["tract_total"] or 1),
             )
         for title, _ in cls.pop_features():
             yield cls(
                 title,
                 data[title],
-                100 * data[title] // data["pop_total"],
+                100 * data[title] // (data["pop_total"] or 1),
             )
 
 

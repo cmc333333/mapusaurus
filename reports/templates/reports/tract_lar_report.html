@@ -3,33 +3,32 @@ Tract LAR Report for a single county or CBSA.
 Expects a "report" variable, of type reports.models.TractLARReport
 {% endcomment %}
 {% load humanize %}
-<table style="border-collapse: collapse;">
-  <thead>
+<table>
+  <thead style="border-bottom: 1px solid black;">
     <tr>
-      <th>{{year}}</th>
-      <th>Home Purchase Applications</th>
-      <th>Applications (percent of total)</th>
-      <th>Home Purchase Originations</th>
-      <th>Approval Rate</th>
-      <th>Denial Disparity Ratio</th>
-      <th>Compared to:</th>
+      <th style="width: 20%;">{{year}}</th>
+      <th style="width: 12%;">Applications</th>
+      <th style="width: 12%;">% of total</th>
+      <th style="width: 12%;">Originations</th>
+      <th style="width: 10%;">Approval Rate</th>
+      <th style="width: 18%;">Denial Disparity Ratio</th>
+      <th style="width: 16%;">Compared to:</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody style="border-bottom: 1px solid black;">
     {% for compare_name, rows in row_groups %}
       {% for row in rows %}
-        <tr style="
-          {% if forloop.first %}border-top: solid 1px black;{% endif %}
-          {% if forloop.last %}border-bottom: solid 1px black;{% endif %}
-        ">
+        <tr>
           <th>{{row.feature}}</th>
           <td>{{row.feature_total|intcomma}}</td>
           <td>{% widthratio row.feature_total row.total 100 %}%</td>
           <td>{{row.feature_approved|intcomma}}</td>
           <td>{% widthratio row.feature_approved row.feature_total 100 %}%</td>
-          <td style="text-align: center;">{{row.disparity_ratio}}</td>
+          <td>{{row.disparity_ratio}}</td>
           {% if forloop.first %}
-            <th rowspan="{{rows|length}}">{{compare_name}}</th>
+            <th style="text-align: center;" rowspan="{{rows|length}}">
+              {{compare_name}}
+            </th>
           {% endif %}
         </tr>
       {% endfor %}

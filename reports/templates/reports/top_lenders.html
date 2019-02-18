@@ -3,45 +3,34 @@ Top (and Selected) Lenders. Expects:
 * rows: Iterator[TopLenderRow]
 {% endcomment %}
 {% load humanize %}
-<table>
+<table style="border-bottom: solid 1px black;">
   <thead>
-    <tr>
-      <th rowspan="2">Lender</th>
+    <tr style="border-bottom: 1px solid black;">
       <th rowspan="2">Rank</th>
+      <th rowspan="2">Lender</th>
       <th rowspan="2">Applications</th>
-      <th rowspan="2">Origination Rate</th>
-      <th colspan="4">% of Originations</th>
+      <th rowspan="2">Origination<br />Rate</th>
+      <th class="left-border" colspan="4">% of Originations</th>
     </tr>
-    <tr>
-      <th>LMIT</th>
-      <th>LMIB</th>
-      <th>MINT</th>
-      <th>MINB</th>
+    <tr style="border-bottom: 1px solid black;">
+      <th class="left-border">LMIT</th>
+      <th class="left-border">LMIB</th>
+      <th class="left-border">MINT</th>
+      <th class="left-border">MINB</th>
     </tr>
   </thead>
   <tbody>
   {% for row in rows %}
     <tr>
-      <th>{{row.name}}</th>
       <td>{{row.lender_rank}}</td>
+      <th style="font-weight: normal;">{{row.name}}</th>
       <td>{{row.applications|intcomma}}</td>
       <td>{{row.approval_rate}}%</td>
-      <td>{{row.lmit_pct}}%</td>
-      <td>{{row.lmib_pct}}%</td>
-      <td>{{row.mint_pct}}%</td>
-      <td>{{row.minb_pct}}%</td>
+      <td class="left-border">{{row.lmit_pct}}%</td>
+      <td class="left-border">{{row.lmib_pct}}%</td>
+      <td class="left-border">{{row.mint_pct}}%</td>
+      <td class="left-border">{{row.minb_pct}}%</td>
     </tr>
   {% endfor %}
   </tbody>
 </table>
-<hr />
-<p>
-  LMIB/T - Borrower earns 80% or less of the median family income for the MSA
-  (LMIB), or the census tract has a median family income that is 80% or less
-  of the MSA median family income (LMIT).
-</p>
-<p>
-  MINB/T - Borrower is a person of color, or the census tract is over 50%
-  people of color.  Borrowers that did not identify a race or ethnicity are
-  considered white.
-</p>

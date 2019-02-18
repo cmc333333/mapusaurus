@@ -1,0 +1,24 @@
+{% comment %}
+Sidebar element, shown on all pages. Expects:
+* counties: List[str]
+* lar_filter_descs: List[Tuple[str, List[str]]]
+* name: str
+* year: int
+{% endcomment %}
+<div class="padded sidebar">
+  <h2>{{ name }} ({{year}})</h2>
+  <ul class="hanging-list">
+  {% for county in counties %}
+    <li>{{ county }} County</li>
+  {% endfor %}
+  </ul>
+  {% for label, values in lar_filter_descs %}
+    <h3 style="padding-top: 1rem;">{{ label }}</h3>
+    <ul class="hanging-list">
+    {% for value in values %}
+      <li>{{value}}</li>
+    {% endfor %}
+    </ul>
+  {% endfor %}
+</div>
+

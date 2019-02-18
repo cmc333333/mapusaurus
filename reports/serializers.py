@@ -6,14 +6,9 @@ from rest_framework import serializers
 from geo.models import (
     CoreBasedStatisticalArea, County, Division, MetroDivision)
 from hmda.models import (
-    ACTION_TAKEN_CHOICES, LIEN_STATUS_CHOICES, LOAN_PURPOSE_CHOICES,
-    LoanApplicationRecord, OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
+    LIEN_STATUS_CHOICES, LOAN_PURPOSE_CHOICES, LoanApplicationRecord,
+    OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
 )
-
-
-class LarFilterDesc(NamedTuple):
-    label: str
-    values: List[str]
 
 
 class ReportInput(NamedTuple):
@@ -75,35 +70,6 @@ class ReportInput(NamedTuple):
             property_type__in=self.property_type_ids,
             tract__in=division.tract_set.all(),
         )
-
-    @property
-    def lar_filter_descs(self) -> List[LarFilterDesc]:
-        return [
-            LarFilterDesc(
-                "Action Taken",
-                [name for key, name in ACTION_TAKEN_CHOICES if key <= 5],
-            ),
-            LarFilterDesc(
-                "Loan Purpose",
-                [name for key, name in LOAN_PURPOSE_CHOICES
-                 if key in self.loan_purpose_ids],
-            ),
-            LarFilterDesc(
-                "Property Type",
-                [name for key, name in PROPERTY_TYPE_CHOICES
-                 if key in self.property_type_ids],
-            ),
-            LarFilterDesc(
-                "Owner Occupancy",
-                [name for key, name in OWNER_OCCUPANCY_CHOICES
-                 if key in self.owner_occupancy_ids],
-            ),
-            LarFilterDesc(
-                "Lien Status",
-                [name for key, name in LIEN_STATUS_CHOICES
-                 if key in self.lien_status_ids],
-            ),
-        ]
 
 
 class ReportSerializer(serializers.Serializer):
