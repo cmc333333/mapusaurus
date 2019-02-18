@@ -2,10 +2,10 @@ from unittest.mock import Mock
 
 import pytest
 from django.core.management import call_command
-from model_mommy import mommy
 
 from respondents.management.commands import load_transmittal
 from respondents.models import Institution
+from respondents.tests.factories import InstitutionFactory
 
 
 @pytest.mark.usefixtures("load_agencies")
@@ -29,9 +29,8 @@ def test_handle(tmpdir):
 
 @pytest.mark.usefixtures("load_agencies")
 def test_handle_replacements(monkeypatch, tmpdir):
-    v1 = mommy.make(Institution)
-    v2 = mommy.prepare(
-        Institution,
+    v1 = InstitutionFactory()
+    v2 = InstitutionFactory.build(
         agency=v1.agency,
         institution_id=v1.institution_id,
         zip_code=v1.zip_code,

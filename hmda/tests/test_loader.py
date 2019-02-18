@@ -4,9 +4,8 @@ from collections import Counter
 import pytest
 from django.conf import settings
 from django.core.management import call_command
-from model_mommy import mommy
 
-from geo.models import Tract
+from geo.tests.factories import TractFactory
 from hmda.management.commands import load_hmda
 from hmda.models import LoanApplicationRecord
 
@@ -14,10 +13,10 @@ from hmda.models import LoanApplicationRecord
 @pytest.fixture(autouse=True)
 def tract_fixtures(db):
     call_command("loaddata", "agency", "fake_respondents")
-    mommy.make(Tract, geoid="11222333300")
-    mommy.make(Tract, geoid="11222333400")
-    mommy.make(Tract, geoid="11223333300")
-    mommy.make(Tract, geoid="12222333300")
+    TractFactory(geoid="11222333300")
+    TractFactory(geoid="11222333400")
+    TractFactory(geoid="11223333300")
+    TractFactory(geoid="12222333300")
 
 
 def test_handle():

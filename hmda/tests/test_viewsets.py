@@ -1,27 +1,24 @@
 import pytest
-from model_mommy import mommy
 from rest_framework.test import APIClient
 
-from ffiec.models import TractDemographics
-from geo.models import CoreBasedStatisticalArea, County, Tract
-from hmda.models import LoanApplicationRecord
+from ffiec.tests.factories import TractDemFactory
+from geo.models import Tract
+from geo.tests.factories import CBSAFactory, CountyFactory
+from hmda.tests.factories import LARFactory
 
 client = APIClient()
 
 
 @pytest.mark.django_db
 def test_filter_to_metro():
-    first = mommy.make(CoreBasedStatisticalArea, geoid="11111", metro=True)
-    second = mommy.make(CoreBasedStatisticalArea, geoid="22222", metro=True)
-    mommy.make(LoanApplicationRecord, as_of_year=2010,
-               tract__county__cbsa=first, _quantity=5)
-    mommy.make(LoanApplicationRecord, as_of_year=2010,
-               tract__county__cbsa=second, _quantity=3)
-    mommy.make(LoanApplicationRecord, as_of_year=2011,
-               tract__county__cbsa=first, _quantity=7)
+    first = CBSAFactory(geoid="11111", metro=True)
+    second = CBSAFactory(geoid="22222", metro=True)
+    LARFactory.create_batch(5, as_of_year=2010, tract__county__cbsa=first)
+    LARFactory.create_batch(3, as_of_year=2010, tract__county__cbsa=second)
+    LARFactory.create_batch(7, as_of_year=2011, tract__county__cbsa=first)
     for tract in Tract.objects.all():
-        mommy.make(TractDemographics, tract=tract, year=2010)
-        mommy.make(TractDemographics, tract=tract, year=2011)
+        TractDemFactory(year=2010, tract=tract)
+        TractDemFactory(year=2011, tract=tract)
 
     result = client.get("/api/lar/", {"metro": first.pk})
     assert len(result.data) == 5 + 7
@@ -39,17 +36,14 @@ def test_filter_to_metro():
 
 @pytest.mark.django_db
 def test_filter_to_county():
-    first = mommy.make(County, geoid="11111")
-    second = mommy.make(County, geoid="22222")
-    mommy.make(LoanApplicationRecord, as_of_year=2010, tract__county=first,
-               _quantity=5)
-    mommy.make(LoanApplicationRecord, as_of_year=2010, tract__county=second,
-               _quantity=3)
-    mommy.make(LoanApplicationRecord, as_of_year=2011, tract__county=first,
-               _quantity=7)
+    first = CountyFactory(geoid="11111")
+    second = CountyFactory(geoid="22222")
+    LARFactory.create_batch(5, as_of_year=2010, tract__county=first)
+    LARFactory.create_batch(3, as_of_year=2010, tract__county=second)
+    LARFactory.create_batch(7, as_of_year=2011, tract__county=first)
     for tract in Tract.objects.all():
-        mommy.make(TractDemographics, tract=tract, year=2010)
-        mommy.make(TractDemographics, tract=tract, year=2011)
+        TractDemFactory(tract=tract, year=2010)
+        TractDemFactory(tract=tract, year=2011)
 
     result = client.get("/api/lar/", {"county": first.pk})
     assert len(result.data) == 5 + 7

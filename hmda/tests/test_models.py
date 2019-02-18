@@ -1,15 +1,15 @@
 import pytest
-from model_mommy import mommy
 
-from hmda.models import LARYear, LoanApplicationRecord
+from hmda.models import LARYear
+from hmda.tests.factories import LARFactory
 
 
 @pytest.mark.django_db
 def test_lar_year_rebuild_all():
     assert not LARYear.objects.all().exists()
-    mommy.make(LoanApplicationRecord, as_of_year=2010, _quantity=2)
-    mommy.make(LoanApplicationRecord, as_of_year=2012, _quantity=4)
-    mommy.make(LoanApplicationRecord, as_of_year=2017)
+    LARFactory.create_batch(2, as_of_year=2010)
+    LARFactory.create_batch(4, as_of_year=2012)
+    LARFactory(as_of_year=2017)
 
     LARYear.rebuild_all()
 
