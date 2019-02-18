@@ -23,7 +23,9 @@ Top (and Selected) Lenders. Expects:
   {% for row in rows %}
     <tr>
       <td>{{row.lender_rank}}</td>
-      <th style="font-weight: normal;">{{row.name}}</th>
+      <th{% if not row.requested %} style="font-weight: normal;"{% endif %}>
+        {{row.name}}
+      </th>
       <td>{{row.applications|intcomma}}</td>
       <td>{{row.approval_rate}}%</td>
       <td class="left-border">{{row.lmit_pct}}%</td>

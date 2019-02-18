@@ -242,6 +242,7 @@ class GroupedDisparityRows(NamedTuple):
 
 class TopLenderRow(NamedTuple):
     lender_rank: int
+    requested: bool
     name: str
     applications: int
     approval_rate: int
@@ -305,6 +306,7 @@ class TopLenderRow(NamedTuple):
             if idx < count or row["institution_id"] in report_input.lender_ids:
                 yield cls(
                     idx + 1,
+                    row["institution_id"] in report_input.lender_ids,
                     row["institution__name"],
                     row["applications"],
                     100 * row["approved"] // (row["applications"] or 1),
