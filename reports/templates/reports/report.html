@@ -16,11 +16,42 @@ Expects the variables:
         padding: 0;
         width: 100%;
       }
+      div {
+        box-sizing: border-box;
+      }
+      dt {
+        display: inline-block;
+        float: left;
+        font-style: italic;
+        margin: 0;
+        margin-bottom: .5rem;
+        padding: 0;
+        width: 8%;
+      }
+      dd {
+        display: inline-block;
+        float: left;
+        margin: 0;
+        margin-bottom: .5rem;
+        padding: 0;
+        width: 90%;
+      }
+      h1, h2, h3, h4, h5, h6 {
+        margin: 0;
+        padding: 0;
+      }
       table {
+        border-collapse: collapse;
         width: 100%;
+      }
+      tbody tr:nth-child(even) {
+        background-color: #ddd;
       }
       td, thead th {
         text-align: center;
+      }
+      td, th {
+        padding: .25rem;
       }
       tr.top td, tr.top th {
         border-top: 1px solid black;
@@ -28,20 +59,27 @@ Expects the variables:
       tr.bottom td, tr.bottom th {
         border-bottom: 1px solid black;
       }
-      .cell {
-        display: inline-block;
-        float: left;
-      }
       .half {
-        box-sizing: border-box;
-        width: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        width: 5.45in;
+      }
+      .half + .half {
+        border-left: 1px solid black;
+      }
+      .left-border {
+        border-left: 1px solid black;
       }
       .main-content {
-        box-sizing: border-box;
         border-right: 1px solid black;
+        clear: none;
         display: inline-block;
         height: 8.5in;
+        position: relative;
         width: 11in;
+      }
+      .padded {
+        padding: 1rem;
       }
       .page {
         clear: both;
@@ -52,85 +90,69 @@ Expects the variables:
       .sidebar {
         display: inline-block;
         float: right;
-        height: 8in;
-        max-width: 2.75in;
-        width: 2.75in;
+        height: 8.5in;
+        width: 3in;
       }
       .hanging-list {
         list-style: none;
         margin: 0;
-        padding-left: 1em;
-        text-indent: -1em;
+        padding-left: 1rem;
+        text-indent: -1rem;
       }
     </style>
   </head>
   <body>
     {% for division in report_input.divisions %}
       <div class="page">
+        {% sidebar division report_input %}
         <div class="main-content">
           <div>
-            <div class="cell half">
+            <div class="half padded">
               {% population division report_input.year %}
             </div>
-            <div class="cell half" style="border-left: solid 1px black;">
-              <h3 style="text-align: center;">Income and Housing Statistics</h3>
+            <div class="half padded">
               {% median_income division report_input.year %}
               {% income_housing division report_input.year %}
             </div>
           </div>
-          <hr style="clear: both;"/>
-          {% tract_lar_report division report_input %}
-          <p>
-            MUI - Middle or Upper Income, when a family or census tract median
-            income is greater than 80% of the average median family income for
-            the neighborhoods.
-          </p>
-          <p>
-            LMI - low-to-moderate income, when a family or census tract median
-            income is equal to or less than 80% of the average median family
-            income for the neighborhoods.
-          </p>
-        </div>
-        <div class="sidebar">
-          <h2 style="margin-bottom: 0; padding-bottom: 0;">
-            {{ division.name }} ({{report_input.year}})
-          </h2>
-          <ul class="hanging-list">
-          {% for county in division.counties %}
-            <li>{{ county.name }} County</li>
-          {% endfor %}
-          </ul>
-          {% for label, values in report_input.lar_filter_descs %}
-            <h3 style="margin-bottom: 0; padding-bottom: 0;">{{ label }}</h3>
-            <ul class="hanging-list">
-            {% for value in values %}
-              <li>{{value}}</li>
-            {% endfor %}
-            </ul>
-          {% endfor %}
+          <div style="border-top: solid 1px black; clear: both;" />
+          <div class="padded">
+            {% tract_lar_report division report_input %}
+            <dl>
+              <dt>LMI</dt>
+              <dd>
+                Low-to-Moderate Income, when a family or census tract median
+                income is equal to or less than 80% of the average median
+                family income for the neighborhoods.
+              </dd>
+              <dt>MUI</dt>
+              <dd>
+                Middle or Upper Income, when a family or census tract median
+                income is greater than 80% of the average median family income
+                for the neighborhoods.
+              </dd>
+            </dl>
+          </div>
         </div>
       </div>
       <div class="page">
-        <div class="main-content">
+        {% sidebar division report_input %}
+        <div class="main-content padded">
           {% top_lenders division report_input %}
-        </div>
-        <div class="sidebar">
-          <h2 style="margin-bottom: 0; padding-bottom: 0;">
-            {{ division.name }} ({{report_input.year}})
-          </h2>
-          <ul class="hanging-list">
-          {% for county in division.counties %}
-            <li>{{ county.name }} County</li>
-          {% endfor %}
-          </ul>
-          {% for label, values in report_input.lar_filter_descs %}
-            <h3 style="margin-bottom: 0; padding-bottom: 0;">{{ label }}</h3>
-            <ul class="hanging-list">
-            {% for value in values %}
-              <li>{{value}}</li>
-            {% endfor %}
-            </ul>
-          {% endfor %}
+          <dl>
+            <dt>LMIB/T</dt>
+            <dd>
+              Borrower earns 80% or less of the median family income for the
+              MSA (LMIB), or the census tract has a median family income that
+              is 80% or less of the MSA median family income (LMIT).
+            </dd>
+            <dt>MINB/T</dt>
+            <dd>
+              Borrower is a person of color, or the census tract is over 50%
+              people of color.  Borrowers that did not identify a race or
+              ethnicity are considered white.
+            </dd>
+          </dl>
         </div>
       </div>
     {% endfor %}

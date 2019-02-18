@@ -54,32 +54,3 @@ def test_lar_queryset():
         year=2012,
     )
     assert list(report_input.lar_queryset(county)) == [lar]
-
-
-def test_lar_filter_descs():
-    report_input = ReportInputFactory(
-        lien_status={"1", "2"},
-        loan_purpose={2, 3},
-        owner_occupancy={3, 1},
-        property_type={"2"},
-        year=1234,
-    )
-    assert report_input.lar_filter_descs == [
-        ("Action Taken", [
-            "Loan originated",
-            "Application approved but not accepted",
-            "Application denied by financial institution",
-            "Application withdrawn by applicant",
-            "File closed for incompleteness",
-        ]),
-        ("Loan Purpose", ["Home improvement", "Refinancing"]),
-        ("Property Type", ["Manufactured housing"]),
-        ("Owner Occupancy", [
-            "Owner-occupied as a principal dwelling",
-            "Not applicable",
-        ]),
-        ("Lien Status", [
-            "Secured by a first lien",
-            "Secured by a subordinate lien",
-        ]),
-    ]

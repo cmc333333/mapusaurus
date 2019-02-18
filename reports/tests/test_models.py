@@ -310,12 +310,15 @@ def test_top_lender_lender_selection():
     assert rows[0].lender_rank == 1
     assert rows[0].name == lenders[1].name
     assert rows[0].applications == 6
+    assert rows[0].requested is False
     assert rows[1].lender_rank == 2
     assert rows[1].name == lenders[0].name
     assert rows[1].applications == 5
+    assert rows[1].requested is False
     assert rows[2].lender_rank == 4
     assert rows[2].name == lenders[3].name
     assert rows[2].applications == 3
+    assert rows[2].requested is True
 
 
 @pytest.mark.django_db
@@ -368,6 +371,7 @@ def test_top_lender_stats():
 
     assert rows == [models.TopLenderRow(
         lender_rank=1,
+        requested=False,
         name=lender.name,
         applications=applications,
         approval_rate=100 * approvals // applications,
