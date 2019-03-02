@@ -4,15 +4,17 @@ from unittest.mock import Mock
 import pytest
 
 from hmda.models import LARYear
+from hmda.tests.factories import LARFactory
 from mapping import views
 
 
 @pytest.mark.django_db
 def test_spa_contains_years(monkeypatch):
     monkeypatch.setattr(views, "render", Mock())
-    LARYear.objects.create(year=2010)
-    LARYear.objects.create(year=2011)
-    LARYear.objects.create(year=2013)
+    LARFactory(as_of_year=2010)
+    LARFactory(as_of_year=2011)
+    LARFactory(as_of_year=2013)
+    LARYear.rebuild_all()
 
     views.single_page_app(Mock())
     context = views.render.call_args[0][2]

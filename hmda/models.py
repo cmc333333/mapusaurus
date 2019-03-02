@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import connection, models
 
 AGENCY_CHOICES = (
     ("1", "Office of the Comptroller of the Currency (OCC)"),
@@ -403,16 +403,12 @@ class LARYear(models.Model):
     national data; these models are a denormalized list of years for which we
     have LAR."""
     class Meta:
+        managed = False
         ordering = ["-year"]
 
     year = models.PositiveIntegerField(primary_key=True)
 
     @classmethod
     def rebuild_all(cls):
-        cls.objects.all().delete()
-        years = LoanApplicationRecord.objects\
-            .order_by("-as_of_year")\
-            .distinct("as_of_year")\
-            .values_list("as_of_year", flat=True)
-        for year in years:
-            LARYear.objects.create(year=year)
+        with connection.cursor() as cursor:
+            cursor.execute(f"REFRESH MATERIALIZED VIEW {cls._meta.db_table}")
