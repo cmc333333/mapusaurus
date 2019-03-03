@@ -1,6 +1,6 @@
 {% comment %}
 Population table for a single county or CBSA. Expects:
-* rows: Iterator[PopulationReportRow]
+* rows: Iterator[Tuple[str, int, int]]
 {% endcomment %}
 {% load humanize %}
 <table class="population">

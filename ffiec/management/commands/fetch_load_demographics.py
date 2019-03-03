@@ -15,6 +15,7 @@ from ffiec.models import (
 from geo.models import CoreBasedStatisticalArea, MetroDivision, State, Tract
 from mapusaurus.batch_utils import make_filter_fn, save_batches
 from mapusaurus.fetch_zip import fetch_and_unzip_dir
+from reports.models import IncomeHousingReport, PopulationReport
 
 ZIP_TPL = "https://www.ffiec.gov/Census/Census_Flat_Files/Census{year}.zip"
 logger = logging.getLogger(__name__)
@@ -226,3 +227,7 @@ class Command(BaseCommand):
                 )
             except requests.exceptions.RequestException:
                 logger.exception("Problem retrieving %s", year)
+        logger.info("Rebuilding population report materialized view")
+        PopulationReport.rebuild_all()
+        logger.info("Rebuilding income/housing report materialized view")
+        IncomeHousingReport.rebuild_all()

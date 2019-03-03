@@ -33,14 +33,15 @@ def test_population_report():
     assert asian != 0
     assert poverty != 0
 
-    assert list(models.PopulationReportRow.generate_for(metdiv, 2010)) == [
+    models.PopulationReport.rebuild_all()
+    assert list(models.PopulationReport.generate_for(metdiv, 2010)) == [
         ("All Population", total, 100),
         ("White", white, white * 100 // total),
         ("Hispanic/Latino", hispanic, hispanic * 100 // total),
         ("Black", black, black * 100 // total),
         ("Asian", asian, asian * 100 // total),
         ("Minority", total - white, (total - white) * 100 // total),
-        ("People living in Poverty", poverty, poverty * 100 // total),
+        ("People Living in Poverty", poverty, poverty * 100 // total),
     ]
 
 
@@ -85,7 +86,8 @@ def test_income_housing_report():
     assert persons_lmi != 0
     assert persons_minority != 0
 
-    assert list(models.IncomeHousingReportRow.generate_for(metdiv, 2010)) == [
+    models.IncomeHousingReport.rebuild_all()
+    assert list(models.IncomeHousingReport.generate_for(metdiv, 2010)) == [
         ("Single Family Homes", homes, 100),
         ("Owner Occupied Homes", occupied, occupied * 100 // homes),
         ("LMI Tracts in Geography",
@@ -127,8 +129,9 @@ def test_disparity_row_applicant():
     assert len(women) > 0
 
     report_input = ReportInputFactory(metro_ids={metdiv.metro_id}, year=2010)
-    result = list(models.DisparityRow.groups_for(metdiv, report_input))
-    assert len(result) == 4
+    models.DisparityReport.rebuild_all()
+    result = list(models.DisparityReport.groups_for(metdiv, report_input))
+    assert len(result) == 5
     assert result[0] == (
         "White borrowers",
         [
@@ -164,7 +167,7 @@ def test_disparity_row_applicant():
             ),
         ],
     )
-    assert result[1] == (
+    assert result[2] == (
         "Male",
         [
             (
@@ -195,7 +198,8 @@ def test_disparity_row_lmi_applicant():
     assert len(above) > 0
 
     report_input = ReportInputFactory(metro_ids={metdiv.metro_id}, year=2010)
-    result = list(models.DisparityRow.groups_for(metdiv, report_input))
+    models.DisparityReport.rebuild_all()
+    result = list(models.DisparityReport.groups_for(metdiv, report_input))
     assert len(result) == 5
     assert result[1] == (
         "MUI Borrowers",
@@ -239,7 +243,8 @@ def test_disparity_row_tracts():
     )
 
     report_input = ReportInputFactory(metro_ids={metdiv.metro_id}, year=2010)
-    result = list(models.DisparityRow.groups_for(metdiv, report_input))
+    models.DisparityReport.rebuild_all()
+    result = list(models.DisparityReport.groups_for(metdiv, report_input))
     assert result[-2:] == [
         (
             "MUI Tracts",
@@ -303,7 +308,8 @@ def test_top_lender_lender_selection():
         institution=lenders[5])
     report_input = ReportInputFactory(lender_ids={lenders[3].pk}, year=2012)
 
-    rows = list(models.TopLenderRow.generate_for(
+    models.LenderReport.rebuild_all()
+    rows = list(models.LenderReport.generate_for(
         tracts[0].county, report_input, count=2))
 
     assert len(rows) == 3
@@ -367,7 +373,8 @@ def test_top_lender_stats():
 
     report_input = ReportInputFactory(year=2010)
 
-    rows = list(models.TopLenderRow.generate_for(metro, report_input))
+    models.LenderReport.rebuild_all()
+    rows = list(models.LenderReport.generate_for(metro, report_input))
 
     assert rows == [models.TopLenderRow(
         lender_rank=1,

@@ -8,6 +8,12 @@ from freezegun import freeze_time
 from ffiec.management.commands import fetch_load_demographics
 
 
+@pytest.fixture(autouse=True)
+def mock_mat_view(monkeypatch):
+    monkeypatch.setattr(fetch_load_demographics, "PopulationReport", Mock())
+    monkeypatch.setattr(fetch_load_demographics, "IncomeHousingReport", Mock())
+
+
 def test_default_args(monkeypatch):
     monkeypatch.setattr(fetch_load_demographics, "load_demographics", Mock())
     with freeze_time("2019-01-02"):
