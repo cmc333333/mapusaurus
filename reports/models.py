@@ -1,14 +1,13 @@
-from typing import Iterator, List, NamedTuple, Optional, Tuple
+from typing import Iterator, List, NamedTuple, Tuple
 
 from django.db import models
-from django.db.models import Count, Q, Sum
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
-from ffiec.models import AggDemographics, TractDemographics
 from geo.models import County, Division
-from hmda.models import LoanApplicationRecord
 from mapusaurus.materialized_view import MaterializedView
 from reports.serializers import ReportInput
+from respondents.models import Institution
 
 
 class PopulationReport(MaterializedView):
@@ -23,9 +22,9 @@ class PopulationReport(MaterializedView):
     minority = models.IntegerField(verbose_name="Minority")
     poverty = models.IntegerField(verbose_name="People Living in Poverty")
 
-    REPORT_COLUMNS = [
+    REPORT_COLUMNS = (
         "total", "white", "hispanic", "black", "asian", "minority", "poverty",
-    ]
+    )
 
     @classmethod
     def generate_for(
@@ -61,11 +60,11 @@ class IncomeHousingReport(MaterializedView):
     pop_min = models.IntegerField(
         verbose_name="Population in Minority Tracts")
 
-    GROUPED_COLUMNS = [
+    GROUPED_COLUMNS = (
         ("home_total", ("home_total", "occupied")),
         ("tract_total", ("lmi_tracts", "min_tracts")),
         ("pop_total", ("pop_lmi", "pop_min")),
-    ]
+    )
 
     @classmethod
     def generate_for(
@@ -91,6 +90,78 @@ class IncomeHousingReport(MaterializedView):
                 )
 
 
+class DisparityReport(MaterializedView):
+    compound_id = models.CharField(max_length=4 + 5 + 1 + 4, primary_key=True)
+    year = models.SmallIntegerField()
+    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    approved = models.BooleanField()
+    lien_status = models.CharField(max_length=1)
+    loan_purpose = models.CharField(max_length=1)
+    owner_occupancy = models.CharField(max_length=1)
+    property_type = models.CharField(max_length=1)
+    all_records = models.IntegerField()
+    white = models.IntegerField(verbose_name="White borrowers")
+    black = models.IntegerField(verbose_name="Black")
+    hispanic = models.IntegerField(verbose_name="Hispanic/Latino")
+    asian = models.IntegerField(verbose_name="Asian")
+    minb = models.IntegerField(verbose_name="Minority")
+    lmib = models.IntegerField(verbose_name="LMI Applicant")
+    muib = models.IntegerField(verbose_name="MUI Borrowers")
+    female = models.IntegerField(verbose_name="Female")
+    male = models.IntegerField(verbose_name="Male")
+    lmit = models.IntegerField(verbose_name="Applicant in LMI Tract")
+    muit = models.IntegerField(verbose_name="MUI Tracts")
+    mint = models.IntegerField(verbose_name="Applicant in Minority Tract")
+    whitet = models.IntegerField(verbose_name="White Majority Tracts")
+
+    GROUPED_COLUMNS = (
+        ("white", ["white", "black", "hispanic", "asian", "minb"]),
+        ("muib", ["lmib"]),
+        ("male", ["female"]),
+        ("muit", ["lmit"]),
+        ("whitet", ["mint"]),
+    )
+
+    @classmethod
+    def groups_for(
+            cls,
+            division: Division,
+            report_input: ReportInput,
+    ) -> Iterator["GroupedDisparityRows"]:
+        columns = {"all_records"}
+        for cmp_field, fields in cls.GROUPED_COLUMNS:
+            columns.add(cmp_field)
+            columns.update(fields)
+
+        queryset = cls.objects\
+            .filter(
+                county__in=division.counties,
+                year=report_input.year,
+                lien_status__in=report_input.lien_status_ids,
+                loan_purpose__in=report_input.loan_purpose_ids,
+                owner_occupancy__in=report_input.owner_occupancy_ids,
+                property_type__in=report_input.property_type_ids,
+            )
+        aggs = {field: Coalesce(Sum(field), 0) for field in columns}
+        totals = queryset.aggregate(**aggs)
+        approved = queryset.filter(approved=True).aggregate(**aggs)
+
+        for cmp_field, fields in cls.GROUPED_COLUMNS:
+            yield GroupedDisparityRows(
+                cls._meta.get_field(cmp_field).verbose_name,
+                [
+                    DisparityRow(
+                        "White" if field == "white"
+                        else cls._meta.get_field(field).verbose_name,
+                        totals[field], approved[field],
+                        totals["all_records"],
+                        totals[cmp_field], approved[cmp_field],
+                    )
+                    for field in fields
+                ],
+            )
+
+
 class DisparityRow(NamedTuple):
     feature: str
     feature_total: int
@@ -99,59 +170,6 @@ class DisparityRow(NamedTuple):
 
     compare_total: int
     compare_approved: int
-
-    @staticmethod
-    def race_features() -> Tuple[Tuple[str, Q], ...]:
-        return (
-            ("White", LoanApplicationRecord.FILTERS.WHITE),
-            ("Black", LoanApplicationRecord.FILTERS.BLACK),
-            ("Hispanic/Latino", LoanApplicationRecord.FILTERS.HISPANIC),
-            ("Asian", LoanApplicationRecord.FILTERS.ASIAN),
-            ("Minority", LoanApplicationRecord.FILTERS.MINORITY),
-        )
-
-    @staticmethod
-    def other_features(
-            year: int,
-            demographics: Optional[AggDemographics],
-            ) -> List[Tuple[str, Q, str, Q]]:
-        tract_dem_qs = TractDemographics.objects\
-            .values("tract_id")\
-            .filter(year=year)
-        result: List[Tuple[str, Q, str, Q]] = []
-        if demographics is not None:
-            mui_boundary = (demographics.ffiec_est_med_fam_income * .8) // 1000
-            result.append((
-                "LMI Applicant",
-                Q(applicant_income_000s__lt=mui_boundary),
-                "MUI Borrowers",
-                Q(applicant_income_000s__gte=mui_boundary),
-            ))
-
-        return result + [
-            (
-                "Female",
-                LoanApplicationRecord.FILTERS.FEMALE,
-                "Male",
-                LoanApplicationRecord.FILTERS.MALE,
-            ),
-            (
-                "Applicant in LMI Tract",
-                Q(tract__in=tract_dem_qs.filter(
-                    TractDemographics.FILTERS.LMI)),
-                "MUI Tracts",
-                Q(tract__in=tract_dem_qs.filter(
-                    ~TractDemographics.FILTERS.LMI)),
-            ),
-            (
-                "Applicant in Minority Tract",
-                Q(tract__in=tract_dem_qs.filter(
-                        TractDemographics.FILTERS.MINORITY)),
-                "White Majority Tracts",
-                Q(tract__in=tract_dem_qs.filter(
-                        ~TractDemographics.FILTERS.MINORITY)),
-            ),
-        ]
 
     def disparity_ratio(self) -> str:
         if not self.feature_total or not self.compare_total:
@@ -163,53 +181,67 @@ class DisparityRow(NamedTuple):
         ratio = feature_denial / compare_denial
         return f"{ratio:.1f}"
 
-    @classmethod
-    def groups_for(
-            cls,
-            division: Division,
-            report_input: ReportInput) -> Iterator["GroupedDisparityRows"]:
-        lar_queryset = report_input.lar_queryset(division)
-        demographics = AggDemographics.for_division(
-            division, report_input.year)
-
-        agg_args = {
-            name: Count("pk", filter=filter)
-            for name, filter in cls.race_features()
-        }
-        others = list(cls.other_features(report_input.year, demographics))
-        for l_name, l_filter, r_name, r_filter in others:
-            agg_args[l_name] = Count("pk", filter=l_filter)
-            agg_args[r_name] = Count("pk", filter=r_filter)
-        agg_args["all"] = Count("pk")
-        totals = lar_queryset.aggregate(**agg_args)
-        approvals = lar_queryset\
-            .filter(LoanApplicationRecord.FILTERS.APPROVED)\
-            .aggregate(**agg_args)
-
-        yield GroupedDisparityRows(
-            "White borrowers",
-            [
-                DisparityRow(
-                    name, totals[name], approvals[name],
-                    totals["all"],
-                    totals["White"], approvals["White"],
-                )
-                for name, _ in cls.race_features()
-            ],
-        )
-        for l_name, _, r_name, _ in others:
-            yield GroupedDisparityRows(
-                r_name,
-                [DisparityRow(
-                    l_name, totals[l_name], approvals[l_name],
-                    totals["all"],
-                    totals[r_name], approvals[r_name])],
-            )
-
 
 class GroupedDisparityRows(NamedTuple):
     comparison_label: str
     rows: List[DisparityRow]
+
+
+class LenderReport(MaterializedView):
+    compound_id = models.CharField(max_length=4 + 5 + 4 + 15, primary_key=True)
+    year = models.SmallIntegerField()
+    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    lien_status = models.CharField(max_length=1)
+    loan_purpose = models.CharField(max_length=1)
+    owner_occupancy = models.CharField(max_length=1)
+    property_type = models.CharField(max_length=1)
+    lender = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    lender_name = models.CharField(max_length=128)
+    applications = models.IntegerField()
+    approved = models.IntegerField()
+    lmit_approved = models.IntegerField()
+    lmib_approved = models.IntegerField()
+    mint_approved = models.IntegerField()
+    minb_approved = models.IntegerField()
+
+    AGG_COLUMNS = (
+        "applications", "approved", "lmit_approved", "lmib_approved",
+        "mint_approved", "minb_approved",
+    )
+
+    @classmethod
+    def generate_for(
+            cls,
+            division: Division,
+            report_input: ReportInput,
+            count: int = 20,
+    ) -> Iterator["TopLenderRow"]:
+        data = cls.objects\
+            .filter(
+                county__in=division.counties,
+                year=report_input.year,
+                lien_status__in=report_input.lien_status_ids,
+                loan_purpose__in=report_input.loan_purpose_ids,
+                owner_occupancy__in=report_input.owner_occupancy_ids,
+                property_type__in=report_input.property_type_ids,
+            )\
+            .values("lender_id", "lender_name")\
+            .annotate(**{f: Coalesce(Sum(f), 0) for f in cls.AGG_COLUMNS})\
+            .order_by("-applications")
+
+        for idx, row in enumerate(data):
+            if idx < count or row["lender_id"] in report_input.lender_ids:
+                yield TopLenderRow(
+                    idx + 1,
+                    row["lender_id"] in report_input.lender_ids,
+                    row["lender_name"],
+                    row["applications"],
+                    100 * row["approved"] // (row["applications"] or 1),
+                    100 * row["lmit_approved"] // (row["approved"] or 1),
+                    100 * row["lmib_approved"] // (row["approved"] or 1),
+                    100 * row["mint_approved"] // (row["approved"] or 1),
+                    100 * row["minb_approved"] // (row["approved"] or 1),
+                )
 
 
 class TopLenderRow(NamedTuple):
@@ -222,68 +254,3 @@ class TopLenderRow(NamedTuple):
     lmib_pct: int
     mint_pct: int
     minb_pct: int
-
-    @classmethod
-    def generate_for(
-            cls,
-            division: Division,
-            report_input: ReportInput,
-            count: int = 20) -> Iterator["TopLenderRow"]:
-        demographics = AggDemographics.for_division(
-            division, report_input.year)
-        if demographics:
-            mui_boundary = (demographics.ffiec_est_med_fam_income * .8) // 1000
-        else:
-            mui_boundary = 0
-        lmi_app_filter = Q(applicant_income_000s__lt=mui_boundary)
-        tract_dem_qs = TractDemographics.objects\
-            .values("tract_id")\
-            .filter(tract__in=division.tract_set.all(), year=report_input.year)
-        lmi_tracts = Q(tract__in=tract_dem_qs.filter(
-            TractDemographics.FILTERS.LMI))
-        min_tracts = Q(tract__in=tract_dem_qs.filter(
-            TractDemographics.FILTERS.MINORITY))
-
-        rows = report_input.lar_queryset(division)\
-            .values("institution_id", "institution__name")\
-            .annotate(
-                applications=Count("pk"),
-                approved=Count(
-                    "pk", filter=LoanApplicationRecord.FILTERS.APPROVED),
-                lmit_approved=Count(
-                    "pk",
-                    filter=lmi_tracts & LoanApplicationRecord.FILTERS.APPROVED,
-                ),
-                lmib_approved=Count(
-                    "pk",
-                    filter=(
-                        lmi_app_filter
-                        & LoanApplicationRecord.FILTERS.APPROVED
-                    ),
-                ),
-                mint_approved=Count(
-                    "pk",
-                    filter=min_tracts & LoanApplicationRecord.FILTERS.APPROVED,
-                ),
-                minb_approved=Count(
-                    "pk",
-                    filter=(
-                        LoanApplicationRecord.FILTERS.MINORITY
-                        & LoanApplicationRecord.FILTERS.APPROVED
-                    ),
-                ),
-            )\
-            .order_by("-applications")
-        for idx, row in enumerate(rows):
-            if idx < count or row["institution_id"] in report_input.lender_ids:
-                yield cls(
-                    idx + 1,
-                    row["institution_id"] in report_input.lender_ids,
-                    row["institution__name"],
-                    row["applications"],
-                    100 * row["approved"] // (row["applications"] or 1),
-                    100 * row["lmit_approved"] // (row["approved"] or 1),
-                    100 * row["lmib_approved"] // (row["approved"] or 1),
-                    100 * row["mint_approved"] // (row["approved"] or 1),
-                    100 * row["minb_approved"] // (row["approved"] or 1),
-                )

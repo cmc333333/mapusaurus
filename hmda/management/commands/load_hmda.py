@@ -11,6 +11,7 @@ from geo import errors
 from geo.models import Tract
 from hmda.models import LARYear, LoanApplicationRecord
 from mapusaurus.batch_utils import save_batches
+from reports.models import DisparityReport, LenderReport
 from respondents.models import Institution
 
 logger = logging.getLogger(__name__)
@@ -106,3 +107,7 @@ class Command(BaseCommand):
         options["file_name"].close()
         update_num_loans()
         LARYear.rebuild_all()
+        logger.info("Rebuilding disparity report materialized view")
+        DisparityReport.rebuild_all()
+        logger.info("Rebuilding lender report materialized view")
+        LenderReport.rebuild_all()

@@ -10,7 +10,7 @@ from hmda.models import (
     OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
 )
 from reports.models import (
-    DisparityRow, IncomeHousingReport, PopulationReport, TopLenderRow)
+    DisparityReport, IncomeHousingReport, LenderReport, PopulationReport)
 from reports.serializers import ReportInput
 
 register = template.Library()
@@ -34,14 +34,14 @@ def income_housing(division: Division, year: int):
 @register.inclusion_tag("reports/tract_lar_report.html")
 def tract_lar_report(division: Division, report_input: ReportInput):
     return {
-        "row_groups": DisparityRow.groups_for(division, report_input),
+        "row_groups": DisparityReport.groups_for(division, report_input),
         "year": report_input.year,
     }
 
 
 @register.inclusion_tag("reports/top_lenders.html")
 def top_lenders(division: Division, report_input: ReportInput):
-    return {"rows": TopLenderRow.generate_for(division, report_input)}
+    return {"rows": LenderReport.generate_for(division, report_input)}
 
 
 @register.inclusion_tag("reports/sidebar.html")
