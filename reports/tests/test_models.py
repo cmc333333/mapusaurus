@@ -33,14 +33,15 @@ def test_population_report():
     assert asian != 0
     assert poverty != 0
 
-    assert list(models.PopulationReportRow.generate_for(metdiv, 2010)) == [
+    models.PopulationReport.rebuild_all()
+    assert list(models.PopulationReport.generate_for(metdiv, 2010)) == [
         ("All Population", total, 100),
         ("White", white, white * 100 // total),
         ("Hispanic/Latino", hispanic, hispanic * 100 // total),
         ("Black", black, black * 100 // total),
         ("Asian", asian, asian * 100 // total),
         ("Minority", total - white, (total - white) * 100 // total),
-        ("People living in Poverty", poverty, poverty * 100 // total),
+        ("People Living in Poverty", poverty, poverty * 100 // total),
     ]
 
 

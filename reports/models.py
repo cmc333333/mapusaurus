@@ -1,45 +1,48 @@
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
+from django.db import models
 from django.db.models import Count, Expression, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
-from geo.models import Division
+from geo.models import County, Division
 from hmda.models import LoanApplicationRecord
+from mapusaurus.materialized_view import MaterializedView
 from reports.serializers import ReportInput
 
 
-class PopulationReportRow(NamedTuple):
-    title: str
-    population: int
-    percent: int
+class PopulationReport(MaterializedView):
+    compound_id = models.CharField(max_length=4 + 5, primary_key=True)
+    year = models.SmallIntegerField()
+    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    total = models.IntegerField(verbose_name="All Population")
+    white = models.IntegerField(verbose_name="White")
+    hispanic = models.IntegerField(verbose_name="Hispanic/Latino")
+    black = models.IntegerField(verbose_name="Black")
+    asian = models.IntegerField(verbose_name="Asian")
+    minority = models.IntegerField(verbose_name="Minority")
+    poverty = models.IntegerField(verbose_name="People Living in Poverty")
 
-    @staticmethod
-    def features() -> Tuple[Tuple[str, Expression], ...]:
-        return (
-            ("All Population", Coalesce(Sum("persons"), 0)),
-            ("White", Coalesce(Sum("non_hispanic_white"), 0)),
-            ("Hispanic/Latino", Coalesce(Sum("hispanic_only"), 0)),
-            ("Black", Coalesce(Sum("black"), 0)),
-            ("Asian", Coalesce(Sum("asian"), 0)),
-            ("Minority",
-                Coalesce(Sum("persons") - Sum("non_hispanic_white"), 0)),
-            ("People living in Poverty", Coalesce(Sum("poverty"), 0)),
-        )
+    REPORT_COLUMNS = [
+        "total", "white", "hispanic", "black", "asian", "minority", "poverty",
+    ]
 
     @classmethod
     def generate_for(
             cls,
             division: Division,
-            year: int) -> Iterator["PopulationReportRow"]:
-        data = TractDemographics.objects\
-            .filter(tract__in=division.tract_set.all(), year=year)\
-            .aggregate(**dict(cls.features()))
-        for title, _ in cls.features():
-            yield cls(
-                title,
-                data[title],
-                100 * data[title] // (data["All Population"] or 1),
+            year: int,
+    ) -> Iterator[Tuple[str, int, int]]:
+        data = cls.objects\
+            .filter(county__in=division.counties, year=year)\
+            .aggregate(
+                **{col: Coalesce(Sum(col), 0) for col in cls.REPORT_COLUMNS},
+            )
+        for column in cls.REPORT_COLUMNS:
+            yield (
+                cls._meta.get_field(column).verbose_name,
+                data[column],
+                100 * data[column] // (data["total"] or 1),
             )
 
 

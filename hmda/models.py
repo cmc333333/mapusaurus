@@ -1,4 +1,6 @@
-from django.db import connection, models
+from django.db import models
+
+from mapusaurus.materialized_view import MaterializedView
 
 AGENCY_CHOICES = (
     ("1", "Office of the Comptroller of the Currency (OCC)"),
@@ -398,17 +400,9 @@ class LoanApplicationRecord(models.Model):
         FEMALE = models.Q(applicant_sex=2)
 
 
-class LARYear(models.Model):
-    """Counting distinct LAR years present is very slow when looking at
-    national data; these models are a denormalized list of years for which we
-    have LAR."""
+class LARYear(MaterializedView):
     class Meta:
         managed = False
         ordering = ["-year"]
 
     year = models.PositiveIntegerField(primary_key=True)
-
-    @classmethod
-    def rebuild_all(cls):
-        with connection.cursor() as cursor:
-            cursor.execute(f"REFRESH MATERIALIZED VIEW {cls._meta.db_table}")

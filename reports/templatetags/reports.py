@@ -10,7 +10,7 @@ from hmda.models import (
     OWNER_OCCUPANCY_CHOICES, PROPERTY_TYPE_CHOICES,
 )
 from reports.models import (
-    DisparityRow, IncomeHousingReportRow, PopulationReportRow, TopLenderRow)
+    DisparityRow, IncomeHousingReportRow, PopulationReport, TopLenderRow)
 from reports.serializers import ReportInput
 
 register = template.Library()
@@ -18,7 +18,7 @@ register = template.Library()
 
 @register.inclusion_tag("reports/population.html")
 def population(division: Division, year: int):
-    return {"rows": PopulationReportRow.generate_for(division, year)}
+    return {"rows": PopulationReport.generate_for(division, year)}
 
 
 @register.inclusion_tag("reports/median_income.html")
