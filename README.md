@@ -13,7 +13,7 @@ Disclosure Act data in a geo-spatial interface.
 
 This currently uses:
 Django 1.11
-Python 3.6
+Python 3.7
 
 You will also need:
 PostgreSQL > 9.3, including 10
@@ -25,30 +25,34 @@ See the Pipfile (and Pipfile.lock) for more details; we recommend using
 
 ## Setup
 
+We'll assume you're running the Dockerized version of the app; if not, these
+commands will be slightly differently, notably missing the "bin/" prefix. We
+assume you've already install Docker.
+
 To create all of the relevant database tables, run:
 
 ```sh
-python manage.py migrate
+bin/python manage.py migrate
 ```
 
 ### Respondent/Institution data
 
 Start by loading a fixture with regulator agency data:
 ```sh
-python manage.py loaddata agency
+bin/python manage.py loaddata agency
 ```
 
 Then, fetch and load the transmittal sheets and reporter data files:
 ```sh
-python manage.py fetch_load_transmittals --year 2013
-python manage.py fetch_load_reporter_panels --year 2013
+bin/python manage.py fetch_load_transmittals
+bin/python manage.py fetch_load_reporter_panels
 ```
 
 ### Geo
 
 We next load state, county, CBSA, and census tract shape files by running:
 ```sh
-python manage.py fetch_load_geos --year 2013
+bin/python manage.py fetch_load_geos
 ```
 
 ### FFIEC
@@ -56,20 +60,22 @@ python manage.py fetch_load_geos --year 2013
 We'll also need demographic data from the FFIEC for each tract. Fetch and load
 that by running:
 ```sh
-python manage.py fetch_load_demographics --year 2013
+bin/python manage.py fetch_load_demographics --year 2013
 ```
 
 ### HMDA Data
 
-Next, we load the HMDA Loan Application Record data for each of our census
+Finally, we load the HMDA Loan Application Record data for each of our census
 tracts:
 ```sh
-python manage.py fetch_load_hmda --year 2013
+bin/python manage.py fetch_load_hmda
 ```
 
 ### Start the app
 
 To run the development version of the app, we need only run:
 ```sh
-python manage.py runserver
+docker-compose up
 ```
+
+Then navigate to http://localhost:8000 in a web browser.
