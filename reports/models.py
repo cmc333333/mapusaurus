@@ -13,7 +13,7 @@ from respondents.models import Institution
 class PopulationReport(MaterializedView):
     compound_id = models.CharField(max_length=4 + 5, primary_key=True)
     year = models.SmallIntegerField()
-    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    county = models.ForeignKey(County, on_delete=models.DO_NOTHING)
     total = models.IntegerField(verbose_name="All Population")
     white = models.IntegerField(verbose_name="White")
     hispanic = models.IntegerField(verbose_name="Hispanic/Latino")
@@ -48,7 +48,7 @@ class PopulationReport(MaterializedView):
 class IncomeHousingReport(MaterializedView):
     compound_id = models.CharField(max_length=4 + 5, primary_key=True)
     year = models.SmallIntegerField()
-    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    county = models.ForeignKey(County, on_delete=models.DO_NOTHING)
     home_total = models.IntegerField(verbose_name="Single Family Homes")
     occupied = models.IntegerField(verbose_name="Owner Occupied Homes")
     tract_total = models.IntegerField(verbose_name="Total Tracts")
@@ -93,7 +93,7 @@ class IncomeHousingReport(MaterializedView):
 class DisparityReport(MaterializedView):
     compound_id = models.CharField(max_length=4 + 5 + 1 + 4, primary_key=True)
     year = models.SmallIntegerField()
-    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    county = models.ForeignKey(County, on_delete=models.DO_NOTHING)
     approved = models.BooleanField()
     lien_status = models.CharField(max_length=1)
     loan_purpose = models.CharField(max_length=1)
@@ -190,12 +190,12 @@ class GroupedDisparityRows(NamedTuple):
 class LenderReport(MaterializedView):
     compound_id = models.CharField(max_length=4 + 5 + 4 + 15, primary_key=True)
     year = models.SmallIntegerField()
-    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    county = models.ForeignKey(County, on_delete=models.DO_NOTHING)
     lien_status = models.CharField(max_length=1)
     loan_purpose = models.CharField(max_length=1)
     owner_occupancy = models.CharField(max_length=1)
     property_type = models.CharField(max_length=1)
-    lender = models.ForeignKey(Institution, on_delete=models.CASCADE)
+    lender = models.ForeignKey(Institution, on_delete=models.DO_NOTHING)
     lender_name = models.CharField(max_length=128)
     applications = models.IntegerField()
     approved = models.IntegerField()
