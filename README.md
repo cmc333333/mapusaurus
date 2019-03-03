@@ -29,6 +29,11 @@ We'll assume you're running the Dockerized version of the app; if not, these
 commands will be slightly differently, notably missing the "bin/" prefix. We
 assume you've already install Docker.
 
+Start by installing the latest Python dependencies:
+```sh
+bin/pipenv install --ignore-pipfile --dev
+```
+
 To create all of the relevant database tables, run:
 
 ```sh
@@ -79,3 +84,15 @@ docker-compose up
 ```
 
 Then navigate to http://localhost:8000 in a web browser.
+
+### Building the frontend
+
+To rebuild the frontend, run:
+```sh
+cd frontend
+bin/npm install
+bin/npm run build-dev   # or build-dist if building for production
+```
+
+We currently check the built frontend into version control, though that will
+likely change in the future.
