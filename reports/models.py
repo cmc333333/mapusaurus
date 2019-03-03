@@ -1,7 +1,7 @@
 from typing import Iterator, List, NamedTuple, Optional, Tuple
 
 from django.db import models
-from django.db.models import Count, Expression, Q, Sum
+from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 
 from ffiec.models import AggDemographics, TractDemographics
@@ -46,80 +46,49 @@ class PopulationReport(MaterializedView):
             )
 
 
-class IncomeHousingReportRow(NamedTuple):
-    title: str
-    total: int
-    percent: int
+class IncomeHousingReport(MaterializedView):
+    compound_id = models.CharField(max_length=4 + 5, primary_key=True)
+    year = models.SmallIntegerField()
+    county = models.ForeignKey(County, on_delete=models.CASCADE)
+    home_total = models.IntegerField(verbose_name="Single Family Homes")
+    occupied = models.IntegerField(verbose_name="Owner Occupied Homes")
+    tract_total = models.IntegerField(verbose_name="Total Tracts")
+    lmi_tracts = models.IntegerField(verbose_name="LMI Tracts in Geography")
+    min_tracts = models.IntegerField(
+        verbose_name="Minority Tracts in Geography")
+    pop_total = models.IntegerField(verbose_name="Total Population")
+    pop_lmi = models.IntegerField(verbose_name="Population in LMI Tracts")
+    pop_min = models.IntegerField(
+        verbose_name="Population in Minority Tracts")
 
-    @staticmethod
-    def home_features() -> Tuple[Tuple[str, Expression], ...]:
-        return (
-            ("Single Family Homes", Coalesce(Sum("single_family_homes"), 0)),
-            ("Owner Occupied Homes",
-                Coalesce(Sum("single_family_occupied"), 0)),
-        )
-
-    @staticmethod
-    def tract_features() -> Tuple[Tuple[str, Expression], ...]:
-        return (
-            ("LMI Tracts in Geography",
-                Count("pk", filter=TractDemographics.FILTERS.LMI)),
-            ("Minority Tracts in Geography",
-                Count("pk", filter=TractDemographics.FILTERS.MINORITY)),
-        )
-
-    @staticmethod
-    def pop_features() -> Tuple[Tuple[str, Expression], ...]:
-        return (
-            (
-                "Population in LMI Tracts",
-                Coalesce(
-                    Sum("persons", filter=TractDemographics.FILTERS.LMI),
-                    0,
-                ),
-            ),
-            (
-                "Population in Minority Tracts",
-                Coalesce(
-                    Sum("persons", filter=TractDemographics.FILTERS.MINORITY),
-                    0,
-                ),
-            ),
-        )
+    GROUPED_COLUMNS = [
+        ("home_total", ("home_total", "occupied")),
+        ("tract_total", ("lmi_tracts", "min_tracts")),
+        ("pop_total", ("pop_lmi", "pop_min")),
+    ]
 
     @classmethod
     def generate_for(
             cls,
             division: Division,
-            year: int) -> Iterator["IncomeHousingReportRow"]:
-        agg_args = dict(cls.home_features())
-        agg_args.update(cls.tract_features())
-        agg_args.update(cls.pop_features())
-        agg_args.update(
-            tract_total=Count("pk"), pop_total=Coalesce(Sum("persons"), 0))
+            year: int,
+    ) -> Iterator[Tuple[str, int, int]]:
+        columns = set()
+        for cmp_field, fields in cls.GROUPED_COLUMNS:
+            columns.add(cmp_field)
+            columns.update(fields)
 
-        data = TractDemographics.objects\
-            .filter(tract__in=division.tract_set.all(), year=year)\
-            .aggregate(**agg_args)
+        data = cls.objects\
+            .filter(county__in=division.counties, year=year)\
+            .aggregate(**{field: Coalesce(Sum(field), 0) for field in columns})
 
-        for title, _ in cls.home_features():
-            yield cls(
-                title,
-                data[title],
-                100 * data[title] // (data["Single Family Homes"] or 1),
-            )
-        for title, _ in cls.tract_features():
-            yield cls(
-                title,
-                data[title],
-                100 * data[title] // (data["tract_total"] or 1),
-            )
-        for title, _ in cls.pop_features():
-            yield cls(
-                title,
-                data[title],
-                100 * data[title] // (data["pop_total"] or 1),
-            )
+        for cmp_field, fields in cls.GROUPED_COLUMNS:
+            for field in fields:
+                yield (
+                    cls._meta.get_field(field).verbose_name,
+                    data[field],
+                    100 * data[field] // (data[cmp_field] or 1),
+                )
 
 
 class DisparityRow(NamedTuple):

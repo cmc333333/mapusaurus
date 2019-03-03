@@ -86,7 +86,8 @@ def test_income_housing_report():
     assert persons_lmi != 0
     assert persons_minority != 0
 
-    assert list(models.IncomeHousingReportRow.generate_for(metdiv, 2010)) == [
+    models.IncomeHousingReport.rebuild_all()
+    assert list(models.IncomeHousingReport.generate_for(metdiv, 2010)) == [
         ("Single Family Homes", homes, 100),
         ("Owner Occupied Homes", occupied, occupied * 100 // homes),
         ("LMI Tracts in Geography",
